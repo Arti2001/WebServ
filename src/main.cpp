@@ -6,11 +6,12 @@
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/21 10:03:46 by pminialg          #+#    #+#             */
-/*   Updated: 2025/03/27 14:50:33 by amysiv           ###   ########.fr       */
+/*   Updated: 2025/03/28 13:35:11 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "./core/Server.hpp"
+#include "core/Server.hpp"
+#include <iostream>
 #include <csignal>
 
 Server *g_server = nullptr; //pointer to our server instance, so the signal handler can access it
