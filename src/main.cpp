@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/21 10:03:46 by pminialg          #+#    #+#             */
-/*   Updated: 2025/03/28 13:35:11 by amysiv           ###   ########.fr       */
+/*   Updated: 2025/03/30 12:47:38 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,19 +14,10 @@
 #include <iostream>
 #include <csignal>
 
-Server *g_server = nullptr; //pointer to our server instance, so the signal handler can access it
-bool g_running = true; //a flag to control the server's main loop
+Server *g_server = nullptr;
+bool g_running = true;
 
-/*
-    Our signal handler function that gets called when the server receives a certain system signal
-    
-    signum: the signal number
-    prints amessage about the signal
-    sets g_running to false to stop the server's main loop
-    calls the server's stop method if it exists
-    prints a shutdown message
-    exits with the signal number as the status code
-*/
+
 void signalHandler(int signum)
 {
 	std::cout << "\nInterupt signal (" << signum << ") received." << std::endl;
@@ -40,13 +31,12 @@ void signalHandler(int signum)
 
 int main(void)
 {
-	// setup signal handling
-	signal(SIGINT, signalHandler); // handle Ctrl + C
-	signal(SIGTERM, signalHandler); // handle termination request
-	signal(SIGQUIT, signalHandler); // handle Ctrl +'\'
+	signal(SIGINT, signalHandler);
+	signal(SIGTERM, signalHandler);
+	signal(SIGQUIT, signalHandler);
 
 	// Create and initialise server
-	Server server(8080); // creates a server that will listen on port 8080
+	Server server("8080", "127.0.0.1");
 	g_server = &server; // stores the servers address in our global pointer
 
 	if (!server.init()) // calls init which sets up the socket, binds it, and starts listening
@@ -62,30 +52,3 @@ int main(void)
 
 	return 0;
 }
-
-// int main(int argc, char *argv[])
-// {
-//     std::string config_path = "config/default.conf";
-
-//     // Use provided config file if specified
-//     if (argc > 1)
-//     {
-//         config_path = argv[1];
-//     }
-
-//     try
-//     {
-//         // TODO: Initialize server with config
-//         // TODO: Start event loop
-//         std::cout << "Starting webserv on port 8080..." << std::endl;
-
-//         // TODO: Implement main server loop
-//     }
-//     catch (const std::exception &e)
-//     {
-//         std::cerr << "Error: " << e.what() << std::endl;
-//         return 1;
-//     }
-
-//     return 0;
-// }

@@ -1,5 +1,6 @@
 #include "Server.hpp"
-Server::Server(int port, const std::string& host) : _servSockFd(-1), _servPort(port), _servHost(host), _isRunning(false){
+
+Server::Server(std::string port,  std::string host) : _sockFd(-1), _servPort(port), _servHost(host), _isRunning(false){
 
 }
 
@@ -8,31 +9,19 @@ Server::~Server()
 	stop();
 }
 
-/* 
-    This method sets up the server socket:
-    1. Creates a TCP socket
-    2. Sets socket options (SO_REUSEADDR allows reuse of the addserverLists)
-    3. Sets the socket to non-blocking mode
-    4. Binds the socket to our addserverLists
-    5. Starts listening for connections
-    6. Returns true if successful
-	*/
 bool Server::init()
 {
-	struct addrinfo		hints, *serverList, *rp;
-	int					infoRet;
-	
-	std::memset(&hints, 0 , sizeof(struct addrinfo));
-	
+	struct addrinfo hints, *res, *rp;
+	int				infoRet;
+
+	memset(&hints, 0, sizeof(struct addrinfo));
+
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = 0;
 	hints.ai_flags = AI_PASSIVE;
-	hints.ai_protocol = IPPROTO_TCP;
 
-	
-	std::string strPort = std::to_string(_servPort);
-
-	infoRet = getaddrinfo(_servHost.c_str(), strPort.c_str(), &hints, &serverList);
+	infoRet = getaddrinfo(_servHost.c_str(), _servPort.c_str(), &hints, &res);
 	if (infoRet != 0 ) {
 		std::cerr << "Error: getaddrinfo(): " << gai_strerror(infoRet) << "\n";
 		return (false);
@@ -45,62 +34,68 @@ bool Server::init()
 
 
 
-	for (rp = serverList; rp != NULL; rp = rp->ai_next) {
-		
-		_servSockFd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
-		if (_servSockFd == -1)
-		{
+	for (rp = res; rp != NULL; rp = rp->ai_next) {
+
+		_sockFd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+		if (_sockFd == -1) {
 			continue;
 		}
-		if (bind(_servSockFd, rp->ai_addr, rp->ai_addrlen) == 0) {
+		if (bind(_sockFd, rp->ai_addr, rp->ai_addrlen) == 0) {
+			std::cerr << "Successfully binded" << std::endl;
 			break;
 		}
-		close (_servSockFd);
+		close (_sockFd);
 	}
 
 	if (rp == NULL) {
-		std::cerr << "Failed to bind to any addserverLists" << std::endl;
+		std::cerr << "Failed to bind to any results" << std::endl;
 		exit(EXIT_FAILURE);
 	}
-	freeaddrinfo(serverList);
+	freeaddrinfo(res);
 
 
-	// Set socket to non-blocking mode
-	if (!setNonBlocking(_servSockFd))
-	{
-		std::cerr << "Error: Failed to set non-blocking mode" << std::endl;
-		close(_servSockFd);
-		return false;
+	if (!Server::setNonBlocking(_sockFd)) {
+		std::cerr << "Error: Faild to set fd to a Non Blocking mode!"<< std::endl;
 	}
 
-	// Bind socket
-	//
 
-	// Listen to connections
-	if (listen(_servSockFd, 10) < 0) // listen - makes the socket listen for incoming connections
+
+
+	if (listen(_sockFd, 10) < 0)
 	{
 		std::cerr << "Error: Listen failed" << std::endl;
-		close(_servSockFd);
+		close(_sockFd);
 		return false;
 	}
+	else {
+		std::cout << " Server Listening"<< std::endl;
+	}
+
+
+
 
 	std::cout << "Server initialized on port " << _servPort << std::endl;
 	return true;
 }
 
-/*
-    This is the main server loop:
-    1. Checks if server is initialized
-    2. Sets _is_running to true
-    3. Enters a loop that:
-        - Accepts new connections
-        - Handles non-blocking errors
-        - Sets client sockets to non-blocking mode
-        - Handles each connection
-*/
+bool Server::setNonBlocking(int fd) {
+
+	int prevFlags  = fcntl(fd, F_GETFL);
+
+	if (prevFlags == -1) {
+		std::cerr << " Error: fctl(): Failed to get the fd's flags!"<< std::endl;
+		return (false);
+	}
+	if (fcntl(fd, F_SETFL, prevFlags | O_NONBLOCK) == -1) {
+		std::cerr << " Error: fctl(): Failed to set the fd's flags!"<< std::endl;
+		return (false);
+	}
+	return (true);
+}
+
 void Server::start()
 {
-	if (_servSockFd < 0)
+	if (_sockFd < 0)
 	{
 		std::cerr << "Error: Server not initialized" << std::endl;
 		return;
@@ -115,7 +110,7 @@ void Server::start()
 		socklen_t client_len = sizeof(client_addserverLists);  // Size of client's addserverLists
 
 		// Accept new connection
-		int client_socket = accept(_servSockFd, (struct sockaddr *)&client_addserverLists, &client_len);    // accept - accepts incoming connections
+		int client_socket = accept(_sockFd, (struct sockaddr *)&client_addserverLists, &client_len);    // accept - accepts incoming connections
 		if (client_socket < 0)
 		{
 			// std::cerr << "Error: Accept failed" << std::endl;
@@ -123,10 +118,9 @@ void Server::start()
 			if (errno == EAGAIN || errno == EWOULDBLOCK) // change this to something that is not errno
 				continue;
 		}
-
-		// Set client socket to non-blocking mode
-		setNonBlocking(client_socket);
-
+		if (!Server::setNonBlocking(client_socket)) {
+			std::cerr << "Error: Faild to set fd to a Non Blocking mode!"<< std::endl;
+		}
 		// Handle the connection
 		handleConnection(client_socket);
     }
@@ -141,21 +135,14 @@ void Server::start()
 void Server::stop()
 {
     _isRunning = false;
-    if (_servSockFd >= 0)
+    if (_sockFd >= 0)
     {
-        close(_servSockFd);
-        _servSockFd = -1;
+        close(_sockFd);
+        _sockFd = -1;
         std::cout << "Server stopped" << std::endl;
     }
 }
 
-/*
-    Handles individual client connections:
-    1. Receives data from client
-    2. Send a simple HTTP serverListponse
-    3. Waits briefly (for testing)
-    4. Closes the connection
-*/
 void Server::handleConnection(int client_socket)
 {
 	std::cout << "New connection accepted" << std::endl;
@@ -185,19 +172,3 @@ void Server::handleConnection(int client_socket)
 	close(client_socket);
 	std::cout << "Connection closed" << std::endl;
 	}
-
-/*
-    Sets a file descriptor to non-blocking mode:
-    1. Gets the current flags
-    2. Adds the O_NONBLOCK flag
-    3. Sets new flags
-*/
-bool Server::setNonBlocking(int fd)
-{
-    int flags = fcntl(fd, F_GETFL, 0); 
-    if (flags < 0)
-    {
-        return false;
-    }
-    return fcntl(fd, F_SETFL, flags | O_NONBLOCK) >= 0;
-}
