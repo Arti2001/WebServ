@@ -154,6 +154,15 @@ void Server::start()
 					close(cSock);
 					continue;
 				}
+				ev.events = EPOLLIN | EPOLLET;
+				ev.data.fd = cSock;
+				if (epoll_ctl(epollFd, EPOLL_CTL_ADD, cSock, &ev) == -1) {
+
+					handleError("Error: epoll_ctl");
+					close(_sockFd);
+					continue;
+				}
+
 			}
 		}
 		// Handle the connection
