@@ -2,6 +2,8 @@
 #define SERVER_HPP
 
 #define MAX_EVENTS 10 
+#define QUEUE_LENGTH 5 
+
 
 #include <string>
 #include <string.h>
@@ -12,31 +14,35 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <fcntl.h>
+#include <csignal>
+#include <sys/epoll.h>
+ #include <arpa/inet.h>
+#include <cerrno>
 #include <iostream>
 
 
 class Server
 {
-    private:
-        int                 _sockFd;
-        std::string         _servPort;
-        std::string         _servHost;
-        bool                _isRunning;
+	private:
+		int                 _sockFd;
+		std::string         _servPort;
+		std::string         _servHost;
+		bool                _isRunning;
 
-    public:
-        Server(std::string port, std::string host);
-      //  Server(const Server& other);
-      //  Server& operator=(const Server& other);
-        ~Server();
+	public:
+		Server(std::string port, std::string host);
+		//  Server(const Server& other);
+		//  Server& operator=(const Server& other);
+		~Server();
 
-        bool init();//to change
-        bool setNonBlocking(int fd);
-        void start();
-        void stop();
-        bool isRunning() const;
+		bool init();//to change
+		bool setNonBlocking(int fd);
+		void start();
+		void stop();
+		bool isRunning() const;
 
-    private:
-        void handleConnection(int client_socket);
-};
+	private:
+		void handleConnection(int client_socket);
+	};
 
 #endif
