@@ -101,73 +101,82 @@ void Server::start()
 {
 	struct sockaddr_storage	clientAddr;
 	socklen_t				clientLen = sizeof(clientAddr);
-	struct epoll_event	ev, events[MAX_EVENTS];
-	int					epollFd, cSock, rfds;
+	struct epoll_event	event, events[MAX_EVENTS];
+	int					epollFd, cSock = -1, rfds;
 
 	_isRunning = true;
 	std::cout << "Server started. Waiting for connections..." << "\n";
 
+	//Create an epoll instnce in the kernel
 	epollFd = epoll_create(MAX_EVENTS);
 	if (epollFd == -1){
 		handleError("Error: epoll_create()");
 		close(_sockFd);
 		exit(EXIT_FAILURE);
 	}
-	ev.events = EPOLLIN;
-	ev.data.fd = _sockFd;
-	if (epoll_ctl(epollFd, EPOLL_CTL_ADD, _sockFd, &ev) == -1) {
+	else
+		std::cout << "Epoll created" << "\n";
+
+	event.events = EPOLLIN;
+	event.data.fd = _sockFd;
+	//adding fd to interest list and specify what event we want to monitor
+	if (epoll_ctl(epollFd, EPOLL_CTL_ADD, _sockFd, &event) == -1) {
 
 		handleError("Error: epoll_ctl");
 		close(_sockFd);
 		exit(EXIT_FAILURE);
 	}
+	else
+		std::cout << "Fd: " << _sockFd << " added to the interest list"<<"\n";
+
+
 
 	while (_isRunning)
 	{
-
-		rfds = epoll_wait(epollFd, events, MAX_EVENTS, 0);
+		//waits for fd's that are in the Ready list
+		rfds = epoll_wait(epollFd, events, MAX_EVENTS, -1);
 		if (rfds == -1) {
 
 			handleError("Error: epoll_wait");
 			exit(EXIT_FAILURE);
 		}
-
+		std::cout <<"Amount of ready fds: "<< rfds <<"\n";
 		for (int i = 0; i < rfds; i++) {
 
-			if (events[i].data.fd == _sockFd) {
-
+			if (events[i].events & EPOLLIN) {
+				std::cout << "GOT EPOLLIN event" <<"\n";
 				cSock = accept(_sockFd, (struct sockaddr *)&clientAddr, &clientLen);
 				if (cSock == -1) {
 
 						if (errno == EAGAIN || errno == EWOULDBLOCK) {
 
-						std::cerr << "No client connections available at the moment." << std::endl;
-						continue;
+							std::cerr << "No client connections available at the moment." << std::endl;
+							continue;
 						}
 						handleError("Error: accept");
 						exit(EXIT_FAILURE);
 					}
+					handleConnection(cSock);
 				}
 
-				if (!Server::setNonBlocking(cSock)) {
-					std::cerr << "Error: Faild to set fd to a Non Blocking mode!"<< "\n";
-					close(cSock);
-					continue;
+				//if (!Server::setNonBlocking(cSock)) {
+				//	std::cerr << "Error: Faild to set fd to a Non Blocking mode!"<< "\n";
+				//	close(cSock);
+				//	continue;
 				}
-				ev.events = EPOLLIN | EPOLLET;
-				ev.data.fd = cSock;
-				if (epoll_ctl(epollFd, EPOLL_CTL_ADD, cSock, &ev) == -1) {
+				//event.events = EPOLLIN | EPOLLET;
+				//event.data.fd = cSock;
+				//if (epoll_ctl(epollFd, EPOLL_CTL_ADD, cSock, &event) == -1) {
 
-					handleError("Error: epoll_ctl");
-					close(_sockFd);
-					continue;
-				}
+				//	handleError("Error: epoll_ctl");
+				//	close(_sockFd);
+				//	continue;
+				//}
 
 			}
-		}
-		// Handle the connection
-		handleConnection(cSock);
 	}
+		// Handle the connection
+	
 
 
 /*
