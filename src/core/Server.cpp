@@ -127,7 +127,7 @@ void Server::start()
 		exit(EXIT_FAILURE);
 	}
 	else
-		std::cout << "Fd: " << _sockFd << " added to the interest list"<<"\n";
+		std::cout << "Listenig socket Fd: " << _sockFd << " added to the interest list"<<"\n";
 
 
 
@@ -143,36 +143,45 @@ void Server::start()
 		std::cout <<"Amount of ready fds: "<< rfds <<"\n";
 		for (int i = 0; i < rfds; i++) {
 
-			if (events[i].events & EPOLLIN) {
-				std::cout << "GOT EPOLLIN event" <<"\n";
+			if (events[i].data.fd == _sockFd) {
 				cSock = accept(_sockFd, (struct sockaddr *)&clientAddr, &clientLen);
 				if (cSock == -1) {
-
-						if (errno == EAGAIN || errno == EWOULDBLOCK) {
-
-							std::cerr << "No client connections available at the moment." << std::endl;
-							continue;
-						}
-						handleError("Error: accept");
-						exit(EXIT_FAILURE);
+					
+					if (errno == EAGAIN || errno == EWOULDBLOCK) {
+						
+						std::cerr << "No client connections available at the moment." << std::endl;
+						continue;
 					}
+					handleError("Error: accept");
+					exit(EXIT_FAILURE);
+				}
+				else
+					std::cout << "Socket fd was successfuly accepted" <<"\n";
+
+				if (!Server::setNonBlocking(cSock)) {
+						std::cerr << "Error: Faild to set fd to a Non Blocking mode!"<< "\n";
+						close(cSock);
+						continue;
+				}
+				event.events = EPOLLIN;
+				event.data.fd = cSock;
+
+				if (epoll_ctl(epollFd, EPOLL_CTL_ADD, cSock, &event) == -1) {
+
+					handleError("Error: epoll_ctl");
+					close(_sockFd);
+					exit(EXIT_FAILURE);
+				}
+				else
+					std::cout << "Clients Fd: " << _sockFd << " added to the interest list"<<"\n";
+
+				}
+					else if(events[i].events & EPOLLIN) {
+
 					handleConnection(cSock);
 				}
-
-				//if (!Server::setNonBlocking(cSock)) {
-				//	std::cerr << "Error: Faild to set fd to a Non Blocking mode!"<< "\n";
-				//	close(cSock);
-				//	continue;
 				}
-				//event.events = EPOLLIN | EPOLLET;
-				//event.data.fd = cSock;
-				//if (epoll_ctl(epollFd, EPOLL_CTL_ADD, cSock, &event) == -1) {
-
-				//	handleError("Error: epoll_ctl");
-				//	close(_sockFd);
-				//	continue;
-				//}
-
+				
 			}
 	}
 		// Handle the connection
