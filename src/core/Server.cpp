@@ -66,18 +66,15 @@ bool Server::init()
 		close (_sockFd);
 	}
 	freeaddrinfo(res);
-
 	if (rp == NULL) {
 		std::cerr << "Failed to bind to any results" << "\n";
 		exit(EXIT_FAILURE);
 	}
-
 	if (_sockFd < 0)
 	{
 		std::cerr << "Error: Server not initialized" << "\n";
 		return (false);
 	}
-	
 	if (!Server::setNonBlocking(_sockFd)) {
 		std::cerr << "Error: Faild to set fd to a Non Blocking mode!"<< "\n";
 	}
@@ -99,138 +96,164 @@ bool Server::init()
 
 void Server::start()
 {
-	struct sockaddr_storage	clientAddr;
-	socklen_t				clientLen = sizeof(clientAddr);
-	struct epoll_event	event, events[MAX_EVENTS];
-	int					epollFd, cSock = -1, rfds;
+	struct sockaddr_storage		clientAddr;
+	socklen_t					clientLen = sizeof(clientAddr);
+	struct epoll_event			clientEvent, events[MAX_EVENTS];
+	int							cSock = -1, rfds = 0;
 
 	_isRunning = true;
-	std::cout << "Server started. Waiting for connections..." << "\n";
+	
 
-	//Create an epoll instnce in the kernel
-	epollFd = epoll_create(MAX_EVENTS);
-	if (epollFd == -1){
+	_epollFd = epoll_create(MAX_EVENTS);
+	if (_epollFd == -1){
 		handleError("Error: epoll_create()");
 		close(_sockFd);
 		exit(EXIT_FAILURE);
 	}
-	else
-		std::cout << "Epoll created" << "\n";
 
-	event.events = EPOLLIN;
-	event.data.fd = _sockFd;
-	//adding fd to interest list and specify what event we want to monitor
-	if (epoll_ctl(epollFd, EPOLL_CTL_ADD, _sockFd, &event) == -1) {
-
+	
+	clientEvent.events = EPOLLIN;
+	clientEvent.data.fd = _sockFd;
+	if (epoll_ctl(_epollFd, EPOLL_CTL_ADD, _sockFd, &clientEvent) == -1) {
 		handleError("Error: epoll_ctl");
 		close(_sockFd);
 		exit(EXIT_FAILURE);
 	}
-	else
-		std::cout << "Listenig socket Fd: " << _sockFd << " added to the interest list"<<"\n";
 
-
+	std::cout << "Server started. Waiting for connections..." << "\n";
 
 	while (_isRunning)
 	{
-		//waits for fd's that are in the Ready list
-		rfds = epoll_wait(epollFd, events, MAX_EVENTS, -1);
+		rfds = epoll_wait(_epollFd, events, MAX_EVENTS, 0);
 		if (rfds == -1) {
-
 			handleError("Error: epoll_wait");
 			exit(EXIT_FAILURE);
 		}
-		std::cout <<"Amount of ready fds: "<< rfds <<"\n";
+
 		for (int i = 0; i < rfds; i++) {
 
+
 			if (events[i].data.fd == _sockFd) {
+
 				cSock = accept(_sockFd, (struct sockaddr *)&clientAddr, &clientLen);
 				if (cSock == -1) {
-					
 					if (errno == EAGAIN || errno == EWOULDBLOCK) {
-						
 						std::cerr << "No client connections available at the moment." << std::endl;
 						continue;
 					}
 					handleError("Error: accept");
 					exit(EXIT_FAILURE);
 				}
-				else
-					std::cout << "Socket fd was successfuly accepted" <<"\n";
 
 				if (!Server::setNonBlocking(cSock)) {
 						std::cerr << "Error: Faild to set fd to a Non Blocking mode!"<< "\n";
 						close(cSock);
 						continue;
 				}
-				event.events = EPOLLIN;
-				event.data.fd = cSock;
 
-				if (epoll_ctl(epollFd, EPOLL_CTL_ADD, cSock, &event) == -1) {
-
+				clientEvent.events = EPOLLIN;
+				clientEvent.data.fd = cSock;
+				if (epoll_ctl(_epollFd, EPOLL_CTL_ADD, cSock, &clientEvent) == -1) {
+	
 					handleError("Error: epoll_ctl");
 					close(_sockFd);
 					exit(EXIT_FAILURE);
 				}
-				else
-					std::cout << "Clients Fd: " << _sockFd << " added to the interest list"<<"\n";
-
-				}
-					else if(events[i].events & EPOLLIN) {
-
-					handleConnection(cSock);
-				}
-				}
-				
 			}
+			if(events[i].events & EPOLLIN) {
+				readRequest(cSock);
+			}
+			if (events[i].events & EPOLLOUT) {
+				sendResponse(cSock);
+			}
+
+			
+		}
 	}
-		// Handle the connection
-	
-
-
-/*
-    Cleans up serverListources:
-    1. Sets _is_running flag to false
-    2. Closes the server socket
-    3. Invalidates the socket descriptor
-*/
-void Server::stop()
-{
-    _isRunning = false;
-    if (_sockFd >= 0)
-    {
-        close(_sockFd);
-        _sockFd = -1;
-        std::cout << "Server stopped" << "\n";
-    }
 }
 
-void Server::handleConnection(int cSock)
-{
-	std::cout << "New connection accepted" << "\n";
+void Server::readRequest (int clientFd) {
 
-	// Buffer for receiving data
-	char buffer[1024] = {0};
+	char		recBuff[RECBUFF];//8KB
+	ssize_t		bytesRead;
 
-	// Receive request
-	ssize_t bytes_read = recv(cSock, buffer, sizeof(buffer) - 1, 0); // recv - receives data from a socket
-	if (bytes_read > 0)
+	bytesRead = recv(clientFd, recBuff, RECBUFF - 1, 0);
+
+	if (bytesRead > 0)
 	{
-		std::cout << "Received request:\n" << buffer << "\n";
+		recBuff[bytesRead] = '\0';
+		std::cout << "######Request#####\n" << recBuff << "\n";
+
+		prepResponse(clientFd);
+
+		return ;
 	}
-
-	// Send serverListponse
-	const char *serverListponse = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\nHello, World!";  // HTTP serverListponse
-	ssize_t bytes_sent = send(cSock, serverListponse, strlen(serverListponse), 0); // send - sends data to a socket
-	if (bytes_sent > 0)
-	{
-		std::cout << "Sent response (" << bytes_sent << " bytes)" << "\n";
+	else if (bytesRead == 0){
+		std::cout << "Connection lost" << bytesRead << "\n";
+		close(clientFd);
+		_clients.erase(clientFd);
+		return;
 	}
+	else
+		std::cout << "Nod data to read !"<< "\n";
+}
 
-	// Wait a bit before closing (for testing)
-	usleep(100000); // Wait 100ms
+void Server::sendResponse(int clientFd) {
 
-	// CLose the client socket
-	close(cSock);
+	const char*	servResp = _clients[clientFd].response.c_str();
+	struct epoll_event	clientEvent;
+	//ssize_t		totalSent = 0;
+	ssize_t		bytesSent;	
+
+	
+	bytesSent = send(clientFd, servResp, strlen(servResp), 0);
+	if (bytesSent == -1) {
+		close(clientFd);
+		handleError("Error send: ");
+		return;
+	}
+	usleep(1000000);
+	std::cout << bytesSent << "\n";
+	clientEvent.data.fd = clientFd;
+	clientEvent.events = EPOLLIN;
+	epoll_ctl(_epollFd, EPOLL_CTL_MOD, clientFd, &clientEvent);
 	std::cout << "Connection closed" << "\n";
+	close(clientFd);
+	return;
+}
+
+
+void	Server::prepResponse(int clientFd) {
+
+	struct epoll_event	clientEvent;
+
+	
+	_clients[clientFd].response = HARDCODEDRESP;
+	_clients[clientFd].bytesSent = 0;
+
+	clientEvent.data.fd = clientFd;
+	clientEvent.events = EPOLLOUT;
+	
+	if (epoll_ctl(_epollFd, EPOLL_CTL_MOD, clientFd, &clientEvent) == -1) {
+		handleError("Error: could not modificate the client's fd events!");
+		close(_sockFd);
+		exit(EXIT_FAILURE);
 	}
+}
+
+clientInfo& Server::getclientInfo( int clientFd ) {
+	
+	return _clients[clientFd];
+}
+
+void Server::stop()
+{
+	_isRunning = false;
+	if (_sockFd >= 0)
+	{
+		close(_sockFd);
+		_sockFd = -1;
+		std::cout << "Server stopped" << "\n";
+	} 
+}
+
