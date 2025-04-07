@@ -1,6 +1,6 @@
 #include "Server.hpp"
 
-Server::Server(std::string port,  std::string host) : _sockFd(-1), _servPort(port), _servHost(host), _isRunning(false){
+Server::Server(std::string port,  std::string host) : _sockFd(-1), _servPort(port), _servHost(host), _isRunning(false), _epollFd(-1){
 
 }
 
@@ -98,7 +98,7 @@ void Server::start()
 {
 	struct sockaddr_storage		clientAddr;
 	socklen_t					clientLen = sizeof(clientAddr);
-	struct epoll_event			clientEvent, events[MAX_EVENTS];
+	struct epoll_event			events[MAX_EVENTS];
 	int							cSock = -1, rfds = 0;
 
 	_isRunning = true;
@@ -111,14 +111,7 @@ void Server::start()
 		exit(EXIT_FAILURE);
 	}
 
-	
-	clientEvent.events = EPOLLIN;
-	clientEvent.data.fd = _sockFd;
-	if (epoll_ctl(_epollFd, EPOLL_CTL_ADD, _sockFd, &clientEvent) == -1) {
-		handleError("Error: epoll_ctl");
-		close(_sockFd);
-		exit(EXIT_FAILURE);
-	}
+	setEvent(_sockFd, IN, EPOLL_CTL_ADD);
 
 	std::cout << "Server started. Waiting for connections..." << "\n";
 
@@ -150,15 +143,7 @@ void Server::start()
 						close(cSock);
 						continue;
 				}
-
-				clientEvent.events = EPOLLIN;
-				clientEvent.data.fd = cSock;
-				if (epoll_ctl(_epollFd, EPOLL_CTL_ADD, cSock, &clientEvent) == -1) {
-	
-					handleError("Error: epoll_ctl");
-					close(_sockFd);
-					exit(EXIT_FAILURE);
-				}
+				setEvent(cSock, IN, EPOLL_CTL_ADD);
 			}
 			if(events[i].events & EPOLLIN) {
 				readRequest(cSock);
@@ -185,7 +170,7 @@ void Server::readRequest (int clientFd) {
 		std::cout << "######Request#####\n" << recBuff << "\n";
 
 		prepResponse(clientFd);
-
+		setEvent(clientFd, OUT, EPOLL_CTL_MOD);
 		return ;
 	}
 	else if (bytesRead == 0){
@@ -200,41 +185,45 @@ void Server::readRequest (int clientFd) {
 
 void Server::sendResponse(int clientFd) {
 
+	size_t&		totalSent = _clients[clientFd].bytesSent;
 	const char*	servResp = _clients[clientFd].response.c_str();
-	struct epoll_event	clientEvent;
-	//ssize_t		totalSent = 0;
 	ssize_t		bytesSent;	
 
 	
-	bytesSent = send(clientFd, servResp, strlen(servResp), 0);
+	bytesSent = send(clientFd, servResp + totalSent, strlen(servResp) - totalSent, 0);
 	if (bytesSent == -1) {
-		close(clientFd);
+		setEvent(clientFd, OUT, EPOLL_CTL_MOD);
 		handleError("Error send: ");
 		return;
 	}
-	usleep(1000000);
-	std::cout << bytesSent << "\n";
-	clientEvent.data.fd = clientFd;
-	clientEvent.events = EPOLLIN;
-	epoll_ctl(_epollFd, EPOLL_CTL_MOD, clientFd, &clientEvent);
-	std::cout << "Connection closed" << "\n";
-	close(clientFd);
-	return;
+	totalSent += bytesSent;
+	if (totalSent == strlen(servResp)) {
+		std::cout << "All data sent: Connection closed" << "\n";
+		setEvent(clientFd, IN, EPOLL_CTL_MOD);
+		close(clientFd);
+		totalSent = 0;
+		_clients[clientFd].response.clear();
+	}
 }
 
 
 void	Server::prepResponse(int clientFd) {
 
-	struct epoll_event	clientEvent;
-
-	
 	_clients[clientFd].response = HARDCODEDRESP;
 	_clients[clientFd].bytesSent = 0;
+}
+
+void Server::setEvent(int clientFd, int evFlag, int op) {
+
+	struct epoll_event	clientEvent;
 
 	clientEvent.data.fd = clientFd;
-	clientEvent.events = EPOLLOUT;
+	if (evFlag == OUT)
+		clientEvent.events = EPOLLOUT;
+	else
+		clientEvent.events = EPOLLIN;
 	
-	if (epoll_ctl(_epollFd, EPOLL_CTL_MOD, clientFd, &clientEvent) == -1) {
+	if (epoll_ctl(_epollFd, op, clientFd, &clientEvent) == -1) {
 		handleError("Error: could not modificate the client's fd events!");
 		close(_sockFd);
 		exit(EXIT_FAILURE);
