@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>                +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/21 10:03:46 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/04/04 11:07:56 by pminialg      ########   odam.nl         */
+/*   Updated: 2025/04/10 16:30:43 by pminialg      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,18 +73,29 @@ int main(void)
     std::string request_multipart =
     "POST /upload HTTP/1.1\r\n"
     "Host: example.com\r\n"
-    "Content-Type: multipart/form-data; boundary=----WebKitFormBoundary12345\r\n"
-    "Content-Length: 217\r\n"
+    "Content-Type: multipart/form-data; boundary=34b21\r\n"
+    "Content-Length: 424\r\n"
     "\r\n"
-    "------WebKitFormBoundary12345\r\n"
+    "--34b21\r\n"
+    "Content-Disposition: form-data; name='text'\r\n"
+    "Content-Type: text/plain\r\n"
     "\r\n"
-    "john\r\n"
-    "------WebKitFormBoundary12345\r\n"
-    "Content-Disposition: form-data; name='file'; filename='image.png'\r\n"
-    "Content-Type: image/png\r\n"
+    "Book\r\n"
+    "--34b21\r\n"
+    "Content-Disposition: form-data; name='file1'; filename='a.json'\r\n"
+    "Content-Type: application/json\r\n"
     "\r\n"
-    "(binary data here)\r\n"
-    "------WebKitFormBoundary12345--\r\n";
+    "{\r\n"
+    "'title': 'Java 8 in Action',\r\n"
+    "'author': 'Mario Fusco',\r\n"
+    "'year': 2014\r\n"
+    "}\r\n"
+    "--34b21\r\n"
+    "Content-Disposition: form-data; name='file2'; filename='a.html'\r\n"
+    "Content-Type: text/html\r\n"
+    "\r\n"
+    "<title> Available for download! </title>\r\n"
+    "--34b21--\r\n";
     
     
     // Print the request as is
