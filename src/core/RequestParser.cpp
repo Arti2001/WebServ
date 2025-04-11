@@ -6,7 +6,7 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/02 10:46:52 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/04/10 16:31:08 by pminialg      ########   odam.nl         */
+/*   Updated: 2025/04/11 11:11:53 by pminialg      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,54 @@ Plan:
 
     Reject malformed requests (400 Bad Request).
 */
+
+bool RequestParser::isValidHeaderFieldName(const std::string& name) {
+    if (name.empty()) {
+        return false;
+    }
+
+    for (char c : name) {
+        if (std::isspace(c) || std::iscntrl(c) || c == ':') {
+            return false;
+        }
+    }
+    return true;
+}
+
+void RequestParser::stripLeadingWhitespace(std::string& text) {
+    text.erase(0, text.find_first_not_of(" \r\n\t"));
+}
+
+int RequestParser::validateContentLength(const std::string& content) {
+    for (char c : content) {
+        if (!std::isdigit(c)) {
+            return -1; // Invalid content-length
+        }
+    }
+    try {
+        int length = std::stoi(content);
+        if (length < 0) {
+            return -1; // Invalid content-length
+        }
+        return length;
+    } catch (const std::exception& e) {
+        return -1;
+    }
+}
+
+std::string RequestParser::handleBareCR(const std::string& text) {
+    
+    std::string processed = text;
+    size_t pos = 0;
+
+    while ((pos = processed.find('\r', pos)) != std::string::npos) {
+        if (pos + 1 >= processed.length() || processed[pos + 1] != '\n') {
+            processed[pos] = ' ';
+        }
+        pos++;
+    }
+    return processed;
+}
 
 std::string RequestParser::urlDecode(const std::string& encoded) {
     
@@ -138,14 +186,24 @@ int RequestParser::parseMultipartFormData(const std::string& body, const std::st
 
         size_t headers_end = part.find("\r\n\r\n");
         if (headers_end == std::string::npos) {
-            pos = next_boundary_pos + full_boundary.length();
-            continue;
+            headers_end = part.find("\n\n");
+            if (headers_end == std::string::npos) {
+                pos = next_boundary_pos + full_boundary.length();
+                continue;
+            }
         }
 
         std::string headers_text = part.substr(0, headers_end);
-        std::string part_content = part.substr(headers_end + 4);
+        std::string part_content;
+
+        if (part.substr(headers_end + 4) == "\r\n\r\n") {
+            part_content = part.substr(headers_end + 4);
+        } else {
+            part_content = part.substr(headers_end + 2);
+        }
 
         //Parse Content-Disposition
+        // fix some things below in this function
         auto [name, filename] = parseContentDisposition(headers_text);
         
         if (!name.empty()) {

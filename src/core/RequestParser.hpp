@@ -6,7 +6,7 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/02 10:30:21 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/04/10 15:45:53 by pminialg      ########   odam.nl         */
+/*   Updated: 2025/04/11 10:08:57 by pminialg      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,12 +32,19 @@ class RequestParser
         void parseUrlEncodedForm(const std::string& body, std::unordered_map<std::string, std::string>& form_data);
         std::pair<std::string, std::string> parseContentDisposition(const std::string& headers_text);
         std::string extractContentDispositionParameterValue(const std::string& text, const std::string& parameter, size_t start_pos);
+        std::string handleBareCR(const std::string& text);
+        int validateContentLength(const std::string& content);
+        void stripLeadingWhitespace(std::string& text);
+        bool isValidHeaderFieldName(const std::string& name);
+        std::pair<size_t, size_t> findHeadersEnd(const std::string& data);
+        size_t skipLeadingEmptyLines(const std::string& data);
         
     public:
         std::unordered_map<int , HTTPRequest>& handleIncomingRequest(int fd, const std::string& raw_data, std::unordered_map<int, HTTPRequest>& resultMap);
         void parseFirstLineAndHeaders(std::string full_request, HTTPRequest& request);
         std::pair<std::string, std::string> parseHeaders(std::string line, std::pair<std::string, std::string>& header_parsed);
         void parseBody(std::string& body, HTTPRequest& request);
+        void validateRequestLine(const std::string& method, const std::string& uri, const std::string& version);
 };
 
 #endif

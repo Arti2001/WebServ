@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>                +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/03/21 10:03:46 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/04/10 16:30:43 by pminialg      ########   odam.nl         */
+/*   Updated: 2025/04/10 16:51:16 by pminialg      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,12 +104,12 @@ int main(void)
     
     RequestParser parser;
     // HTTPRequest rrr;
-// parser.handleIncomingRequest(1, request_encoded, resultMap);
+    // parser.handleIncomingRequest(1, request_encoded, resultMap);
 // parser.handleIncomingRequest(2, request_json, resultMap);
     parser.handleIncomingRequest(3, request_multipart, resultMap);
 // parser.handleIncomingRequest(1, request2, resultMap);
 // resultMap = parser.handleIncomingRequest(1, request, resultMap);
-// std::cout << resultMap[1] << std::endl;
+    // std::cout << resultMap[1] << std::endl;
 // std::cout << "----------" << std::endl;
 // std::cout << resultMap[2] << std::endl;
 // std::cout << "----------" << std::endl;
