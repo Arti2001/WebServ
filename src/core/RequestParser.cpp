@@ -6,23 +6,63 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/02 10:46:52 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/04/11 11:11:53 by pminialg      ########   odam.nl         */
+/*   Updated: 2025/04/12 14:06:24 by pminialg      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "RequestParser.hpp"
-/*
-Plan:
-    +++Store incoming data. check
 
-    +++Check if request is complete using \r\n\r\n or Content-Length.
+void RequestParser::validateRequestLine(const std::string& method, const std::string& uri, const std::string& version) {
+    if (method.empty() || uri.empty() || version.empty()) {
+        throw std::runtime_error("400 BadRequest: Invalid request line");
+    }
 
-    Extract and parse only when full request is received.
+    if (method != "GET" && method != "POST" && method != "DELETE") {
+        throw std::runtime_error("400 BadRequest: Invalid method");
+    }
 
-    +++Handle multiple requests in one recv() call.
+    if (version != "HTTP/1.1") {
+        throw std::runtime_error("505 HTTP Version Not Supported");
+    }
+}
 
-    Reject malformed requests (400 Bad Request).
-*/
+size_t RequestParser::skipLeadingEmptyLines(const std::string& data) {
+    size_t pos = 0;
+
+    while (pos < data.size()) {
+        if (pos + 1 < data.size() && data[pos] == '\r' && data[pos + 1] == '\n') {
+            pos += 2;
+        } else if (data[pos] == '\n') {
+            pos++;
+        } else {
+            break;
+        }
+    }
+    return pos;
+}
+
+std::pair<size_t, size_t> RequestParser::findHeadersEnd(const std::string& data) {
+    size_t pos_crlf = data.find("\r\n\r\n");
+    size_t pos_lf = data.find("\n\n");
+
+    if (pos_crlf == std::string::npos && pos_lf == std::string::npos) {
+        return {std::string::npos, 0};
+    }
+
+    if (pos_crlf == std::string::npos) {
+        return {pos_crlf, 4};
+    }
+
+    if (pos_lf == std::string::npos) {
+        return {pos_lf, 2};
+    }
+
+    if (pos_crlf < pos_lf) {
+        return {pos_crlf, 4};
+    } else {
+        return {pos_lf, 2};
+    }
+}
 
 bool RequestParser::isValidHeaderFieldName(const std::string& name) {
     if (name.empty()) {
@@ -274,50 +314,115 @@ void RequestParser::parseBody(std::string& body, HTTPRequest& request)
     }
 }
 
-std::pair<std::string, std::string> RequestParser::parseHeaders(std::string line, std::pair<std::string, std::string>& header_parsed)
-{
-    size_t colon_pos = line.find(':');
-    if (colon_pos != std::string::npos)
-    {
-        std::string key = line.substr(0, colon_pos);
-        std::string value = line.substr(colon_pos + 1);
+// std::pair<std::string, std::string> RequestParser::parseHeaders(std::string line, std::pair<std::string, std::string>& header_parsed)
+// {
+//     size_t colon_pos = line.find(':');
+//     if (colon_pos != std::string::npos)
+//     {
+//         std::string key = line.substr(0, colon_pos);
+//         std::string value = line.substr(colon_pos + 1);
 
-        if (!key.empty() && std::isspace(key[0]))
-        {
-            throw std::runtime_error("400 BadRequest: Header name cannot start with whitespace");
-        }
-        key.erase(key.find_last_not_of(" \r\n\t") + 1);
-        value.erase(0, value.find_first_not_of(" \r\n\t"));
-        value.erase(value.find_last_not_of(" \r\n\t") + 1);
+//         if (!key.empty() && std::isspace(key[0]))
+//         {
+//             throw std::runtime_error("400 BadRequest: Header name cannot start with whitespace");
+//         }
+//         key.erase(key.find_last_not_of(" \r\n\t") + 1);
+//         value.erase(0, value.find_first_not_of(" \r\n\t"));
+//         value.erase(value.find_last_not_of(" \r\n\t") + 1);
 
-        header_parsed.first = key;
-        header_parsed.second = value;
-    }
-    return header_parsed;
+//         header_parsed.first = key;
+//         header_parsed.second = value;
+//     }
+//     return header_parsed;
+// }
+
+std::pair<std::string, std::string> RequestParser::parseHeader(const std::string& header_line) {
+    
 }
 
-void RequestParser::parseFirstLineAndHeaders(std::string full_request, HTTPRequest& request)
+std::tuple<std::string, std::string, std::string> RequestParser::parseFirstLine(const std::string& first_line) {
+    
+    std::string method, uri, version;
+    
+    size_t first_space = first_line.find(' ');
+    if (first_space == std::string::npos) {
+        throw std::runtime_error("400 BadRequest: Invalid request line format (missing space)");
+    }
+    
+    method = first_line.substr(0, first_space);
+
+    size_t uri_start = first_space + 1;
+    if (uri_start >= first_line.length() || first_line[uri_start] == ' ') {
+        throw std::runtime_error("400 BadRequest: Invalid request line format (multiple spaces)");
+    }
+
+    size_t second_space = first_line.find(' ', uri_start);
+    if (second_space == std::string::npos) {
+        throw std::runtime_error("400 BadRequest: Invalid request line format (missing space)");
+    }
+
+    uri = first_line.substr(uri_start, second_space - uri_start);
+
+    size_t version_start = second_space + 1;
+    if (version_start >= first_line.length() || first_line[version_start] == ' ') {
+        throw std::runtime_error("400 BadRequest: Invalid request line format (multiple spaces)");
+    }
+
+    size_t third_space = first_line.find(' ', version_start);
+    if (third_space != std::string::npos) {
+        throw std::runtime_error("400 BadRequest: Invalid request line format (extra content)");
+    }
+
+    version = first_line.substr(version_start);
+
+    validateRequestLine(method, uri, version);
+
+    return {method, uri, version};
+}
+
+void RequestParser::parseFirstLineAndHeaders(std::string firstLine_and_headers, HTTPRequest& request)
 {
-    std::istringstream stream(full_request);
+    std::istringstream stream(firstLine_and_headers);
     std::unordered_map<std::string, std::string> headers;
+
+    std::string start;
+    std::getline(stream, start);
+
+    if (!start.empty() && start.back() == '\r') {
+        start.pop_back();
+    }
     
-    std::string method, path, version;
-    
-    stream >> method >> path >> version;
-    
+    auto [method, uri, version] = parseFirstLine(start);
+
     request._method = method;
-    request._uri = path;
-    request._version = version; 
+    request._uri = uri;
+    request._version = version;
 
     std::string line;
-    std::pair<std::string, std::string> header_parsed;
-    while(std::getline(stream, line) && !line.empty())
-    {
-        if (line == "\r" || line == "\n")
-            continue ;
-        header_parsed = parseHeaders(line, header_parsed);
-        headers[header_parsed.first] = header_parsed.second;
+    bool first_header_line = true;
+    
+    while (std::getline(stream, line) && !line.empty()) {
+        if (!line.empty() && line.back() == '\r') {
+            line.pop_back();
+        }
+        if (line.empty()) {
+            continue;
+        }
+        if (first_header_line && !line.empty() && std::isspace(line[0])) {
+            continue;
+        }
+        first_header_line = false;
+        
+        try {
+            auto header = parseHeader(line);
+            if (!header.first.empty()) {
+                headers[header.first] = header.second;
+            }
+        } catch (const std::exception& e) {
+            std::cerr << "Warning: " << e.what() << std::endl;
+        }
     }
+
     request._headers = headers;
 }
 
@@ -325,42 +430,60 @@ std::unordered_map<int , HTTPRequest>& RequestParser::handleIncomingRequest(int 
 {
     _request_buffers[fd] += raw_data;
     
-    while (true)
+    while (!_request_buffers[fd].empty())
     {
-        
-        std::size_t pos = _request_buffers[fd].find("\r\n\r\n");
-        if (pos == std::string::npos)
+        size_t pos_start = skipLeadingEmptyLines(_request_buffers[fd]);
+        if (pos_start > 0)
         {
-            return resultMap; // Request is not complete yet
+            _request_buffers[fd].erase(0, pos_start);
         }
-        std::string firstLine_and_headers = _request_buffers[fd].substr(0, pos + 4);
         
+        auto [headers_end_pos, headers_end_length] = findHeadersEnd(_request_buffers[fd]);
+
+        if (headers_end_pos == std::string::npos)
+            break;
+
+        std::string firstLine_and_headers = _request_buffers[fd].substr(0, headers_end_pos + headers_end_length);
+
         HTTPRequest request;
-        parseFirstLineAndHeaders(firstLine_and_headers, request);
+        try
+        {
+            parseFirstLineAndHeaders(firstLine_and_headers, request);
+        }
+        catch(const std::exception& e)
+        {
+            std::cerr << "Error: Failed to parse request: " << e.what() << std::endl;
+            _request_buffers[fd].erase(0, headers_end_pos + headers_end_length);
+            continue;
+        }
         
         int content_length = 0;
         if (request._headers.find("Content-Length") != request._headers.end())
         {
-            content_length = std::stoi(request._headers["Content-Length"]);
+            int validated_content_length = validateContentLength(request._headers["Content-Length"]);
+            if (validated_content_length < 0)
+            {
+                std::cerr << "Error: Invalid Content-Length: " << request._headers["Content-Length"] << std::endl;
+                _request_buffers[fd].erase(0, headers_end_pos + headers_end_length);
+                continue;
+            }
+            content_length = validated_content_length;
         }
         
-        std::size_t total_request_size = pos + 4 + content_length;
+        std::size_t total_request_size = headers_end_pos + headers_end_length + content_length;
         if (total_request_size > _request_buffers[fd].size())
         {
-            return resultMap; // Request is not complete yet
+            break; // Request is not complete yet
         }
 
-        std::string full_request = _request_buffers[fd].substr(0, total_request_size);
-        std::string body = full_request.substr(pos + 4);
+        std::string body = _request_buffers[fd].substr(headers_end_pos + headers_end_length, content_length);
+
         parseBody(body, request);
-        
+
         resultMap[fd] = request;
-        
+
         _request_buffers[fd].erase(0, total_request_size);
-        if (_request_buffers[fd].empty())
-        {
-            break;
-        }
     }
-    return resultMap;    
+
+    return resultMap;
 }
