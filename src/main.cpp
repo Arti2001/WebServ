@@ -6,46 +6,61 @@
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/21 10:03:46 by pminialg          #+#    #+#             */
-/*   Updated: 2025/04/03 14:35:53 by amysiv           ###   ########.fr       */
+/*   Updated: 2025/04/08 15:40:34 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "core/Server.hpp"
 
-Server *g_server = nullptr;
+//Server *g_server = nullptr;
 bool g_running = true;
 
 
-void signalHandler(int signum)
-{
-	std::cout << "\nInterupt signal (" << signum << ") received." << "\n";
-	g_running = false;
-	if (g_server) {
-		g_server->stop();
+//void signalHandler(int signum)
+//{
+//	std::cout << "\nInterupt signal (" << signum << ") received." << "\n";
+//	g_running = false;
+//	if (g_server) {
+//		g_server->stop();
+//	}
+//	std::cout << "Server shutting down..." << "\n";
+//	exit(signum);
+//}
+
+bool	parsConfigFile(char *file) {
+
+	ParseConfig parser(file);
+	
+	try{
+		parser.openConfigFile();
+	}catch(ParseConfig::ConfException& ex){
+		std::cerr << "Error: " << ex.what()<< "\n";
+		return (-1);
 	}
-	std::cout << "Server shutting down..." << "\n";
-	exit(signum);
+	parser.tokenize();
+	
 }
 
 int main(void)
 {
-	signal(SIGINT, signalHandler);
-	signal(SIGTERM, signalHandler);
-	signal(SIGQUIT, signalHandler);
+	//readline
+	//signal(SIGINT, signalHandler);
+	//signal(SIGTERM, signalHandler);
+	//signal(SIGQUIT, signalHandler);
 
-	Server server("8080", "127.0.0.1");
-	g_server = &server; // stores the servers address in our global pointer
+	//Server server("8080", "127.0.0.1");
+	//g_server = &server; // stores the servers address in our global pointer
 
-	if (!server.init()) // calls init which sets up the socket, binds it, and starts listening
-	{
-		std::cerr << "Failed to initialize server" << "\n";
-		return 1;
-	}
+	//if (!server.init()) // calls init which sets up the socket, binds it, and starts listening
+	//{
+	//	std::cerr << "Failed to initialize server" << "\n";
+	//	return 1;
+	//}
 
-	std::cout << "Server running on port 8080. Press Ctrl+C to exit." << "\n";
+	//std::cout << "Server running on port 8080. Press Ctrl+C to exit." << "\n";
 
-	// Start the server
-	server.start(); // starts the server's main loop which will accept incoming connections, handle each connection, continue until interrupted
-
+	//// Start the server
+	//server.start(); // starts the server's main loop which will accept incoming connections, handle each connection, continue until interrupted
+	
 	return 0;
 }

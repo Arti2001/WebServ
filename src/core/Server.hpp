@@ -39,7 +39,12 @@
 #include <arpa/inet.h>
 #include <cerrno>
 #include <iostream>
+#include <exception>
 #include <map>
+#include <vector>
+#include <sstream>
+
+#include "ParseConfig.hpp"
 
 struct clientInfo {
 

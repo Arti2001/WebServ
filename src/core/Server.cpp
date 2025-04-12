@@ -1,6 +1,6 @@
 #include "Server.hpp"
 
-Server::Server(std::string port,  std::string host) : _sockFd(-1), _servPort(port), _servHost(host), _isRunning(false), _epollFd(-1){
+Server::Server(std::string port,  std::string host) : _sockFd(-1), _epollFd(-1), _servPort(port), _servHost(host), _isRunning(false){
 
 }
 
@@ -87,9 +87,8 @@ bool Server::init()
 		close(_sockFd);
 		return false;
 	}
-	else
-		std::cout << " Server Listening"<< "\n";
-
+	std::cout << " Server Listening"<< "\n";
+	_isRunning = true;
 	return true;
 }
 
@@ -101,7 +100,6 @@ void Server::start()
 	struct epoll_event			events[MAX_EVENTS];
 	int							cSock = -1, rfds = 0;
 
-	_isRunning = true;
 	
 
 	_epollFd = epoll_create(MAX_EVENTS);
