@@ -66,7 +66,7 @@ int main(void)
     "GET / HTTP/1.1\r\n"
     "Host: localhost:8080\r\n"
     "Content-Type: application/json\r\n"
-    "Content-Length: 37\r\n"
+    "Content-Length: 43\r\n"
     "\r\n"
     "{'username': 'john', 'password': 'secret'}\r\n";
 
@@ -74,7 +74,7 @@ int main(void)
     "POST /upload HTTP/1.1\r\n"
     "Host: example.com\r\n"
     "Content-Type: multipart/form-data; boundary=34b21\r\n"
-    "Content-Length: 424\r\n"
+    "Content-Length: 406\r\n"
     "\r\n"
     "--34b21\r\n"
     "Content-Disposition: form-data; name='text'\r\n"
@@ -104,15 +104,15 @@ int main(void)
     
     RequestParser parser;
     // HTTPRequest rrr;
-    // parser.handleIncomingRequest(1, request_encoded, resultMap);
-// parser.handleIncomingRequest(2, request_json, resultMap);
+    parser.handleIncomingRequest(1, request_encoded, resultMap);
+    parser.handleIncomingRequest(2, request_json, resultMap);
     parser.handleIncomingRequest(3, request_multipart, resultMap);
 // parser.handleIncomingRequest(1, request2, resultMap);
 // resultMap = parser.handleIncomingRequest(1, request, resultMap);
-    // std::cout << resultMap[1] << std::endl;
-// std::cout << "----------" << std::endl;
-// std::cout << resultMap[2] << std::endl;
-// std::cout << "----------" << std::endl;
+    std::cout << resultMap[1] << std::endl;
+    std::cout << "----------" << std::endl;
+    std::cout << resultMap[2] << std::endl;
+    std::cout << "----------" << std::endl;
     std::cout << resultMap[3] << std::endl;
 }
 
