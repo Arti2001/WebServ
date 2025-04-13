@@ -25,7 +25,7 @@ class RequestParser
     private:
         std::unordered_map<int, std::string> _request_buffers;
         std::string urlDecode(const std::string& encoded);
-        std::string extractboundary(const std::string& content_type);
+        std::string extractBoundary(const std::string& content_type);
         int parseMultipartFormData(const std::string& body, const std::string& boundary, 
                                     std::unordered_map<std::string, std::string>& form_data, 
                                     std::unordered_map<std::string, std::string>& files);

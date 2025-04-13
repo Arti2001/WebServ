@@ -16,12 +16,12 @@ void RequestParser::validateRequestLine(const std::string &method, const std::st
 {
     if (method.empty() || uri.empty() || version.empty())
     {
-        throw std::runtime_error("400 BadRequest: Invalid request line");
+        throw std::runtime_error("400 Bad Request: Invalid request line");
     }
 
     if (method != "GET" && method != "POST" && method != "DELETE")
     {
-        throw std::runtime_error("400 BadRequest: Invalid method");
+        throw std::runtime_error("400 Bad Request: Invalid method");
     }
 
     if (version != "HTTP/1.1")
@@ -92,7 +92,6 @@ bool RequestParser::isValidHeaderFieldName(const std::string &name)
     {
         return false;
     }
-
     for (char c : name)
     {
         if (std::isspace(c) || std::iscntrl(c) || c == ':')
@@ -346,7 +345,7 @@ return 200;
 }
 
 
-std::string RequestParser::extractboundary(const std::string &content_type)
+std::string RequestParser::extractBoundary(const std::string &content_type)
 {
     std::string boundary;
     size_t boundary_pos = content_type.find("boundary=");
@@ -365,19 +364,36 @@ std::string RequestParser::extractboundary(const std::string &content_type)
 
 void RequestParser::parseBody(std::string &body, HTTPRequest &request)
 {
-    if (request._headers.find("Content-Length") == request._headers.end())
+    // std::cout << "parseBody - Headers before processing:" << std::endl;
+    // for (const auto& h : request._headers)
+    // {
+    //     std::cout << "  " << h.first << ": " << h.second << std::endl;
+    // }
+
+    // if (request._headers.find("Content-Length") == request._headers.end())
+    // {
+    //     std::cout << "No Content-Length found, setting raw body" << std::endl;
+    //     request._body = body;
+    //     return;
+    // }
+
+    if (request._headers.find("Content-Type") == request._headers.end())
     {
+        // std::cout << "No Content-Type header found in request" << std::endl;
         request._body = body;
         return;
     }
 
     std::string content_type = request._headers["Content-Type"];
+    // std::cout << "Content-Type from headers: '" << content_type << "'" << std::endl;
 
     if (content_type.find("multipart/form-data") != std::string::npos)
     {
-        std::string boundary = extractboundary(content_type);
+        std::cout << "Processing multipart/form-data" << std::endl;
+        std::string boundary = extractBoundary(content_type);
         if (!boundary.empty())
         {
+            std::cout << "Boundary found: " << boundary << std::endl;
             std::unordered_map<std::string, std::string> form_data;
             std::unordered_map<std::string, std::string> files;
 
@@ -393,23 +409,34 @@ void RequestParser::parseBody(std::string &body, HTTPRequest &request)
         }
         else
         {
+            std::cout << "No boundary found, setting raw body" << std::endl;
             request._body = body;
         }
     }
     else if (content_type.find("application/x-www-form-urlencode") != std::string::npos)
     {
+        std::cout << "Processing application/x-www-form-urlencoded" << std::endl;
         std::unordered_map<std::string, std::string> form_data;
         parseUrlEncodedForm(body, form_data);
         request._form_data = form_data;
     }
     else
     {
+        std::cout << "No special content type handling, setting raw body" << std::endl;
         request._body = body;
     }
+    
+    // std::cout << "parseBody - Headers after processing:" << std::endl;
+    // for (const auto& h : request._headers)
+    // {
+    //     std::cout << "  " << h.first << ": " << h.second << std::endl;
+    // }
 }
 
 std::pair<std::string, std::string> RequestParser::parseHeader(const std::string &header_line)
 {
+    std::string key_before = header_line.substr(0, header_line.find(':')); 
+
     std::pair<std::string, std::string> header;
 
     std::string header_processed = handleBareCR(header_line);
@@ -422,7 +449,8 @@ std::pair<std::string, std::string> RequestParser::parseHeader(const std::string
 
         if (!key.empty() && std::isspace(key[0]))
         {
-            throw std::runtime_error("400 BadRequest: Header name cannot start with whitespace");
+            std::cerr << "Warning: 400 BadRequest: Header name cannot start with whitespace" << std::endl;
+            return {};
         }
 
         key.erase(key.find_last_not_of(" \r\n\t") + 1);
@@ -431,13 +459,13 @@ std::pair<std::string, std::string> RequestParser::parseHeader(const std::string
 
         if (!isValidHeaderFieldName(key))
         {
-            throw std::runtime_error("400 BadRequest: Invalid header field name");
+            std::cerr << "Warning: 400 Bad Request: Invalid header field name" << std::endl;
+            return {};
         }
 
         header.first = key;
         header.second = value;
     }
-
     return header;
 }
 
@@ -449,7 +477,7 @@ std::tuple<std::string, std::string, std::string> RequestParser::parseFirstLine(
     size_t first_space = first_line.find(' ');
     if (first_space == std::string::npos)
     {
-        throw std::runtime_error("400 BadRequest: Invalid request line format (missing space)");
+        throw std::runtime_error("400 Bad Request: Invalid request line format (missing space)");
     }
 
     method = first_line.substr(0, first_space);
@@ -457,13 +485,13 @@ std::tuple<std::string, std::string, std::string> RequestParser::parseFirstLine(
     size_t uri_start = first_space + 1;
     if (uri_start >= first_line.length() || first_line[uri_start] == ' ')
     {
-        throw std::runtime_error("400 BadRequest: Invalid request line format (multiple spaces)");
+        throw std::runtime_error("400 Bad Request: Invalid request line format (multiple spaces)");
     }
 
     size_t second_space = first_line.find(' ', uri_start);
     if (second_space == std::string::npos)
     {
-        throw std::runtime_error("400 BadRequest: Invalid request line format (missing space)");
+        throw std::runtime_error("400 Bad Request: Invalid request line format (missing space)");
     }
 
     uri = first_line.substr(uri_start, second_space - uri_start);
@@ -471,13 +499,13 @@ std::tuple<std::string, std::string, std::string> RequestParser::parseFirstLine(
     size_t version_start = second_space + 1;
     if (version_start >= first_line.length() || first_line[version_start] == ' ')
     {
-        throw std::runtime_error("400 BadRequest: Invalid request line format (multiple spaces)");
+        throw std::runtime_error("400 Bad Request: Invalid request line format (multiple spaces)");
     }
 
     size_t third_space = first_line.find(' ', version_start);
     if (third_space != std::string::npos)
     {
-        throw std::runtime_error("400 BadRequest: Invalid request line format (extra content)");
+        throw std::runtime_error("400 Bad Request: Invalid request line format (extra content)");
     }
 
     version = first_line.substr(version_start);
@@ -525,21 +553,27 @@ void RequestParser::parseFirstLineAndHeaders(std::string firstLine_and_headers, 
         }
         first_header_line = false;
 
-        try
+        
+        auto header = parseHeader(line);
+        if (!header.first.empty())
         {
-            auto header = parseHeader(line);
-            if (!header.first.empty())
-            {
-                headers[header.first] = header.second;
-            }
+            // std::cout << "Adding header: " << header.first << " = " << header.second << std::endl;
+            headers[header.first] = header.second;
         }
-        catch (const std::exception &e)
-        {
-            std::cerr << "Warning: " << e.what() << std::endl;
-        }
+        // else
+        // {
+        //     std::cout << "Skipping invalid header from line: " << line << std::endl;
+        // }
     }
 
     request._headers = headers;
+    
+    // Debug: Print all headers after parsing
+    // std::cout << "Final headers in request:" << std::endl;
+    // for (const auto& h : request._headers)
+    // {
+    //     std::cout << "  " << h.first << ": " << h.second << std::endl;
+    // }
 }
 
 std::unordered_map<int, HTTPRequest> &RequestParser::handleIncomingRequest(int fd, const std::string &raw_data, std::unordered_map<int, HTTPRequest> &resultMap)
