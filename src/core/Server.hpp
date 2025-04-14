@@ -46,6 +46,7 @@
 #include <sstream>
 
 #include "ParseConfig.hpp"
+#include "vServer.hpp"
 
 struct clientInfo {
 

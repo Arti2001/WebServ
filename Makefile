@@ -7,7 +7,8 @@ SRC_DIR = src
 OBJ_DIR = obj
 
 SRCS = $(wildcard $(SRC_DIR)/*.cpp) \
-       $(wildcard $(SRC_DIR)/*/*.cpp)
+       $(wildcard $(SRC_DIR)/*/*.cpp) \
+	#   $(wildcard $(SRC_DIR)/ConfigParsing/*.cpp)
 
 OBJS = $(SRCS:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 

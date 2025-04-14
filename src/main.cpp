@@ -6,11 +6,12 @@
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/21 10:03:46 by pminialg          #+#    #+#             */
-/*   Updated: 2025/04/14 08:14:48 by amysiv           ###   ########.fr       */
+/*   Updated: 2025/04/14 14:33:39 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "core/Server.hpp"
+
 
 //Server *g_server = nullptr;
 bool g_running = true;
@@ -27,7 +28,7 @@ bool g_running = true;
 //	exit(signum);
 //}
 
-bool	parsConfigFile(char *file) {
+void	parsConfigFile(char *file) {
 
 	ParseConfig					parser(file);
 	std::vector<std::string>	roughData;
@@ -36,16 +37,30 @@ bool	parsConfigFile(char *file) {
 		parser.openConfigFile();
 	}catch(ParseConfig::ConfException& ex){
 		std::cerr << "Error: " << ex.what()<< "\n";
-		return (-1);
+		return ;
 	}
 	roughData = parser.prepToToken();
 	parser.tokenize(roughData);
-	
+	try{
+		parser.validServ();
+	}
+	catch(ParseConfig::ConfException& ex) {
+		std::cerr << "Error: " << ex.what()<< "\n";
+		return ;
+	}
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
-	//readline
+	if (argc != 2)
+		return (0);
+		
+	parsConfigFile(argv[1]);
+	
+
+		
+
+	
 	//signal(SIGINT, signalHandler);
 	//signal(SIGTERM, signalHandler);
 	//signal(SIGQUIT, signalHandler);

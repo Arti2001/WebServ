@@ -12,17 +12,14 @@ enum	tokenType {
 	BRACE_LEFT,
 	BRACE_RIGHT,
 	BACK_SLASH,
-	EQUAL,
+	SYMBOL,
 
-	//Literals
+	VALUE,
 	IDENTIFIER,
-	STRING,
-	NUMBER,
+	DERECTIVE,
+	UNKNOW
+	
 
-	//Kay-Words
-	SERVER, LISTEN,
-	LOCATION,
-	ERROR_PAGE, SERVER_NAME
 };
 
 struct Token {
@@ -52,12 +49,12 @@ class ParseConfig {
 				const char*	what() const noexcept override;
 			};
 
-
 		bool						openConfigFile();
 		std::vector<std::string>	prepToToken();
-		Token						tokenize(std::vector<std::string> roughData);
+		void						tokenize(std::vector<std::string> roughData);
+		bool						validBrace();
+		bool						validServ();
 	};
-	
 	std::vector<std::string>	split(const std::string& str);
 
 #endif

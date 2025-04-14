@@ -20,7 +20,6 @@ ParseConfig::ConfException::ConfException(const std::string& msg) : _message(msg
 	
 }
 
-
 ParseConfig::~ParseConfig() {
 	
 	if (_configfile.is_open())
@@ -43,7 +42,7 @@ bool	ParseConfig::openConfigFile() {
 	return (true);
 }
 
-Token ParseConfig::tokenize(std::vector<std::string> roughData) {
+void	ParseConfig::tokenize(std::vector<std::string> roughData) {
 	
 	Token								token;
 	std::vector<std::string>::iterator	it = roughData.begin();
@@ -57,8 +56,12 @@ Token ParseConfig::tokenize(std::vector<std::string> roughData) {
 		}
 		token.lexem = *it;
 		_tokens.push_back(token);
+		it++;
 	}
-	return (token);
+	//for (size_t i = 0; i < _tokens.size(); i++)
+	//{
+	//	std::cout << "lexeme: " + _tokens[i].lexem << "              type: " << _tokens[i].type << "\n";
+	//}
 }
 
 
@@ -113,4 +116,39 @@ std::vector<std::string> split(const std::string& str) {
 		lexemes.push_back(lexeme);
 	}
 	return (lexemes);
+}
+
+bool	ParseConfig::validBrace() {
+
+	int	lvl = 0;
+
+	for (size_t i = 0; i < _tokens.size(); i++) {
+
+		if (_tokens[i].lexem == "{") {
+			lvl++;
+		}
+		else if(_tokens[i].lexem == "}") {
+			lvl--;
+		}
+	}
+
+	if(lvl == 0) {
+		return (true);
+	}
+	return (false);
+}
+
+bool	ParseConfig::validServ() {
+
+	int	i = 0;
+
+	this->validBrace();
+	if (_tokens[i].type != SERVER){
+		throw ConfException("' " + _tokens[i].lexem + " ' does not match 'Server' derective");
+	}else {
+
+		vServer server;
+	}
+	while ()
+	return (true);
 }
