@@ -26,6 +26,7 @@
 "</body>\r\n"\
 "</html>\r\n";
 #include <string>
+#include <sstream>
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>

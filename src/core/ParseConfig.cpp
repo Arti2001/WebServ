@@ -43,17 +43,20 @@ bool	ParseConfig::openConfigFile() {
 	return (true);
 }
 
-Token ParseConfig::tokenize(std::string word) {
+Token ParseConfig::tokenize(std::vector<std::string> roughData) {
 	
-	Token	token;
-	
-	if (_keywords.find(word) != _keywords.end()) {
-		token.type = _keywords[word];
-		token.lexem = word;
-	}
-	else {
-		token.type = IDENTIFIER;
-		token.lexem = word;
+	Token								token;
+	std::vector<std::string>::iterator	it = roughData.begin();
+
+	while (it != roughData.end()) {
+
+		if (_keywords.find(*it) != _keywords.end()) {
+			token.type = _keywords[*it];
+		}else {
+			token.type = IDENTIFIER;
+		}
+		token.lexem = *it;
+		_tokens.push_back(token);
 	}
 	return (token);
 }
@@ -78,15 +81,25 @@ std::string	addSpace(const std::string& str) {
 
 
 
-std::string	prepToToken(const std::string& str) {
+std::vector<std::string>	ParseConfig::prepToToken() {
 
-	std::string line;
-	std::string	readyToSplit;
+	std::ostringstream			oss;
+	std::vector<std::string>	lexemes;
+	std::string					line, spaced;
 
-	std::getline(std::cin, line);
-	readyToSplit = addSpace(line);
+	while (std::getline( _configfile, line)) {
+		oss << line;
+	}
 
-	return
+	if (_configfile.eof()) {
+		std::cout<< "End of the file!"<< "\n";
+	}
+
+	spaced = addSpace(oss.str());
+	lexemes = split(spaced);
+	_configfile.close();
+
+	return (lexemes);
 }
 
 std::vector<std::string> split(const std::string& str) {

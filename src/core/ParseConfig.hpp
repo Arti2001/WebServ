@@ -32,14 +32,12 @@ struct Token {
 };
 
 
-
-
 class ParseConfig {
 	private:
 		std::unordered_map<std::string, tokenType>	_keywords;
 		std::ifstream								_configfile;
 		std::string									_file;
-
+		std::vector<Token>							_tokens;
 
 	public:
 		ParseConfig(const char* path);
@@ -56,12 +54,10 @@ class ParseConfig {
 
 
 		bool						openConfigFile();
-		Token						tokenize(std::string word);
-		std::string					prepToToken(const std::string& str);
+		std::vector<std::string>	prepToToken();
+		Token						tokenize(std::vector<std::string> roughData);
 	};
 	
-	
 	std::vector<std::string>	split(const std::string& str);
-
 
 #endif
