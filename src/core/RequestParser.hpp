@@ -6,7 +6,7 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/02 10:30:21 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/04/12 14:03:49 by pminialg      ########   odam.nl         */
+/*   Updated: 2025/04/18 09:49:58 by pminialg      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,13 +39,13 @@ class RequestParser
         std::pair<size_t, size_t> findHeadersEnd(const std::string& data);
         size_t skipLeadingEmptyLines(const std::string& data);
         std::tuple<std::string, std::string, std::string> parseFirstLine(const std::string& first_line);
-        
-    public:
-        std::unordered_map<int , HTTPRequest>& handleIncomingRequest(int fd, const std::string& raw_data, std::unordered_map<int, HTTPRequest>& resultMap);
         void parseFirstLineAndHeaders(std::string full_request, HTTPRequest& request);
         std::pair<std::string, std::string> parseHeader(const std::string& header_line);
         void parseBody(std::string& body, HTTPRequest& request);
         void validateRequestLine(const std::string& method, const std::string& uri, const std::string& version);
+        
+    public:
+        std::unordered_map<int , HTTPRequest>& handleIncomingRequest(int fd, const std::string& raw_data, std::unordered_map<int, HTTPRequest>& resultMap);
 };
 
 #endif
