@@ -12,6 +12,10 @@
 
 #include "HTTPRequest.hpp"
 
+HTTPRequest::HTTPRequest() {}
+
+HTTPRequest::~HTTPRequest() {}
+
 std::string HTTPRequest::getMethod() const {return _method;}
 
 std::string HTTPRequest::getUri() const {return _uri;}

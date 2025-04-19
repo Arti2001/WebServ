@@ -29,6 +29,8 @@ class HTTPRequest
         std::unordered_map<std::string, std::string> _files;
 
     public:
+        HTTPRequest();
+        ~HTTPRequest();
         std::string getMethod() const;
         std::string getUri() const;
         std::string getVersion() const;

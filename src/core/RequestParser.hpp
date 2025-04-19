@@ -45,6 +45,8 @@ class RequestParser
         void validateRequestLine(const std::string& method, const std::string& uri, const std::string& version);
         
     public:
+        RequestParser();
+        ~RequestParser();
         std::unordered_map<int , HTTPRequest>& handleIncomingRequest(int fd, const std::string& raw_data, std::unordered_map<int, HTTPRequest>& resultMap);
 };
 

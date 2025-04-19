@@ -1,3 +1,15 @@
 // MIME (Multipurpose Internet Mail Extensions)
 
-// they will give back a string for Content Type in our response headers
+#ifndef MIME_TYPES_HPP
+#define MIME_TYPES_HPP
+
+#include <string>
+#include <unordered_map>
+#include <algorithm>
+
+class MimeTypes {
+    public:
+        static std::string detectMimeType(const std::string& file_path);
+};
+
+#endif
