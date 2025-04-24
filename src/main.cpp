@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/21 10:03:46 by pminialg          #+#    #+#             */
-/*   Updated: 2025/04/14 14:33:39 by amysiv           ###   ########.fr       */
+/*   Updated: 2025/04/23 13:43:55 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,22 +32,18 @@ void	parsConfigFile(char *file) {
 
 	ParseConfig					parser(file);
 	std::vector<std::string>	roughData;
+
 	
 	try{
 		parser.openConfigFile();
+		roughData = parser.prepToToken();
+		parser.tokenize(roughData);
+		parser.TakeToken();
 	}catch(ParseConfig::ConfException& ex){
 		std::cerr << "Error: " << ex.what()<< "\n";
 		return ;
 	}
-	roughData = parser.prepToToken();
-	parser.tokenize(roughData);
-	try{
-		parser.validServ();
-	}
-	catch(ParseConfig::ConfException& ex) {
-		std::cerr << "Error: " << ex.what()<< "\n";
-		return ;
-	}
+	
 }
 
 int main(int argc, char *argv[])

@@ -44,6 +44,7 @@
 #include <map>
 #include <vector>
 #include <sstream>
+#include <bits/stdc++.h>
 
 #include "ParseConfig.hpp"
 #include "vServer.hpp"
