@@ -67,9 +67,9 @@ class ParseConfig {
 		void						tokenize(std::vector<std::string> roughData);
 		bool						validBrace();
 		void						TakeToken();
-		void						parsVServer(vServer& serv);
+		void						parsVirtualServer(vServer& serv);
 		void						parsServerBlock(vServer& serv);
-		void						parsLocationBlock(vServer& serv);
+		void						parsLocationBlock(const vServer& serv);
 		void						printServerMapH();
 		void						addToMap();
 		

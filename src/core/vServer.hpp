@@ -11,7 +11,11 @@
 //
 // ─── LOCATION STRUCT ────────────────────────────────────────────────────────────
 //
+
+class vServer;
+
 struct Location {
+	Location();
 	Location(const vServer& serv);
 
 	// Configuration fields
@@ -23,7 +27,7 @@ struct Location {
 	std::vector<std::string>				_allowedMethods;
 	std::unordered_map<int, std::string>	_errorPages;
 
-	void	getPath(const std::string& path);
+	void	setPath(const std::string& path);
 
 };
 
@@ -77,12 +81,12 @@ class vServer {
 
 	
 
+	static	bool															validAutoIndex(const std::vector<std::string>& flagVec);
+	static	size_t															validClientMaxSize(const std::vector<std::string>& sizevec);
+	static	std::unordered_map<int, std::string>							validErrorPages(const std::vector<std::string>& pages);
+	static	std::vector<std::string>										validAllowedMethods(const std::vector<std::string>& methods);
+	static	std::string														onlyOneCheck(const std::vector<std::string>& pathVec, std::string dir);
 	//validators
 };
-static	bool															validAutoIndex(const std::vector<std::string>& flagVec);
-static	size_t															validClientMaxSize(const std::vector<std::string>& sizevec);
-static	std::unordered_map<int, std::string>							validErrorPages(const std::vector<std::string>& pages);
-static	std::vector<std::string>										validAllowedMethods(const std::vector<std::string>& methods);
-static	std::string														onlyOneCheck(const std::vector<std::string>& pathVec, std::string dir);
 
 #endif

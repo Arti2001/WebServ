@@ -249,7 +249,7 @@ std::unordered_map<int, std::string>	vServer::validErrorPages(const std::vector<
 }
 
 
-void	Location::getPath(const std::string& path) {
+void	Location::setPath(const std::string& path) {
 
 	if (path.empty() || path.at(0) != '/')
 		throw std::runtime_error("Location directive must be followed by a ' /path ' ");
