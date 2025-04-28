@@ -3,212 +3,227 @@
 
 vServer::vServer() {
 
-	_ip = "0.0.0.0:80";
-	_serverNames = {"localhost"};
-	_root = "/myWebsite/pages";
-	_index = "index.html";
-	_auto_index = false;
-	_clientMaxSize = 1024 ^ 4;
+	_vServerIp = "0.0.0.0:80";
+	_vServerNames = {"localhost"};
+	_vServerRoot = "/myWebsite/pages";
+	_vServerIndex = "index.html";
+	_vServerAutoIndex = false;
+	_vServerClientMaxSize = 1024 * 10;
 }
 
 
 Location::Location(const vServer& serv) {
 
-	_path = "/";
-	_root = serv.getRoot();
-	_index = serv.getIndex();
-	_auto_index = serv.getAutoIndex();
-	_clientMaxSize = serv.getClientMaxSize();
-	_allowedMethods = serv.getAllowedMethods();
-	_errorPages = serv.getErrorPages();
+	_locationPath = "/";
+	_locationRoot= serv.getServerRoot();
+	_locationIndex = serv.getServerIndex();
+	_locationAutoIndex = serv.getServerAutoIndex();
+	_locationClientMaxSize = serv.getServerClientMaxSize();
+	_locationAllowedMethods = serv.getServerAllowedMethods();
+	_locationErrorPages = serv.getServerErrorPages();
 	
 }
 
 vServer::~vServer() {
-    // your destructor code (even if empty)
+
 }
 
 
 
 
-void	vServer::setListen(const std::vector<std::string>& addrVec){
+void	vServer::setServerListen(const std::vector<std::string>& addressVector){
 
-	std::regex	ipV4pattern(R"((\d{1,3}(?:\.\d{1,3}){3}):(\d{1,5}))");
+	std::regex	ipV4Pattern(R"((\d{1,3}(?:\.\d{1,3}){3}):(\d{1,5}))");
 	std::smatch	matches;
-	std::string	ip;
-	std::string	portStr;
-	int 		port;
 	
-	if (addrVec.size() != 1) {
+	if (addressVector.size() != MAX_ARG) {
+
 		throw std::runtime_error("Invalid listen directive: expected 'address:port' format");
 	}
 
-	const	std::string addr = addrVec[0];
+	const	std::string address = addressVector.at(0);
 	
-	if (std::regex_match(addr, matches, ipV4pattern)) {
+	if (std::regex_match(address, matches, ipV4Pattern)) {
+		
+		std::string	ipStr = matches[1];
+		std::string	portStr = matches[2];
+		int	portInt = std::stoi(portStr);
+		if (portInt >= MIN_PORT_NUMB && portInt <= MAX_PORT_NUMB) {
 
-		ip = matches[1];
-		portStr = matches[2];
-	
-		port = std::stoi(portStr);
-
-		if (port >= 1 && port <= 65535) {
-			_ip = ip.c_str();
-			_port = portStr.c_str();
+			_vServerIp = ipStr;
+			_vServerPort = portStr;
 		}
 		else
 			throw ParseConfig::ConfException("Port is out of range");
 	}
 	else {
+
 		std::cout << "Input does not match the IPv4:Port format.\n";
 	}
 }
 
-void	vServer::setServerName(std::vector<std::string>& namesVec) {
+void	vServer::setServerNames(std::vector<std::string>& namesVector) {
 
-	if (namesVec.size() > 2) {
+	if (namesVector.size() > MAX_SERVER_NAME_NUMB) {
+
 		throw std::runtime_error("Invalid server-name directive: max 2 names");
 	}
 
 	std::regex namePattern(R"(^[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+$)");
 
-	for (std::string& name : namesVec) {
+	for (std::string& name : namesVector) {
 
 		if (std::regex_match(name, namePattern))
-			_serverNames.push_back(name);
+			_vServerNames.push_back(name);
 		else
 			throw ParseConfig::ConfException("Input does not match 'example.com' format .\n");
 	}
 }
 
-void	vServer::setRoot(const std::vector<std::string>& pathVec) {
-	_root = onlyOneCheck(pathVec, "root");
+void	vServer::setServerRoot(const std::vector<std::string>& pathVec) {
+	_vServerRoot = onlyOneArgumentCheck(pathVec, "root");
 }
 
-void	vServer::setIndex(const std::vector<std::string>& indexVec) {
-	_index = onlyOneCheck(indexVec, "index");
+void	vServer::setServerIndex(const std::vector<std::string>& indexVec) {
+	_vServerIndex = onlyOneArgumentCheck(indexVec, "index");
 }
 
-void	vServer::setAutoIndex(const std::vector<std::string>& flagVec) {
-	_auto_index = validAutoIndex(flagVec);
+void	vServer::setServerAutoIndex(const std::vector<std::string>& flagVec) {
+	_vServerAutoIndex = validateAutoIndexDirective(flagVec);
 }
 
-void	vServer::setClientMaxSize(const std::vector<std::string>& sizevec) {
-	_clientMaxSize = validClientMaxSize(sizevec);
+void	vServer::setServerClientMaxSize(const std::vector<std::string>& sizevec) {
+	_vServerClientMaxSize = validateClientMaxSizeDirective(sizevec);
 }
 
-void	vServer::setAllowedMethods(const std::vector<std::string>& methods) {
-	_allowedMethods = validAllowedMethods(methods);
+void	vServer::setServerAllowedMethods(const std::vector<std::string>& methods) {
+	_vServerAllowedMethods = validateAllowedMethodsDirective(methods);
 }
 
-void	vServer::setErrorPages(const std::vector<std::string>& pages) {
+void	vServer::setServerErrorPages(const std::vector<std::string>& pages) {
 
-	_errorPages = validErrorPages(pages);
-}
-
-
-bool	vServer::getAutoIndex( void ) const {
-	return (_auto_index);
-}
-
-const char*	vServer::getIp( void ) const {
-	return (_ip);
-}
-
-const char*	vServer::getPort( void ) const {
-	return (_port);
+	_vServerErrorPages = validateErrorPagesDirective(pages);
 }
 
 
-std::string								vServer::getRoot( void ) const {
-	return(_root);
+bool	vServer::getServerAutoIndex( void ) const {
+	return (_vServerAutoIndex);
 }
 
-std::string								vServer::getIndex( void ) const {
-	return (_index);
+std::string	vServer::getServerIp( void ) const {
+	return (_vServerIp);
 }
 
-std::vector<Location>					vServer::getLocations( void ) const {
-	return(_locations);
+std::string	vServer::getServerPort( void ) const {
+	return (_vServerPort);
 }
 
-std::unordered_map<int, std::string>	vServer::getErrorPages( void ) const {
-	return(_errorPages);
+
+std::string								vServer::getServerRoot( void ) const {
+	return(_vServerRoot);
+}
+
+std::string								vServer::getServerIndex( void ) const {
+	return (_vServerIndex);
+}
+
+std::vector<Location>					vServer::getServerLocations( void ) const {
+	return(_vServerLocations);
+}
+
+std::unordered_map<int, std::string>	vServer::getServerErrorPages( void ) const {
+	return(_vServerErrorPages);
 }
 
 std::vector<std::string>				vServer::getServerNames( void ) const {
-	return (_serverNames);
+	return (_vServerNames);
 }
 
-unsigned								vServer::getClientMaxSize( void ) const {
-	return(_clientMaxSize);
+unsigned								vServer::getServerClientMaxSize( void ) const {
+	return(_vServerClientMaxSize);
 }
 
-std::vector<std::string>				vServer::getAllowedMethods( void ) const {
-	return(_allowedMethods);
+std::vector<std::string>				vServer::getServerAllowedMethods( void ) const {
+	return(_vServerAllowedMethods);
 }
 
 
-std::string	vServer::onlyOneCheck(const std::vector<std::string>& pathVec, std::string dir) {
+std::string	vServer::onlyOneArgumentCheck(const std::vector<std::string>& pathVector, std::string directiveName) {
 
-	if (pathVec.size() != 1) {
-		throw std::runtime_error("Invalid " + dir + "directive: only one argument for this field");
+	if (pathVector.size() != MAX_ARG) {
+
+		throw std::runtime_error("Invalid " + directiveName + "directive: only one argument for this field");
 	}
-	return (pathVec[0]);
+	return (pathVector.at(0));
 }
 
-bool	vServer::validAutoIndex(const std::vector<std::string>& flagVec) {
 
 
-	if (flagVec.size() != 1) {
+
+bool	vServer::validateAutoIndexDirective(const std::vector<std::string>& flagVector) {
+
+
+	if (flagVector.size() != MAX_ARG) {
+
 		throw std::runtime_error("Invalid auto-index directive: expected single value 'on' <= or => 'off' ");
 	}
 
-	const std::string&	path = flagVec[0];
+	const std::string&	flag = flagVector.at(0);
 
-	if (path == "on") {
+	if (flag == "on") {
 		return (true);
 	}
-	else if (path == "off") {
+	else if (flag == "off") {
 		return (false);
 	}
 	else {
-		throw ParseConfig::ConfException("Inncorect option: '" + path + "' for auto-index field\n");
+
+		throw ParseConfig::ConfException("Inncorect option: '" + flag + "' for auto-index field\n");
 	}
 }
 
-size_t	vServer::validClientMaxSize(const std::vector<std::string>& sizevec) {
+unsigned	vServer::megaBytesToBits( int MB) {
 
-	size_t	size;
+	return (MB * 1024 *1024);
+}
 
-	if (sizevec.size() != 1) {
+size_t	vServer::validateClientMaxSizeDirective(const std::vector<std::string>& sizeVector) {
+
+	size_t	clientBodySizeMB;
+
+	if (sizeVector.size() != MAX_ARG) {
+
 		throw std::runtime_error("Invalid client-max-size directive: expected single value in M ");
 	}
-	const std::string&	path = sizevec[0];
+
+	const std::string&	clientBodySizeStr = sizeVector.at(0);
 	try {
-		size = std::stoi(path, nullptr, 10);
+
+		clientBodySizeMB = std::stoi(clientBodySizeStr, nullptr, 10);
 	}
+
 	catch (const std::exception& e) {
+
 		throw std::runtime_error("Invalid body size: must be a number");
 	}
-	if ( 0 < size && size <= 20)
-		return (size  * 1024 * 1024);
+
+	if ( MIN_CLIENT_BODY_SIZE < clientBodySizeMB && clientBodySizeMB <= MAX_CLIENT_BODY_SIZE)
+		return (vServer::megaBytesToBits(clientBodySizeMB));
 	else
-		throw ParseConfig::ConfException("Client-max-size: out of range: Range 1Mb <=> 20 Mb");
+		throw ParseConfig::ConfException("Client-max-size: out of range: Range 1Mb <=> 20 MB");
 
 }
 
 
- std::vector<std::string>	vServer::validAllowedMethods(const std::vector<std::string>& methods) {
+ std::vector<std::string>	vServer::validateAllowedMethodsDirective(const std::vector<std::string>& methodsVector) {
 
 	std::vector<std::string>		validMethods;
-	std::set<std::string>			allowed = {"POST", "GET", "DELETE"};
+	std::set<std::string>			allowedMethodsSet = {"POST", "GET", "DELETE"};
 
 
-	for (const std::string&	method : methods) {
-
+	for (const std::string&	method : methodsVector) {
 	
-		if (allowed.count(method)){
+		if (allowedMethodsSet.count(method)){
 			validMethods.push_back(method);
 		}
 		else
@@ -217,42 +232,48 @@ size_t	vServer::validClientMaxSize(const std::vector<std::string>& sizevec) {
 		return (validMethods);
 }
 
-std::unordered_map<int, std::string>	vServer::validErrorPages(const std::vector<std::string>& pages) {
 
-	std::set<int>							setErrors {404, 403, 409, 500, 301};
+std::unordered_map<int, std::string>	vServer::validateErrorPagesDirective(const std::vector<std::string>& errorPagesVector) {
+
+	std::set<int>							errorCodesSet {404, 403, 409, 500, 301};
 	int										errorCode;
-	std::unordered_map<int, std::string>	errorMap;
+	std::unordered_map<int, std::string>	errorPagesMap;
 
-	if (pages.size() < 2) {
+	if (errorPagesVector.size() != MAX_ARG_ERROR_PAGE) {
+
 		throw std::runtime_error("Invalid error_pages directive: expected error code and path");
 	}
 
 	try {
 
-		errorCode =  stoi(pages[0], nullptr, 10);
+		errorCode =  stoi(errorPagesVector.at(0), nullptr, 10);
 	}
+
 	catch (const std::exception& e) {
+
 		throw std::runtime_error("Invalid error code: must be a number");
 	}
-	if (!setErrors.count(errorCode)) {
+	
+	if (!errorCodesSet .count(errorCode)) {
 		throw std::runtime_error("Unsupported error code: " + std::to_string(errorCode));
 	}
 
-	const	std::string& path = pages[1];
+	const	std::string& errorPagePath = errorPagesVector.at(1);
 
-	if (path.empty() || path.at(0) != '/')
+	if (errorPagePath.empty() || errorPagePath.at(0) != '/') {
+
 		throw std::runtime_error("Invalid error page path: must start with '/'");
+	}
 
-	
-	errorMap[errorCode] = pages[1];
-	return errorMap;
+	errorPagesMap[errorCode] = errorPagePath;
+	return	errorPagesMap;
 }
 
 
-void	Location::setPath(const std::string& path) {
+void	Location::setLocationPath(const std::string& pathToCheck) {
 
-	if (path.empty() || path.at(0) != '/')
+	if (pathToCheck.empty() || pathToCheck.at(0) != '/')
 		throw std::runtime_error("Location directive must be followed by a ' /path ' ");
 	else	
-		_path = path;
+		_locationPath = pathToCheck;
 }

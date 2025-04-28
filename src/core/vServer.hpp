@@ -8,9 +8,18 @@
 #include <regex>
 #include <set>
 #include <exception>
-//
-// ─── LOCATION STRUCT ────────────────────────────────────────────────────────────
-//
+
+
+#define MAX_PORT_NUMB 65535
+#define MIN_PORT_NUMB 1
+
+#define MAX_SERVER_NAME_NUMB 2
+#define MAX_ARG	1
+
+#define MAX_CLIENT_BODY_SIZE 20
+#define MIN_CLIENT_BODY_SIZE 1
+
+#define MAX_ARG_ERROR_PAGE	2
 
 class vServer;
 
@@ -19,74 +28,72 @@ struct Location {
 	Location(const vServer& serv);
 
 	// Configuration fields
-	std::string								_path;
-	std::string								_root;
-	std::string								_index;
-	bool									_auto_index;
-	unsigned								_clientMaxSize;
-	std::vector<std::string>				_allowedMethods;
-	std::unordered_map<int, std::string>	_errorPages;
+	std::string								_locationPath;
+	std::string								_locationRoot;
+	std::string								_locationIndex;
+	bool									_locationAutoIndex;
+	unsigned								_locationClientMaxSize;
+	std::vector<std::string>				_locationAllowedMethods;
+	std::unordered_map<int, std::string>	_locationErrorPages;
 
-	void	setPath(const std::string& path);
+	void	setLocationPath(const std::string& path);
 
 };
 
-//
-// ─── VIRTUAL SERVER CLASS ───────────────────────────────────────────────────────
-//
 class vServer {
 	private:
-		const char *							_ip;
-		const char *							_port;
-		std::vector<std::string>				_serverNames;
-		std::vector<Location>					_locations;
-		std::string								_root;
-		std::string								_index;
-		bool									_auto_index;
-		unsigned								_clientMaxSize;
-		std::vector<std::string>				_allowedMethods;
-		std::unordered_map<int, std::string>	_errorPages;
+		std::string								_vServerIp;
+		std::string								_vServerPort;
+		std::vector<std::string>				_vServerNames;
+		std::vector<Location>					_vServerLocations;
+		std::string								_vServerRoot;
+		std::string								_vServerIndex;
+		bool									_vServerAutoIndex;
+		unsigned								_vServerClientMaxSize;
+		std::vector<std::string>				_vServerAllowedMethods;
+		std::unordered_map<int, std::string>	_vServerErrorPages;
 
 	public:
 		vServer();
 		~vServer();
+
 	//Getters
-
-	
-	bool										getAutoIndex( void ) const;
-	const char*									getIp( void ) const;
-	const char*									getPort( void ) const;
-	unsigned									getClientMaxSize( void ) const;
-	std::string									getRoot( void ) const;
-	std::string									getIndex( void ) const;
-	std::vector<Location>						getLocations( void) const;
+	bool										getServerAutoIndex( void ) const;
+	std::string									getServerIp( void ) const;
+	std::string									getServerPort( void ) const;
+	unsigned									getServerClientMaxSize( void ) const;
+	std::string									getServerRoot( void ) const;
+	std::string									getServerIndex( void ) const;
+	std::vector<Location>						getServerLocations( void) const;
 	std::vector<std::string>					getServerNames( void ) const;
-	std::vector<std::string>					getAllowedMethods( void ) const;
-	std::unordered_map<int, std::string>		getErrorPages( void ) const;
+	std::vector<std::string>					getServerAllowedMethods( void ) const;
+	std::unordered_map<int, std::string>		getServerErrorPages( void ) const;
 
-
-		
 
 	// Setters
-	void	setListen(const std::vector<std::string>& addrVec);
-	void	setServerName(std::vector<std::string>& names);
-	void	addLocation(const Location& loc);
-	void	setRoot(const std::vector<std::string>& pathVec);
-	void	setIndex(const std::vector<std::string>& indexVec);
-	void	setAutoIndex(const std::vector<std::string>& flagVec);
-	void	setClientMaxSize(const std::vector<std::string>& sizeVec);
-	void	setAllowedMethods(const std::vector<std::string>& methodsVec);
-	void	setErrorPages(const std::vector<std::string>& pagesVec);
+	void	setServerListen(const std::vector<std::string>& addrVec);
+	void	setServerNames(std::vector<std::string>& names);
+	void	setServerLocations(const Location& loc);
+	void	setServerRoot(const std::vector<std::string>& pathVec);
+	void	setServerIndex(const std::vector<std::string>& indexVec);
+	void	setServerAutoIndex(const std::vector<std::string>& flagVec);
+	void	setServerClientMaxSize(const std::vector<std::string>& sizeVec);
+	void	setServerAllowedMethods(const std::vector<std::string>& methodsVec);
+	void	setServerErrorPages(const std::vector<std::string>& pagesVec);
 
 
 	
-
-	static	bool															validAutoIndex(const std::vector<std::string>& flagVec);
-	static	size_t															validClientMaxSize(const std::vector<std::string>& sizevec);
-	static	std::unordered_map<int, std::string>							validErrorPages(const std::vector<std::string>& pages);
-	static	std::vector<std::string>										validAllowedMethods(const std::vector<std::string>& methods);
-	static	std::string														onlyOneCheck(const std::vector<std::string>& pathVec, std::string dir);
+	
 	//validators
+	static	bool															validateAutoIndexDirective(const std::vector<std::string>& flagVector);
+	static	size_t															validateClientMaxSizeDirective(const std::vector<std::string>& sizeVector);
+	static	std::unordered_map<int, std::string>							validateErrorPagesDirective(const std::vector<std::string>& errorPagesVector);
+	static	std::vector<std::string>										validateAllowedMethodsDirective(const std::vector<std::string>& allowedMethodsVector);
+	static	std::string														onlyOneArgumentCheck(const std::vector<std::string>& pathVector, std::string directiveName);
+
+
+	//methods
+	static	unsigned				megaBytesToBits(int	mB);
 };
 
 #endif

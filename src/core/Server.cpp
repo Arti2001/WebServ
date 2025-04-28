@@ -207,7 +207,7 @@ void Server::sendResponse(int clientFd) {
 
 void	Server::prepResponse(int clientFd) {
 
-	_clients[clientFd].response = HARDCODEDRESP;
+	_clients[clientFd].response = "lol";
 	_clients[clientFd].bytesSent = 0;
 }
 

@@ -6,6 +6,13 @@
 #include <fstream>
 #include "vServer.hpp"
 
+
+#define LEVEL 1
+
+
+
+
+
 enum TokenType {
 	
 	SEMICOLON,
@@ -62,19 +69,19 @@ class ParseConfig {
 
 		
 		bool						openConfigFile();
-		bool						isDirective(TokenType type) const;
-		std::vector<std::string>	prepToToken();
-		void						tokenize(std::vector<std::string> roughData);
+		bool						isTokenDirective(TokenType type) const;
+		std::vector<std::string>	prepToTokenizeConfigData();
+		void						tokenizeConfigData(std::vector<std::string> roughData);
 		bool						validBrace();
-		void						TakeToken();
-		void						parsVirtualServer(vServer& serv);
-		void						parsServerBlock(vServer& serv);
-		void						parsLocationBlock(const vServer& serv);
+		void						validateConfigFileTokens();
+		void						parseVirtualServerBlock(vServer& serv);
+		void						validateServerBlockDirectives(vServer& serv);
+		void						validateLocationBlockDirectives(vServer& serv);
 		void						printServerMapH();
 		void						addToMap();
 		
 		
-		std::pair< Token, std::vector<std::string>>						makePair();
+		std::pair< Token, std::vector<std::string>>						makeKeyValuePair();
 		
 		
 		
@@ -88,5 +95,6 @@ class ParseConfig {
 		
 	};
 	std::vector<std::string>	split(const std::string& str);
+	std::ostream& operator<<(std::ostream& os, const vServer& server);
 
 #endif

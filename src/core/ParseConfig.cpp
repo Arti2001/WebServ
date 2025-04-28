@@ -32,7 +32,7 @@ ParseConfig::~ParseConfig() {
 	_configfile.close();
 }
 
-bool ParseConfig::isDirective(TokenType type) const {
+bool ParseConfig::isTokenDirective(TokenType type) const {
 	return (type == LISTEN_DIR || type == ROOT_DIR || 
 			type == INDEX_DIR || type == SERVER_NAME_DIR || 
 			type == ERROR_PAGE_DIR || type == AUTO_INDEX_DIR ||
@@ -55,10 +55,13 @@ bool	ParseConfig::openConfigFile() {
 	
 	_configfile.open(_file);
 	if (!_configfile) {
+
 		throw (ConfException("Failed to open " + _file));
 	}
-	else
-	std::cout << "file: '" << _file << "' is opend." << "\n";
+	else{
+
+		std::cout << "file: '" << _file << "' is opend." << "\n";
+	}
 	return (true);
 }
 
@@ -76,13 +79,15 @@ std::string	addSpace(const std::string& str) {
 			new_string.push_back(c);
 			new_string.push_back(' ');
 		}
-		else
-		new_string.push_back(c);
+		else {
+
+			new_string.push_back(c);
+		}
 	}
 	return (new_string);
 }
 
-std::vector<std::string>	ParseConfig::prepToToken() {
+std::vector<std::string>	ParseConfig::prepToTokenizeConfigData() {
 
 	std::ostringstream			oss;
 	std::vector<std::string>	lexemes;
@@ -105,7 +110,7 @@ std::vector<std::string>	ParseConfig::prepToToken() {
 
 
 
-std::vector<std::string> split(const std::string& str) {
+std::vector<std::string>	split(const std::string& str) {
 
 	std::vector<std::string>	lexemes;
 	std::stringstream			iss(str);
@@ -118,35 +123,29 @@ std::vector<std::string> split(const std::string& str) {
 	return (lexemes);
 }
 
-bool	ParseConfig::validBrace() {
+//bool	ParseConfig::validBrace() {
 
-	int	lvl = 0;
+//	int	lvl = 0;
 
-	for (size_t i = 0; i < _tokens.size(); i++) {
+//	for (size_t i = 0; i < _tokens.size(); i++) {
 
-		if (_tokens[i].lexem == "{") {
-			lvl++;
-		}
-		else if(_tokens[i].lexem == "}") {
-			lvl--;
-		}
-	}
+//		if (_tokens[i].lexem == "{") {
+//			lvl++;
+//		}
+//		else if(_tokens[i].lexem == "}") {
+//			lvl--;
+//		}
+//	}
 
-	if(lvl == 0) {
-		return (true);
-	}
-	return (false);
-}
-
-
+//	if(lvl == 0) {
+//		return (true);
+//	}
+//	return (false);
+//}
 
 
+void	ParseConfig::tokenizeConfigData(std::vector<std::string> roughData) {
 
-
-void	ParseConfig::tokenize(std::vector<std::string> roughData) {
-
-	
-	
 	Token	token;
 	std::vector<std::string>::iterator	it = roughData.begin();
 	
@@ -165,18 +164,10 @@ void	ParseConfig::tokenize(std::vector<std::string> roughData) {
 		_tokens.push_back(token);
 		it++;
 	}
-	//for (size_t i = 0; i < _tokens.size(); i++)
-	//{
-	//	std::cout << "lexeme: " + _tokens[i].lexem << "---> " << _tokens[i].type << "\n";
-	//}
 }
 
 
-
-
-
-
-void	ParseConfig::TakeToken() {
+void	ParseConfig::validateConfigFileTokens() {
 
 	
 	for (; currToken < _tokens.size(); currToken++) {
@@ -190,13 +181,11 @@ void	ParseConfig::TakeToken() {
 			vServer	vserv;
 			std::cout << "New virtual server is created" << "\n";
 
-			depth = 1;
+			depth = LEVEL;
 			currToken += 2;
-			parsVirtualServer(vserv);
+			parseVirtualServerBlock(vserv);
+			std::cout<< vserv;
 			_vServers.push_back(vserv);
-			std::cout<< _tokens[currToken].lexem <<"\n";
-
-			std::cout<< currToken<<"\n";
 		}
 		else {
 			throw ConfException("Unexpected token: '" + _tokens[currToken].lexem + "'");
@@ -206,22 +195,34 @@ void	ParseConfig::TakeToken() {
 	
 }
 
+std::ostream& operator<<(std::ostream& os, const vServer& server) {
 
-void	ParseConfig::parsVirtualServer( vServer& serv) {
+os	<< "ip is: " + server.getServerIp() << "\n"
+	<< "port is: " + server.getServerPort() << "\n"
+	<< "name is: " + server.getServerNames().at(1) << "\n"
+	<< "name 2 is: " + server.getServerNames().at(2) << "\n"
+	<< "client body size is: " << server.getServerClientMaxSize() << "\n"
+	<< "auto index is: " << server.getServerAutoIndex() << "\n"
+	<< "Allowed methods first is: "  + server.getServerAllowedMethods().at(0) << "\n";
+	
+	return os;
+}
+
+void	ParseConfig::parseVirtualServerBlock( vServer& serv) {
 	
 	for (;currToken < _tokens.size(); currToken++) {
-		//if (_tokens[currToken].type == CLOSED_BRACE) {
+		if (_tokens[currToken].type == CLOSED_BRACE) {
 
-		//	depth--;
-		//	continue;
-		//}
-		if (isDirective(_tokens[currToken].type)) {
-			parsServerBlock(serv);
+			depth--;
+			continue;
+		}
+		if (isTokenDirective(_tokens[currToken].type)) {
+			validateServerBlockDirectives(serv);
 		}
 		else if (_tokens[currToken].type == LOCATION_BLOCK) {
 			
-			depth += 1;
-			parsLocationBlock(serv);
+			depth += LEVEL;
+			validateLocationBlockDirectives(serv);
 		}
 	}
 	//if (depth != 0)
@@ -231,47 +232,44 @@ void	ParseConfig::parsVirtualServer( vServer& serv) {
 
 
 
-void	ParseConfig::parsLocationBlock(const vServer& serv) {
+void	ParseConfig::validateLocationBlockDirectives(vServer& serv) {
 	
 	Location	loc(serv);
 	
 	currToken++;
 
-	loc.setPath(_tokens[currToken].lexem);
+	loc.setLocationPath(_tokens[currToken].lexem);
 	currToken+=2;
 
 		
-	std::pair< Token, std::vector<std::string>> pair = makePair();
+	std::pair< Token, std::vector<std::string>> pair = makeKeyValuePair();
 	for (; _tokens[currToken].type != CLOSED_BRACE; currToken++) {
 			
 
 		switch (pair.first.type) {
-			std::cout << pair.first.lexem << "\n";
-			
-
 
 			case ROOT_DIR:
-				loc._root = vServer::onlyOneCheck(pair.second, "root");
+				loc._locationRoot = vServer::onlyOneArgumentCheck(pair.second, "root");
 			break;
 			
 			case INDEX_DIR:
-				loc._index  = vServer::onlyOneCheck(pair.second, "index");
+				loc._locationIndex = vServer::onlyOneArgumentCheck(pair.second, "index");
 			break;
 			
 			case AUTO_INDEX_DIR:
-				loc._auto_index = vServer::validAutoIndex(pair.second);
+				loc._locationAutoIndex = vServer::validateAutoIndexDirective(pair.second);
 			break;
 			
 			case BODY_MAX_SIZE:
-				loc._clientMaxSize = vServer::validClientMaxSize(pair.second);
+				loc._locationClientMaxSize = vServer::validateClientMaxSizeDirective(pair.second);
 			break;
 			
 			case ALLOWED_METHODS:
-				loc._allowedMethods = vServer::validAllowedMethods(pair.second);
+				loc._locationAllowedMethods = vServer::validateAllowedMethodsDirective(pair.second);
 			break;
 			
 			case ERROR_PAGE_DIR:
-				loc._errorPages = vServer::validErrorPages(pair.second);
+				loc._locationErrorPages = vServer::validateErrorPagesDirective(pair.second);
 			break;
 			
 			default:
@@ -279,46 +277,46 @@ void	ParseConfig::parsLocationBlock(const vServer& serv) {
 		}
 	}
 	
-	serv.getLocations().push_back(loc);
+	serv.getServerLocations().push_back(loc);
 
 }
 
-void	ParseConfig::parsServerBlock(vServer& serv) {
+void	ParseConfig::validateServerBlockDirectives(vServer& serv) {
 	
-	std::pair< Token, std::vector<std::string>> pair = makePair();;
+	std::pair< Token, std::vector<std::string>> pair = makeKeyValuePair();;
 	
 	switch (pair.first.type) {
 		
 		case LISTEN_DIR:
-			serv.setListen(pair.second);
+			serv.setServerListen(pair.second);
 		break;
 		
 		case SERVER_NAME_DIR:
-			serv.setServerName(pair.second);
+			serv.setServerNames(pair.second);
 		break;
 		
 		case ROOT_DIR:
-			serv.setRoot(pair.second);
+			serv.setServerRoot(pair.second);
 		break;
 		
 		case INDEX_DIR:
-			serv.setIndex(pair.second);
+			serv.setServerIndex(pair.second);
 		break;
 		
 		case AUTO_INDEX_DIR:
-			serv.setAutoIndex(pair.second);
+			serv.setServerAutoIndex(pair.second);
 		break;
 		
 		case BODY_MAX_SIZE:
-			serv.setClientMaxSize(pair.second);
+			serv.setServerClientMaxSize(pair.second);
 		break;
 		
 		case ALLOWED_METHODS:
-			serv.setAllowedMethods(pair.second);
+			serv.setServerAllowedMethods(pair.second);
 		break;
 		
 		case ERROR_PAGE_DIR:
-			serv.setErrorPages(pair.second);
+			serv.setServerErrorPages(pair.second);
 		break;
 		
 		default:
@@ -328,7 +326,7 @@ void	ParseConfig::parsServerBlock(vServer& serv) {
 }
 
 
-std::pair< Token, std::vector<std::string>>	ParseConfig::makePair() {
+std::pair< Token, std::vector<std::string>>	ParseConfig::makeKeyValuePair() {
 
 	Token										key = _tokens[currToken];
 	std::vector<std::string>					values;
@@ -340,7 +338,7 @@ std::pair< Token, std::vector<std::string>>	ParseConfig::makePair() {
 		values.push_back("");// If token is ; that means key's value is an empty string
 	}
 	while (_tokens[currToken].type != SEMICOLON) {
-		if (isDirective(_tokens[currToken].type)) {
+		if (isTokenDirective(_tokens[currToken].type)) {
 			throw ConfException("Enclosed line: No semicolon at the end of a line!");
 		}
 		else if (_tokens[currToken].type == UNKNOWN) {
