@@ -1,1 +1,1 @@
-break ParseConfig::validateConfigFileTokens
+break ParseConfig::parsConfigFileTokens

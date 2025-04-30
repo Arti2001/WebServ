@@ -70,11 +70,11 @@ bool Server::init()
 		std::cerr << "Failed to bind to any results" << "\n";
 		exit(EXIT_FAILURE);
 	}
-	if (_sockFd < 0)
-	{
-		std::cerr << "Error: Server not initialized" << "\n";
-		return (false);
-	}
+	//if (_sockFd < 0)
+	//{
+	//	std::cerr << "Error: Server not initialized" << "\n";
+	//	return (false);
+	//}
 	if (!Server::setNonBlocking(_sockFd)) {
 		std::cerr << "Error: Faild to set fd to a Non Blocking mode!"<< "\n";
 	}
@@ -87,7 +87,9 @@ bool Server::init()
 		close(_sockFd);
 		return false;
 	}
+	
 	std::cout << " Server Listening"<< "\n";
+
 	_isRunning = true;
 	return true;
 }

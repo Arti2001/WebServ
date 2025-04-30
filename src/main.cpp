@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/21 10:03:46 by pminialg          #+#    #+#             */
-/*   Updated: 2025/04/28 14:32:57 by amysiv           ###   ########.fr       */
+/*   Updated: 2025/04/30 11:29:43 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ void	parsConfigFile(char *file) {
 		parser.openConfigFile();
 		roughData = parser.prepToTokenizeConfigData();
 		parser.tokenizeConfigData(roughData);
-		parser.validateConfigFileTokens();
+		parser.parsConfigFileTokens();
 	}catch(ParseConfig::ConfException& ex){
 		std::cerr << "Error: " << ex.what()<< "\n";
 		return ;

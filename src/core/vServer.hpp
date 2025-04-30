@@ -36,7 +36,7 @@ struct Location {
 	std::vector<std::string>				_locationAllowedMethods;
 	std::unordered_map<int, std::string>	_locationErrorPages;
 
-	void	setLocationPath(const std::string& path);
+	static std::string	setLocationPath(std::string& path);
 
 };
 
@@ -71,15 +71,15 @@ class vServer {
 
 
 	// Setters
-	void	setServerListen(const std::vector<std::string>& addrVec);
+	void	setServerListen(const std::vector<std::string>& addressVector);
 	void	setServerNames(std::vector<std::string>& names);
 	void	setServerLocations(const Location& loc);
-	void	setServerRoot(const std::vector<std::string>& pathVec);
-	void	setServerIndex(const std::vector<std::string>& indexVec);
-	void	setServerAutoIndex(const std::vector<std::string>& flagVec);
-	void	setServerClientMaxSize(const std::vector<std::string>& sizeVec);
-	void	setServerAllowedMethods(const std::vector<std::string>& methodsVec);
-	void	setServerErrorPages(const std::vector<std::string>& pagesVec);
+	void	setServerRoot(const std::vector<std::string>& pathVector);
+	void	setServerIndex(const std::vector<std::string>& indexVector);
+	void	setServerAutoIndex(const std::vector<std::string>& flagVector);
+	void	setServerClientMaxSize(const std::vector<std::string>& sizeVector);
+	void	setServerAllowedMethods(const std::vector<std::string>& methodsVector);
+	void	setServerErrorPages(const std::vector<std::string>& pagesVector);
 
 
 	
@@ -90,7 +90,7 @@ class vServer {
 	static	std::unordered_map<int, std::string>							validateErrorPagesDirective(const std::vector<std::string>& errorPagesVector);
 	static	std::vector<std::string>										validateAllowedMethodsDirective(const std::vector<std::string>& allowedMethodsVector);
 	static	std::string														onlyOneArgumentCheck(const std::vector<std::string>& pathVector, std::string directiveName);
-
+	
 
 	//methods
 	static	unsigned				megaBytesToBits(int	mB);

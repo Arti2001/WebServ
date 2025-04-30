@@ -73,10 +73,12 @@ class ParseConfig {
 		std::vector<std::string>	prepToTokenizeConfigData();
 		void						tokenizeConfigData(std::vector<std::string> roughData);
 		bool						validBrace();
-		void						validateConfigFileTokens();
-		void						parseVirtualServerBlock(vServer& serv);
+		void						parsConfigFileTokens();
+		void						parsVirtualServerBlock(vServer& serv);
 		void						validateServerBlockDirectives(vServer& serv);
 		void						validateLocationBlockDirectives(vServer& serv);
+		Location					createLocationInstance(const vServer& server);
+		void						validateLocationBlockStructure();
 		void						printServerMapH();
 		void						addToMap();
 		

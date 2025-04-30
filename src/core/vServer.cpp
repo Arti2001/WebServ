@@ -4,11 +4,23 @@
 vServer::vServer() {
 
 	_vServerIp = "0.0.0.0:80";
+	_vServerPort = "80";
 	_vServerNames = {"localhost"};
 	_vServerRoot = "/myWebsite/pages";
 	_vServerIndex = "index.html";
 	_vServerAutoIndex = false;
 	_vServerClientMaxSize = 1024 * 10;
+	_vServerAllowedMethods = {"GET"};
+	_vServerErrorPages = {
+
+		{400, "/errors/400.html"},
+		{403, "/errors/403.html"},
+		{404, "/errors/404.html"},
+		{405, "/errors/405.html"},
+		{500, "/errors/500.html"},
+		{502, "/errors/502.html"},
+		{503, "/errors/503.html"},
+	};
 }
 
 
@@ -30,47 +42,47 @@ vServer::~vServer() {
 
 
 
+void vServer::setServerListen(const std::vector<std::string>& addressVector) {
 
-void	vServer::setServerListen(const std::vector<std::string>& addressVector){
+	std::regex ipV4Pattern(R"((\d{1,3}(?:\.\d{1,3}){3}):(\d{1,5}))");
+	std::smatch matches;
 
-	std::regex	ipV4Pattern(R"((\d{1,3}(?:\.\d{1,3}){3}):(\d{1,5}))");
-	std::smatch	matches;
-	
 	if (addressVector.size() != MAX_ARG) {
-
-		throw std::runtime_error("Invalid listen directive: expected 'address:port' format");
+		throw ParseConfig::ConfException("Invalid listen directive: expected exactly one argument in 'IP:Port' format.");
 	}
 
-	const	std::string address = addressVector.at(0);
-	
-	if (std::regex_match(address, matches, ipV4Pattern)) {
-		
-		std::string	ipStr = matches[1];
-		std::string	portStr = matches[2];
-		int	portInt = std::stoi(portStr);
-		if (portInt >= MIN_PORT_NUMB && portInt <= MAX_PORT_NUMB) {
+	const std::string& address = addressVector.at(0);
 
-			_vServerIp = ipStr;
-			_vServerPort = portStr;
-		}
-		else
-			throw ParseConfig::ConfException("Port is out of range");
+	if (!std::regex_match(address, matches, ipV4Pattern)) {
+		throw ParseConfig::ConfException("Listen address must match IPv4:Port format (e.g., 127.0.0.1:8080).");
 	}
-	else {
 
-		std::cout << "Input does not match the IPv4:Port format.\n";
+	std::string ipStr = matches[1];
+	std::string portStr = matches[2];
+
+	int portInt;
+	try {
+		portInt = std::stoi(portStr);
+	} catch (const std::exception& e) {
+		throw ParseConfig::ConfException("Port is not a valid number.");
 	}
+
+	if (portInt < MIN_PORT_NUMB || portInt > MAX_PORT_NUMB) {
+		throw ParseConfig::ConfException("Port number is out of valid range (1–65535).");
+	}
+
+	_vServerIp = ipStr;
+	_vServerPort = portStr;
 }
+
 
 void	vServer::setServerNames(std::vector<std::string>& namesVector) {
 
 	if (namesVector.size() > MAX_SERVER_NAME_NUMB) {
-
-		throw std::runtime_error("Invalid server-name directive: max 2 names");
+		throw ParseConfig::ConfException("Invalid server-name directive: max 2 names");
 	}
 
 	std::regex namePattern(R"(^[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+$)");
-
 	for (std::string& name : namesVector) {
 
 		if (std::regex_match(name, namePattern))
@@ -152,7 +164,7 @@ std::string	vServer::onlyOneArgumentCheck(const std::vector<std::string>& pathVe
 
 	if (pathVector.size() != MAX_ARG) {
 
-		throw std::runtime_error("Invalid " + directiveName + "directive: only one argument for this field");
+		throw ParseConfig::ConfException("Invalid " + directiveName + "directive: only one argument for this field");
 	}
 	return (pathVector.at(0));
 }
@@ -165,7 +177,7 @@ bool	vServer::validateAutoIndexDirective(const std::vector<std::string>& flagVec
 
 	if (flagVector.size() != MAX_ARG) {
 
-		throw std::runtime_error("Invalid auto-index directive: expected single value 'on' <= or => 'off' ");
+		throw ParseConfig::ConfException("Invalid auto-index directive: expected single value 'on' <= or => 'off' ");
 	}
 
 	const std::string&	flag = flagVector.at(0);
@@ -193,7 +205,7 @@ size_t	vServer::validateClientMaxSizeDirective(const std::vector<std::string>& s
 
 	if (sizeVector.size() != MAX_ARG) {
 
-		throw std::runtime_error("Invalid client-max-size directive: expected single value in M ");
+		throw ParseConfig::ConfException("Invalid client-max-size directive: expected single value in M ");
 	}
 
 	const std::string&	clientBodySizeStr = sizeVector.at(0);
@@ -201,10 +213,9 @@ size_t	vServer::validateClientMaxSizeDirective(const std::vector<std::string>& s
 
 		clientBodySizeMB = std::stoi(clientBodySizeStr, nullptr, 10);
 	}
-
 	catch (const std::exception& e) {
 
-		throw std::runtime_error("Invalid body size: must be a number");
+		throw ParseConfig::ConfException("Invalid body size: must be a number");
 	}
 
 	if ( MIN_CLIENT_BODY_SIZE < clientBodySizeMB && clientBodySizeMB <= MAX_CLIENT_BODY_SIZE)
@@ -241,28 +252,23 @@ std::unordered_map<int, std::string>	vServer::validateErrorPagesDirective(const 
 
 	if (errorPagesVector.size() != MAX_ARG_ERROR_PAGE) {
 
-		throw std::runtime_error("Invalid error_pages directive: expected error code and path");
+		throw ParseConfig::ConfException("Invalid error_pages directive: expected error code and path");
 	}
 
 	try {
-
 		errorCode =  stoi(errorPagesVector.at(0), nullptr, 10);
 	}
-
 	catch (const std::exception& e) {
-
-		throw std::runtime_error("Invalid error code: must be a number");
+		throw ParseConfig::ConfException("Invalid error code: must be a number");
 	}
 	
 	if (!errorCodesSet .count(errorCode)) {
-		throw std::runtime_error("Unsupported error code: " + std::to_string(errorCode));
+		throw ParseConfig::ConfException("Unsupported error code: " + std::to_string(errorCode));
 	}
-
 	const	std::string& errorPagePath = errorPagesVector.at(1);
-
 	if (errorPagePath.empty() || errorPagePath.at(0) != '/') {
 
-		throw std::runtime_error("Invalid error page path: must start with '/'");
+		throw ParseConfig::ConfException("Invalid error page path: must start with '/'");
 	}
 
 	errorPagesMap[errorCode] = errorPagePath;
@@ -270,10 +276,9 @@ std::unordered_map<int, std::string>	vServer::validateErrorPagesDirective(const 
 }
 
 
-void	Location::setLocationPath(const std::string& pathToCheck) {
+std::string	Location::setLocationPath(std::string& pathToCheck) {
 
 	if (pathToCheck.empty() || pathToCheck.at(0) != '/')
-		throw std::runtime_error("Location directive must be followed by a ' /path ' ");
-	else	
-		_locationPath = pathToCheck;
+		throw ParseConfig::ConfException("Location directive must be followed by a ' /path ' ");
+	return	(pathToCheck);
 }
