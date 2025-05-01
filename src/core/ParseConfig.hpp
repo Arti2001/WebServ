@@ -65,8 +65,6 @@ class ParseConfig {
 
 		ParseConfig(const char* path);
 		~ParseConfig();
-
-
 		
 		bool						openConfigFile();
 		bool						isTokenDirective(TokenType type) const;
@@ -77,15 +75,13 @@ class ParseConfig {
 		void						parsVirtualServerBlock(vServer& serv);
 		void						validateServerBlockDirectives(vServer& serv);
 		void						validateLocationBlockDirectives(vServer& serv);
-		Location					createLocationInstance(const vServer& server);
 		void						validateLocationBlockStructure();
+		Location					createLocationInstance(const vServer& server);
 		void						printServerMapH();
 		void						addToMap();
 		
 		
 		std::pair< Token, std::vector<std::string>>						makeKeyValuePair();
-		
-		
 		
 		class ConfException : public std::exception {
 			private:
@@ -98,5 +94,6 @@ class ParseConfig {
 	};
 	std::vector<std::string>	split(const std::string& str);
 	std::ostream& operator<<(std::ostream& os, const vServer& server);
+	std::ostream& operator<<(std::ostream& os, const std::vector<vServer>& servers);
 
 #endif

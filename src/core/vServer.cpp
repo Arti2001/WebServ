@@ -114,7 +114,8 @@ void	vServer::setServerAllowedMethods(const std::vector<std::string>& methods) {
 
 void	vServer::setServerErrorPages(const std::vector<std::string>& pages) {
 
-	_vServerErrorPages = validateErrorPagesDirective(pages);
+	const std::unordered_map<int, std::string> validated = validateErrorPagesDirective(pages);
+	_vServerErrorPages.insert(validated.begin(), validated.end());
 }
 
 
@@ -139,8 +140,12 @@ std::string								vServer::getServerIndex( void ) const {
 	return (_vServerIndex);
 }
 
-std::vector<Location>					vServer::getServerLocations( void ) const {
-	return(_vServerLocations);
+std::vector<Location>& vServer::getServerLocations() {
+	return _vServerLocations;
+}
+
+const std::vector<Location>& vServer::getServerLocations() const {
+	return _vServerLocations;
 }
 
 std::unordered_map<int, std::string>	vServer::getServerErrorPages( void ) const {
@@ -246,7 +251,7 @@ size_t	vServer::validateClientMaxSizeDirective(const std::vector<std::string>& s
 
 std::unordered_map<int, std::string>	vServer::validateErrorPagesDirective(const std::vector<std::string>& errorPagesVector) {
 
-	std::set<int>							errorCodesSet {404, 403, 409, 500, 301};
+	std::set<int>							errorCodesSet {404, 403, 409, 500, 301, 406};
 	int										errorCode;
 	std::unordered_map<int, std::string>	errorPagesMap;
 
@@ -266,7 +271,7 @@ std::unordered_map<int, std::string>	vServer::validateErrorPagesDirective(const 
 		throw ParseConfig::ConfException("Unsupported error code: " + std::to_string(errorCode));
 	}
 	const	std::string& errorPagePath = errorPagesVector.at(1);
-	if (errorPagePath.empty() || errorPagePath.at(0) != '/') {
+	if (errorPagePath.empty()) {
 
 		throw ParseConfig::ConfException("Invalid error page path: must start with '/'");
 	}

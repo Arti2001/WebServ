@@ -63,9 +63,10 @@ class vServer {
 	std::string									getServerPort( void ) const;
 	unsigned									getServerClientMaxSize( void ) const;
 	std::string									getServerRoot( void ) const;
-	std::string									getServerIndex( void ) const;
-	std::vector<Location>						getServerLocations( void) const;
 	std::vector<std::string>					getServerNames( void ) const;
+	std::string									getServerIndex( void ) const;
+	std::vector<Location>&						getServerLocations(); // allows writing
+	const std::vector<Location>&				getServerLocations() const; // allows reading	std::vector<std::string>					getServerNames( void ) const;
 	std::vector<std::string>					getServerAllowedMethods( void ) const;
 	std::unordered_map<int, std::string>		getServerErrorPages( void ) const;
 
