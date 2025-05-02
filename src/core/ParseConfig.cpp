@@ -117,25 +117,25 @@ std::vector<std::string>	split(const std::string& str) {
 	return (lexemes);
 }
 
-//bool	ParseConfig::validBrace() {
+bool	ParseConfig::validBrace() {
 
-//	int	lvl = 0;
+	int	lvl = 0;
 
-//	for (size_t i = 0; i < _tokens.size(); i++) {
+	for (size_t i = 0; i < _tokens.size(); i++) {
 
-//		if (_tokens[i].lexem == "{") {
-//			lvl++;
-//		}
-//		else if(_tokens[i].lexem == "}") {
-//			lvl--;
-//		}
-//	}
+		if (_tokens[i].lexem == "{") {
+			lvl++;
+		}
+		else if(_tokens[i].lexem == "}") {
+			lvl--;
+		}
+	}
 
-//	if(lvl == 0) {
-//		return (true);
-//	}
-//	return (false);
-//}
+	if(lvl == 0) {
+		return (true);
+	}
+	return (false);
+}
 
 
 void	ParseConfig::tokenizeConfigData(std::vector<std::string> roughData) {
@@ -166,7 +166,6 @@ void	ParseConfig::tokenizeConfigData(std::vector<std::string> roughData) {
 
 void	ParseConfig::parsConfigFileTokens() {
 
-	
 	for (; currToken < _tokens.size(); currToken++) {
 		
 		
@@ -181,13 +180,14 @@ void	ParseConfig::parsConfigFileTokens() {
 			parsVirtualServerBlock(vserv);
 			_vServers.push_back(vserv);
 		}
-		else {
-			throw ConfException("Unexpected token: '" + _tokens[currToken].lexem + "'");
-		}
-		
+	else {
+		throw ConfException("Unexpected token: '" + _tokens[currToken].lexem + "'");
+	}
+
 	}
 	std::cout << _vServers;
 }
+
 
 std::ostream& operator<<(std::ostream& os, const std::vector<vServer>& servers) {
 	for (size_t i = 0; i < servers.size(); ++i) {
@@ -244,22 +244,23 @@ std::ostream& operator<<(std::ostream& os, const vServer& server) {
 
 void	ParseConfig::parsVirtualServerBlock( vServer& serv) {
 	
-	for (;depth > 0; currToken++) {
-
+	while (depth > 0) {
 		if (_tokens[currToken].type == CLOSED_BRACE) {
-			
 			std::cout << "Clousing brace is encauntered"<< "\n";
 			depth--;
+			currToken++;
+			continue;
 		}
 		else if (isTokenDirective(_tokens[currToken].type)) {
 			validateServerBlockDirectives(serv);
 		}
 		else if (_tokens[currToken].type == LOCATION_BLOCK) {
-			
 			depth += LEVEL;
 			validateLocationBlockDirectives(serv);
 		}
+		currToken++; // move to the next token
 	}
+
 	if (depth != 0)
 		throw std::runtime_error("Error: unclosed server block");
 	else if (_tokens[currToken].type == SERVER_BLOCK)
@@ -269,17 +270,16 @@ void	ParseConfig::parsVirtualServerBlock( vServer& serv) {
 
 void ParseConfig::validateLocationBlockStructure() {
 
-	int directiveIndex = currToken;//we need to loop and check if the location block structure is correct
-	for (;_tokens[directiveIndex].type != CLOSED_BRACE; directiveIndex++) {
-		if (isTokenDirective(_tokens[directiveIndex].type)) {
-			
-			return;
-		}
-		else
-		throw ConfException("Wrong syntax: Unexpected token:" + _tokens[directiveIndex].lexem);
-	}
-	if (_tokens[directiveIndex].type == CLOSED_BRACE)
+	int copyCount = currToken;//we need to loop and check if the location block structure is correct
+
+	copyCount++;//move to the open brace
+
+
+	if (_tokens[copyCount].type != OPENED_BRACE)
+		throw ConfException("No opening brace at the begining of the location block");
+	else if (_tokens[copyCount + 1].type == CLOSED_BRACE)
 		throw ConfException("Empty location block");
+
 }
 
 
@@ -289,9 +289,10 @@ Location	ParseConfig::createLocationInstance(const vServer& server) {
 	
 	std::string	locationPath = Location::setLocationPath(_tokens[currToken].lexem);
 	
-	currToken += 2;//move to a directive
+		
 	
 	validateLocationBlockStructure();
+	currToken += 2;//move to a directive
 	Location	loc(server);
 	loc._locationPath = locationPath;
 	return (loc);
@@ -338,9 +339,8 @@ void	ParseConfig::validateLocationBlockDirectives(vServer& server) {
 					std::cout << "Not found for  location" << "\n";
 			}
 		}
-		
-		server.getServerLocations().push_back(loc);
-
+			depth--;//because we stand on closed brace
+			server.getServerLocations().push_back(loc);
 	}
 	
 	void	ParseConfig::validateServerBlockDirectives(vServer& serv) {
