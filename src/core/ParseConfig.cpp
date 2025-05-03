@@ -117,6 +117,34 @@ std::vector<std::string>	split(const std::string& str) {
 	return (lexemes);
 }
 
+
+
+void	ParseConfig::tokenizeConfigData(std::vector<std::string> roughData) {
+	
+	Token	token;
+	std::vector<std::string>::iterator	it = roughData.begin();
+	
+	while (it != roughData.end()) {
+		
+		if ((*it)[0] == '#') {
+			it++;
+		}
+			
+			token.lexem = *it;
+			if (_keywords.find(*it) != _keywords.end()) {
+				
+			token.type = _keywords[*it];
+		}
+		else {
+			
+			token.type	= UNKNOWN;
+		}
+		
+		_tokens.push_back(token);
+		it++;
+	}
+}
+
 bool	ParseConfig::validBrace() {
 
 	int	lvl = 0;
@@ -137,35 +165,10 @@ bool	ParseConfig::validBrace() {
 	return (false);
 }
 
-
-void	ParseConfig::tokenizeConfigData(std::vector<std::string> roughData) {
-
-	Token	token;
-	std::vector<std::string>::iterator	it = roughData.begin();
-	
-	while (it != roughData.end()) {
-		
-		if ((*it)[0] == '#')
-			it++;
-
-		token.lexem = *it;
-		if (_keywords.find(*it) != _keywords.end()) {
-
-			token.type = _keywords[*it];
-		}
-		else {
-
-			token.type	= UNKNOWN;
-		}
-		
-		_tokens.push_back(token);
-		it++;
-	}
-}
-
-
 void	ParseConfig::parsConfigFileTokens() {
-
+	
+	if (!validBrace())
+	throw ConfException("Enclosed brace in the configuration file");
 	for (; currToken < _tokens.size(); currToken++) {
 		
 		
@@ -180,6 +183,7 @@ void	ParseConfig::parsConfigFileTokens() {
 			parsVirtualServerBlock(vserv);
 			_vServers.push_back(vserv);
 		}
+	
 	else {
 		throw ConfException("Unexpected token: '" + _tokens[currToken].lexem + "'");
 	}
@@ -258,28 +262,15 @@ void	ParseConfig::parsVirtualServerBlock( vServer& serv) {
 			depth += LEVEL;
 			validateLocationBlockDirectives(serv);
 		}
+		else
+			throw ConfException("Alien object detected in a server block'" + _tokens[currToken].lexem + "'");
 		currToken++; // move to the next token
 	}
-
-	if (depth != 0)
-		throw std::runtime_error("Error: unclosed server block");
-	else if (_tokens[currToken].type == SERVER_BLOCK)
+	if (_tokens[currToken].type == SERVER_BLOCK)
 		currToken--;
+	//else
+	//	throw ConfException("Alien object detected after a server block '" + _tokens[currToken].lexem + "'");
 	
-}
-
-void ParseConfig::validateLocationBlockStructure() {
-
-	int copyCount = currToken;//we need to loop and check if the location block structure is correct
-
-	copyCount++;//move to the open brace
-
-
-	if (_tokens[copyCount].type != OPENED_BRACE)
-		throw ConfException("No opening brace at the begining of the location block");
-	else if (_tokens[copyCount + 1].type == CLOSED_BRACE)
-		throw ConfException("Empty location block");
-
 }
 
 
@@ -289,9 +280,6 @@ Location	ParseConfig::createLocationInstance(const vServer& server) {
 	
 	std::string	locationPath = Location::setLocationPath(_tokens[currToken].lexem);
 	
-		
-	
-	validateLocationBlockStructure();
 	currToken += 2;//move to a directive
 	Location	loc(server);
 	loc._locationPath = locationPath;
