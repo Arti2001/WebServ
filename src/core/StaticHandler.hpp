@@ -6,7 +6,7 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:25 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/04/24 11:24:49 by pminialg      ########   odam.nl         */
+/*   Updated: 2025/05/03 12:08:34 by pminialg      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,9 +38,6 @@ class StaticHandler {
         Response loadErrorPage(const Location& loc, int code);
         std::vector<char> generateDirectoryListing(const std::string& fsPath, const std::string& urlPath);
         Response serveGet(const HTTPRequest& req, const Location& loc);
-        Response servePost(const HTTPRequest& req, const Location& loc);
-        Response serveDelete(const HTTPRequest& req, const Location& loc);
-        bool writeUploadedFile(const HTTPRequest& req, const Location& loc, std::string& newUri);
     
     public:
         StaticHandler();

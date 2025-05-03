@@ -4,11 +4,6 @@ StaticHandler::StaticHandler() {}
 
 StaticHandler::~StaticHandler() {}
 
-bool StaticHandler::writeUploadedFile(const HTTPRequest& req, const Location& loc, std::string& newUri) {
-    // have the logic of uploading the file
-    return true;
-}
-
 Response StaticHandler::serveGet(const HTTPRequest& req, const Location& loc) {
     // 1) Method must be allowed
     if (std::find(loc._allowedMethods.begin(), loc._allowedMethods.end(),
@@ -125,79 +120,10 @@ Response StaticHandler::serveGet(const HTTPRequest& req, const Location& loc) {
     return loadErrorPage(loc, 404);
 }
 
-
-Response StaticHandler::servePost(const HTTPRequest& req, const Location& loc) {
-    if (std::find(loc._allowedMethods.begin(), loc._allowedMethods.end(), "POST") == loc._allowedMethods.end()) {
-        return loadErrorPage(loc, 403);
-    }
-    if (req.getBody().size() > loc._clientMaxSize) {
-        return loadErrorPage(loc, 413); // payload too large
-    }
-
-    std::string newUri;
-    if (!writeUploadedFile(req, loc, newUri))
-        return loadErrorPage(loc, 500);
-    Response resp;
-    resp.setStatusCode(201);
-    resp.setReasonPhrase("Created");
-    resp.addHeader("Location", newUri);
-    resp.addHeader("Content-Length", "0");
-    resp.addHeader("Date", Utils::currentDateString());
-    resp.addHeader("Server", Utils::serverNameString());
-    return resp;
-}
-
-Response StaticHandler::serveDelete(const HTTPRequest& req, const Location& loc) {
-    if (std::find(loc._allowedMethods.begin(), loc._allowedMethods.end(), "DELETE") == loc._allowedMethods.end()) {
-        return loadErrorPage(loc, 405);
-    }
-    // Path check
-    std::string uri = req.getUri();
-    std::string path = uri.substr(loc._path.length());
-    std::string fullPath = loc._root + path;
-
-    // Stat the target
-    struct stat sb;
-    if (stat(fullPath.c_str(), &sb) < 0) {
-        return loadErrorPage(loc, 404);
-    }
-
-    // Handle directory deletion
-    if (S_ISDIR(sb.st_mode)) {
-        if (uri.back() != '/') {
-            return loadErrorPage(loc, 409); // conflict
-        }
-        if (access(fullPath.c_str(), W_OK) < 0) {
-            return loadErrorPage(loc, 403); // forbidden
-        }
-        if (rmdir(fullPath.c_str()) < 0) {
-            return loadErrorPage(loc, 500); // must be empty
-        }
-    } else {
-        if (unlink(fullPath.c_str()) < 0) {
-            return loadErrorPage(loc, 500);
-        }
-    }
-
-    Response resp;
-    resp.setStatusCode(204);
-    resp.setReasonPhrase("No Content");
-    resp.addHeader("Content Length", "0");
-    resp.addHeader("Date", Utils::currentDateString());
-    resp.addHeader("Server", Utils::serverNameString());
-    return resp;  
-}
-
 Response StaticHandler::serve(const HTTPRequest& req, const Location& loc) {
     const auto& method = req.getMethod();
     if (method == "GET") {
         return serveGet(req, loc);
-    }
-    else if (method == "POST") {
-        return servePost(req, loc);
-    }
-    else if (method == "DELETE") {
-        return serveDelete(req, loc);
     }
     
     Response resp;
