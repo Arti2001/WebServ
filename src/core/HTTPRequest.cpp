@@ -6,11 +6,15 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/02 10:30:40 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/04/03 16:11:38 by pminialg      ########   odam.nl         */
+/*   Updated: 2025/04/24 13:23:48 by pminialg      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HTTPRequest.hpp"
+
+HTTPRequest::HTTPRequest() {}
+
+HTTPRequest::~HTTPRequest() {}
 
 std::string HTTPRequest::getMethod() const {return _method;}
 
@@ -21,3 +25,13 @@ std::string HTTPRequest::getVersion() const {return _version;}
 std::unordered_map<std::string, std::string> HTTPRequest::getHeaders() const {return _headers;}
 
 std::string HTTPRequest::getBody() const {return _body;}
+
+void HTTPRequest::setMethod(const std::string& method) {
+    _method = method;
+}
+void HTTPRequest::setUri(const std::string& uri) {
+    _uri = uri;
+}
+void HTTPRequest::setVersion(const std::string& version) {
+    _version = version;
+}

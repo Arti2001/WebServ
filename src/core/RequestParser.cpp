@@ -12,6 +12,10 @@
 
 #include "RequestParser.hpp"
 
+RequestParser::RequestParser() {}
+
+RequestParser::~RequestParser() {}
+
 void RequestParser::validateRequestLine(const std::string &method, const std::string &uri, const std::string &version)
 {
     if (method.empty() || uri.empty() || version.empty())

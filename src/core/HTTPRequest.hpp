@@ -6,7 +6,7 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/02 10:30:25 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/04/10 16:06:29 by pminialg      ########   odam.nl         */
+/*   Updated: 2025/04/24 13:22:20 by pminialg      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,11 +29,16 @@ class HTTPRequest
         std::unordered_map<std::string, std::string> _files;
 
     public:
+        HTTPRequest();
+        ~HTTPRequest();
         std::string getMethod() const;
         std::string getUri() const;
         std::string getVersion() const;
         std::unordered_map<std::string, std::string> getHeaders() const;
         std::string getBody() const;
+        void setMethod(const std::string& method);
+        void setUri(const std::string& uri);
+        void setVersion(const std::string& version);
         
         friend class RequestParser;
 
