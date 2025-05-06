@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/21 10:03:46 by pminialg          #+#    #+#             */
-/*   Updated: 2025/04/30 11:29:43 by amysiv           ###   ########.fr       */
+/*   Updated: 2025/05/05 15:09:22 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,8 +30,8 @@ bool g_running = true;
 
 void	parsConfigFile(char *file) {
 
-	ParseConfig					parser(file);
-	std::vector<std::string>	roughData;
+	ParseConfig									parser(file);
+	std::map<size_t, std::vector<std::string>>	roughData;
 
 	
 	try{

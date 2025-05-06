@@ -84,6 +84,8 @@
 		"barrier": "cpp",
 		"latch": "cpp",
 		"semaphore": "cpp",
-		"stacktrace": "cpp"
+		"stacktrace": "cpp",
+		"source_location": "cpp",
+		"syncstream": "cpp"
 	}
 }

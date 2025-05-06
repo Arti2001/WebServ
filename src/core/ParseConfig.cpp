@@ -18,12 +18,19 @@ ParseConfig::ParseConfig(const char* file) : _file(file), depth(0), currToken(0)
 	_keywords["auto-index"] = AUTO_INDEX_DIR;
 	_keywords["client-max-size"] = BODY_MAX_SIZE;
 	_keywords["allowed-methods"] = ALLOWED_METHODS;
-	
 }
 
 ParseConfig::ConfException::ConfException(const std::string& msg) : _message(msg) {
-	
+
 }
+Token::Token(size_t	lineNumber, std::string word, TokenType tokenType) {
+
+	this->line_number = lineNumber;
+	this->lexem = word;
+	this->type = tokenType;
+
+}
+Token::Token() {}
 
 ParseConfig::~ParseConfig() {
 	
@@ -62,88 +69,90 @@ bool	ParseConfig::openConfigFile() {
 
 
 
-std::string	addSpace(const std::string& str) {
+// std::string	addSpace(const std::string& str) {
 
-	std::string	new_string;
+// 	std::string	new_string;
 	
-	for (char c : str) {
+// 	for (char c : str) {
 		
-		if (c == '=' || c == ';' || c == '{' || c == '}') {
-			new_string.push_back(' ');
-			new_string.push_back(c);
-			new_string.push_back(' ');
-		}
-		else {
+// 		if (c == '=' || c == ';' || c == '{' || c == '}') {
+// 			new_string.push_back(' ');
+// 			new_string.push_back(c);
+// 			new_string.push_back(' ');
+// 		}
+// 		else {
 
-			new_string.push_back(c);
-		}
-	}
-	return (new_string);
-}
+// 			new_string.push_back(c);
+// 		}
+// 	}
+// 	return (new_string);
+// }
 
-std::vector<std::string>	ParseConfig::prepToTokenizeConfigData() {
+// std::vector<std::string>	ParseConfig::prepToTokenizeConfigData() {
 
-	std::ostringstream			oss;
-	std::vector<std::string>	lexemes;
-	std::string					line, spaced;
+// 	std::ostringstream			oss;
+// 	std::vector<std::string>	lexemes;
+// 	std::string					line, spaced;
 
-	while (std::getline( _configfile, line)) {
-		oss << line;
-	}
+// 	while (std::getline( _configfile, line)) {
+// 		oss << line;
+// 	}
 
-	if (_configfile.eof()) {
-		std::cout<< "End of the file!"<< "\n";
-	}
+// 	if (_configfile.eof()) {
+// 		std::cout<< "End of the file!"<< "\n";
+// 	}
 
-	spaced = addSpace(oss.str());
-	lexemes = split(spaced);
-	_configfile.close();
+// 	spaced = addSpace(oss.str());
+// 	lexemes = split(spaced);
+// 	_configfile.close();
 
-	return (lexemes);
-}
-
-
-
-std::vector<std::string>	split(const std::string& str) {
-
-	std::vector<std::string>	lexemes;
-	std::stringstream			iss(str);
-	std::string					lexeme;
-
-	while(iss >> lexeme)
-	{
-		lexemes.push_back(lexeme);
-	}
-	return (lexemes);
-}
+// 	return (lexemes);
+// }
 
 
 
-void	ParseConfig::tokenizeConfigData(std::vector<std::string> roughData) {
+// std::vector<std::string>	split(const std::string& str) {
+
+// 	std::vector<std::string>	lexemes;
+// 	std::stringstream			iss(str);
+// 	std::string					lexeme;
+
+// 	while(iss >> lexeme)
+// 	{
+// 		lexemes.push_back(lexeme);
+// 	}
+// 	return (lexemes);
+// }
+
+
+
+// void	ParseConfig::tokenizeConfigData(std::vector<std::string> roughData) {
 	
-	Token	token;
-	std::vector<std::string>::iterator	it = roughData.begin();
+// 	Token	token;
+
+
+// 	std::vector<std::string>::iterator	it = roughData.begin();
 	
-	while (it != roughData.end()) {
+// 	while (it != roughData.end()) {
 		
-		if ((*it)[0] == '#') {
-			it++;
-		}
+// 		if ((*it)[0] == '#') {
+// 			it++;
+// 		}
 			
-			token.lexem = *it;
-			if (_keywords.find(*it) != _keywords.end()) {
+// 			token.lexem = *it;
+// 			if (_keywords.find(*it) != _keywords.end()) {
 				
-			token.type = _keywords[*it];
-		}
-		else {
+// 			token.type = _keywords[*it];
+// 		}
+// 		else {
 			
-			token.type	= UNKNOWN;
-		}
+// 			token.type	= UNKNOWN;
+// 		}
 		
-		_tokens.push_back(token);
-		it++;
-	}
-}
+// 		_tokens.push_back(token);
+// 		it++;
+// 	}
+// }
 
 bool	ParseConfig::validBrace() {
 
@@ -262,15 +271,18 @@ void	ParseConfig::parsVirtualServerBlock( vServer& serv) {
 			depth += LEVEL;
 			validateLocationBlockDirectives(serv);
 		}
-		else
-			throw ConfException("Alien object detected in a server block'" + _tokens[currToken].lexem + "'");
+		else{
+			std::cout<< "Alien object is detected at the line: " <<   _tokens[currToken].line_number << "\n";
+			return;
+		}
 		currToken++; // move to the next token
 	}
 	if (_tokens[currToken].type == SERVER_BLOCK)
 		currToken--;
-	//else
-	//	throw ConfException("Alien object detected after a server block '" + _tokens[currToken].lexem + "'");
-	
+	else{
+			std::cout<< "Alien object is detected at the line: " <<   _tokens[currToken].line_number << "\n";
+			return;
+		}
 }
 
 

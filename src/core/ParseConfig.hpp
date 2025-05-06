@@ -43,7 +43,9 @@ enum TokenType {
 
 struct Token {
 
-	std::string	lexem;
+	Token(size_t	lineNumber, std::string word, TokenType tokenType);
+	Token();
+	std::string lexem;
 	TokenType	type;
 	ssize_t		line_number;
 
@@ -68,8 +70,10 @@ class ParseConfig {
 		
 		bool						openConfigFile();
 		bool						isTokenDirective(TokenType type) const;
-		std::vector<std::string>	prepToTokenizeConfigData();
-		void						tokenizeConfigData(std::vector<std::string> roughData);
+		// std::vector<std::string>	prepToTokenizeConfigData(); orig
+		std::map<size_t, std::vector<std::string>>	prepToTokenizeConfigData();
+		// void						tokenizeConfigData(std::vector<std::string> roughData);
+		void						tokenizeConfigData(std::map<size_t, std::vector<std::string>> lineNumbLexemes);
 		bool						validBrace();
 		void						parsConfigFileTokens();
 		void						parsVirtualServerBlock(vServer& serv);
