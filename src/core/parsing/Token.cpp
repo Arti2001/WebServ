@@ -1,7 +1,5 @@
 #include "ParseConfig.hpp"
 
-
-
 std::string	addSpace(const std::string& str) {
 
 	std::string	new_string;
@@ -21,29 +19,23 @@ std::string	addSpace(const std::string& str) {
 	return (new_string);
 }
 
-std::map<size_t, std::vector<std::string>>	ParseConfig::prepToTokenizeConfigData() {
+std::map<size_t, std::vector<std::string>>	ParseConfig::prepToTokenizeConfigData(std::ifstream& configFile) {
 
-	std::vector<std::string>	                lexemes;
-    std::map<size_t, std::vector<std::string>>  lineNumbLexemes;
+	std::vector<std::string>					lexemes;
+	std::map<size_t, std::vector<std::string>>	lineNumbLexemes;
 	std::string									line, spacedLine;
-    int                        					lineCounter = 1;
+	int											lineCounter = 1;
 
-	while (std::getline( _configfile, line)) {
-		if (line.empty()) {
+	while (std::getline(configFile, line)) {
+		if (line.empty() || line.at(0) == '#') {
 			lineCounter++;
 			continue;
 		}
-
-		if (line.at(0) == '#') {
-			lineCounter++;
-			continue;
-		}
-        spacedLine = addSpace(line);
+		spacedLine = addSpace(line);
 		lineNumbLexemes[lineCounter] = split(spacedLine);
-        lineCounter++;
+		lineCounter++;
 	}
-	_configfile.close();
-
+	configFile.close();
 	return (lineNumbLexemes);
 }
 

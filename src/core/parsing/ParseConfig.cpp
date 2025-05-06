@@ -24,28 +24,6 @@ ParseConfig::ParseConfig(const char* file) : _file(file), depth(0), currToken(0)
 ParseConfig::ConfException::ConfException(const std::string& msg) : _message(msg) {
 
 }
-Token::Token(size_t	lineNumber, std::string word, TokenType tokenType) {
-
-	this->line_number = lineNumber;
-	this->lexem = word;
-	this->type = tokenType;
-
-}
-Token::Token() {}
-
-ParseConfig::~ParseConfig() {
-	
-	if (_configfile.is_open())
-	_configfile.close();
-}
-
-bool ParseConfig::isTokenDirective(TokenType type) const {
-	return (type == LISTEN_DIR || type == ROOT_DIR || 
-			type == INDEX_DIR || type == SERVER_NAME_DIR || 
-			type == ERROR_PAGE_DIR || type == AUTO_INDEX_DIR ||
-			type == BODY_MAX_SIZE || type == ALLOWED_METHODS ||
-			type == RETURN_DIR);
-}
 
 
 const char*	ParseConfig::ConfException::what() const noexcept {
@@ -53,108 +31,33 @@ const char*	ParseConfig::ConfException::what() const noexcept {
 	return (_message.c_str());
 }
 
+std::vector<vServer>	ParseConfig::getVSevers() const {
 
-bool	ParseConfig::openConfigFile() {
-	
-	_configfile.open(_file);
-	if (!_configfile) {
-
-		throw (ConfException("Failed to open " + _file));
-	}
-	else{
-
-		std::cout << "file: '" << _file << "' is opend." << "\n";
-	}
-	return (true);
+	return (_vServers);
 }
 
 
+Token::Token() {}
 
+Token::Token(size_t	lineNumber, std::string word, TokenType tokenType) {
 
-// std::string	addSpace(const std::string& str) {
+	this->line_number = lineNumber;
+	this->lexem = word;
+	this->type = tokenType;
 
-// 	std::string	new_string;
-	
-// 	for (char c : str) {
-		
-// 		if (c == '=' || c == ';' || c == '{' || c == '}') {
-// 			new_string.push_back(' ');
-// 			new_string.push_back(c);
-// 			new_string.push_back(' ');
-// 		}
-// 		else {
+}
 
-// 			new_string.push_back(c);
-// 		}
-// 	}
-// 	return (new_string);
-// }
+ParseConfig::~ParseConfig() {
+}
 
-// std::vector<std::string>	ParseConfig::prepToTokenizeConfigData() {
+bool	ParseConfig::isTokenDirective(TokenType type) const {
+	return (type == LISTEN_DIR || type == ROOT_DIR || 
+			type == INDEX_DIR || type == SERVER_NAME_DIR || 
+			type == ERROR_PAGE_DIR || type == AUTO_INDEX_DIR ||
+			type == BODY_MAX_SIZE || type == ALLOWED_METHODS ||
+			type == RETURN_DIR);
+}
 
-// 	std::ostringstream			oss;
-// 	std::vector<std::string>	lexemes;
-// 	std::string					line, spaced;
-
-// 	while (std::getline( _configfile, line)) {
-// 		oss << line;
-// 	}
-
-// 	if (_configfile.eof()) {
-// 		std::cout<< "End of the file!"<< "\n";
-// 	}
-
-// 	spaced = addSpace(oss.str());
-// 	lexemes = split(spaced);
-// 	_configfile.close();
-
-// 	return (lexemes);
-// }
-
-
-
-// std::vector<std::string>	split(const std::string& str) {
-
-// 	std::vector<std::string>	lexemes;
-// 	std::stringstream			iss(str);
-// 	std::string					lexeme;
-
-// 	while(iss >> lexeme)
-// 	{
-// 		lexemes.push_back(lexeme);
-// 	}
-// 	return (lexemes);
-// }
-
-
-
-// void	ParseConfig::tokenizeConfigData(std::vector<std::string> roughData) {
-	
-// 	Token	token;
-
-
-// 	std::vector<std::string>::iterator	it = roughData.begin();
-	
-// 	while (it != roughData.end()) {
-		
-// 		if ((*it)[0] == '#') {
-// 			it++;
-// 		}
-			
-// 			token.lexem = *it;
-// 			if (_keywords.find(*it) != _keywords.end()) {
-				
-// 			token.type = _keywords[*it];
-// 		}
-// 		else {
-			
-// 			token.type	= UNKNOWN;
-// 		}
-		
-// 		_tokens.push_back(token);
-// 		it++;
-// 	}
-// }
 
 bool	ParseConfig::validBrace() {
 
@@ -197,64 +100,63 @@ void	ParseConfig::parsConfigFileTokens() {
 		else {
 			throw ConfException("Alien object is detected at the line: " + std::to_string(_tokens[currToken].line_number));
 		}
-
 	}
-	std::cout << _vServers;
+	//std::cout << _vServers;
 }
 
 
-std::ostream& operator<<(std::ostream& os, const std::vector<vServer>& servers) {
-	for (size_t i = 0; i < servers.size(); ++i) {
-		os << "\n\n==================== Server Block " << i << " ====================\n";
-		os << servers[i];
-	}
-	return os;
-}
+//std::ostream& operator<<(std::ostream& os, const std::vector<vServer>& servers) {
+//	for (size_t i = 0; i < servers.size(); ++i) {
+//		os << "\n\n==================== Server Block " << i << " ====================\n";
+//		os << servers[i];
+//	}
+//	return os;
+//}
 
 
-std::ostream& operator<<(std::ostream& os, const vServer& server) {
+//std::ostream& operator<<(std::ostream& os, const vServer& server) {
 
-	os << "Server IP:                    " << server.getServerIp() << "\n";
-	os << "Server Port:                  " << server.getServerPort() << "\n";
+//	os << "Server IP:                    " << server.getServerIp() << "\n";
+//	os << "Server Port:                  " << server.getServerPort() << "\n";
 
-	os << "Server Names:                 ";
-	for (size_t i = 0; i < server.getServerNames().size(); i++)
-		os << server.getServerNames()[i] << (i + 1 < server.getServerNames().size() ? ", " : "\n");
+//	os << "Server Names:                 ";
+//	for (size_t i = 0; i < server.getServerNames().size(); i++)
+//		os << server.getServerNames()[i] << (i + 1 < server.getServerNames().size() ? ", " : "\n");
 
-	os << "Client Max Body Size:         " << server.getServerClientMaxSize() << "\n";
-	os << "Root:                         " << server.getServerRoot() << "\n";
-	os << "Index:                        " << server.getServerIndex() << "\n";
-	os << "AutoIndex:                    " << server.getServerAutoIndex() << "\n";
+//	os << "Client Max Body Size:         " << server.getServerClientMaxSize() << "\n";
+//	os << "Root:                         " << server.getServerRoot() << "\n";
+//	os << "Index:                        " << server.getServerIndex() << "\n";
+//	os << "AutoIndex:                    " << server.getServerAutoIndex() << "\n";
 
-	os << "Allowed Methods:              ";
-	for (size_t i = 0; i < server.getServerAllowedMethods().size(); ++i)
-	os << server.getServerAllowedMethods()[i] << (i + 1 < server.getServerAllowedMethods().size() ? ", " : "\n");
-	os << "  Error Pages:\n";
-	const std::unordered_map<int, std::string>& errorPages = server.getServerErrorPages();
-	for (std::unordered_map<int, std::string>::const_iterator it = errorPages.begin(); it != errorPages.end(); ++it)
-		os << "    " << it->first << ": " << it->second << "\n";
+//	os << "Allowed Methods:              ";
+//	for (size_t i = 0; i < server.getServerAllowedMethods().size(); ++i)
+//	os << server.getServerAllowedMethods()[i] << (i + 1 < server.getServerAllowedMethods().size() ? ", " : "\n");
+//	os << "  Error Pages:\n";
+//	const std::unordered_map<int, std::string>& errorPages = server.getServerErrorPages();
+//	for (std::unordered_map<int, std::string>::const_iterator it = errorPages.begin(); it != errorPages.end(); ++it)
+//		os << "    " << it->first << ": " << it->second << "\n";
 	
-	os << "------------------ Locations ------------------\n";
-	const std::vector<Location>& locs = server.getServerLocations();
-	for (size_t i = 0; i < locs.size(); ++i) {
-		const Location& loc = locs[i];
-		os << "Location [" << i << "]\n";
-		os << "  Path:           " << loc._locationPath << "\n";
-		os << "  Root:           " << loc._locationRoot << "\n";
-		os << "  Index:          " << loc._locationIndex << "\n";
-		os << "  Return:          " << loc._locationReturnPages<< "\n";
-		os << "  AutoIndex:      " << loc._locationAutoIndex << "\n";
-		os << "  Max Body Size:  " << loc._locationClientMaxSize << "\n";
-		os << "  Allowed Methods:";
-		for (size_t j = 0; j < loc._locationAllowedMethods.size(); ++j)
-			os << " " << loc._locationAllowedMethods[j];
-		os << "\n";
+//	os << "------------------ Locations ------------------\n";
+//	const std::vector<Location>& locs = server.getServerLocations();
+//	for (size_t i = 0; i < locs.size(); ++i) {
+//		const Location& loc = locs[i];
+//		os << "Location [" << i << "]\n";
+//		os << "  Path:           " << loc._locationPath << "\n";
+//		os << "  Root:           " << loc._locationRoot << "\n";
+//		os << "  Index:          " << loc._locationIndex << "\n";
+//		os << "  Return:          " << loc._locationReturnPages<< "\n";
+//		os << "  AutoIndex:      " << loc._locationAutoIndex << "\n";
+//		os << "  Max Body Size:  " << loc._locationClientMaxSize << "\n";
+//		os << "  Allowed Methods:";
+//		for (size_t j = 0; j < loc._locationAllowedMethods.size(); ++j)
+//			os << " " << loc._locationAllowedMethods[j];
+//		os << "\n";
 
-	}
+//	}
 
-	os << "=======================================================\n";
-	return os;
-}
+//	os << "=======================================================\n";
+//	return os;
+//}
 
 
 void	ParseConfig::parsVirtualServerBlock( vServer& serv) {

@@ -6,9 +6,7 @@ CXXFLAGS = -Wall -Wextra -Werror -std=c++11 -g
 SRC_DIR = src
 OBJ_DIR = obj
 
-SRCS = $(wildcard $(SRC_DIR)/*.cpp) \
-       $(wildcard $(SRC_DIR)/*/*.cpp) \
-	#   $(wildcard $(SRC_DIR)/ConfigParsing/*.cpp)
+SRCS := $(shell find $(SRCDIR) -name '*.cpp')
 
 OBJS = $(SRCS:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 

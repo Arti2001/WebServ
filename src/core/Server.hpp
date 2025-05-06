@@ -29,8 +29,8 @@
 #include <sstream>
 #include <bits/stdc++.h>
 
-#include "ParseConfig.hpp"
-#include "vServer.hpp"
+#include "parsing/ParseConfig.hpp"
+
 
 struct clientInfo {
 
@@ -62,8 +62,6 @@ class Server
 		clientInfo&	getclientInfo( int clientFd);
 		void		prepResponse(int clientFd);
 		void		setEvent(int clientFd, int evFlag, int op);
-	
-
 		
 		private:
 			void readRequest( int clientFd );
