@@ -28,6 +28,7 @@ enum TokenType {
 	AUTO_INDEX_DIR,
 	BODY_MAX_SIZE,
 	ALLOWED_METHODS,
+	RETURN_DIR,
 
 	
 	SERVER_BLOCK,
@@ -35,7 +36,6 @@ enum TokenType {
 
 	
 	PATH,
-	VALUE,
 	UNKNOWN
 };
 

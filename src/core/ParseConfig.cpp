@@ -8,14 +8,15 @@ ParseConfig::ParseConfig(const char* file) : _file(file), depth(0), currToken(0)
 	_keywords["}"] = CLOSED_BRACE;
 
 
-	_keywords["listen"] = LISTEN_DIR;
 	_keywords["root"] = ROOT_DIR;
 	_keywords["index"] = INDEX_DIR;
-	_keywords["server-name"] = SERVER_NAME_DIR;
-	_keywords["error-pages"] = ERROR_PAGE_DIR;
+	_keywords["listen"] = LISTEN_DIR;
+	_keywords["return"] = RETURN_DIR;
 	_keywords["server"] = SERVER_BLOCK;
 	_keywords["location"] = LOCATION_BLOCK;
 	_keywords["auto-index"] = AUTO_INDEX_DIR;
+	_keywords["server-name"] = SERVER_NAME_DIR;
+	_keywords["error-pages"] = ERROR_PAGE_DIR;
 	_keywords["client-max-size"] = BODY_MAX_SIZE;
 	_keywords["allowed-methods"] = ALLOWED_METHODS;
 }
@@ -42,7 +43,8 @@ bool ParseConfig::isTokenDirective(TokenType type) const {
 	return (type == LISTEN_DIR || type == ROOT_DIR || 
 			type == INDEX_DIR || type == SERVER_NAME_DIR || 
 			type == ERROR_PAGE_DIR || type == AUTO_INDEX_DIR ||
-			type == BODY_MAX_SIZE || type == ALLOWED_METHODS);
+			type == BODY_MAX_SIZE || type == ALLOWED_METHODS ||
+			type == RETURN_DIR);
 }
 
 
@@ -177,8 +179,8 @@ bool	ParseConfig::validBrace() {
 void	ParseConfig::parsConfigFileTokens() {
 	
 	if (!validBrace())
-	throw ConfException("Enclosed brace in the configuration file");
-	for (; currToken < _tokens.size(); currToken++) {
+		throw ConfException("Enclosed brace in the configuration file");
+	for (; currToken < _tokens.size();currToken++) {
 		
 		
 		if (_tokens[currToken].type == SERVER_BLOCK) {
@@ -192,10 +194,9 @@ void	ParseConfig::parsConfigFileTokens() {
 			parsVirtualServerBlock(vserv);
 			_vServers.push_back(vserv);
 		}
-	
-	else {
-		throw ConfException("Unexpected token: '" + _tokens[currToken].lexem + "'");
-	}
+		else {
+			throw ConfException("Alien object is detected at the line: " + std::to_string(_tokens[currToken].line_number));
+		}
 
 	}
 	std::cout << _vServers;
@@ -241,6 +242,7 @@ std::ostream& operator<<(std::ostream& os, const vServer& server) {
 		os << "  Path:           " << loc._locationPath << "\n";
 		os << "  Root:           " << loc._locationRoot << "\n";
 		os << "  Index:          " << loc._locationIndex << "\n";
+		os << "  Return:          " << loc._locationReturnPages<< "\n";
 		os << "  AutoIndex:      " << loc._locationAutoIndex << "\n";
 		os << "  Max Body Size:  " << loc._locationClientMaxSize << "\n";
 		os << "  Allowed Methods:";
@@ -258,10 +260,10 @@ std::ostream& operator<<(std::ostream& os, const vServer& server) {
 void	ParseConfig::parsVirtualServerBlock( vServer& serv) {
 	
 	while (depth > 0) {
+
 		if (_tokens[currToken].type == CLOSED_BRACE) {
 			std::cout << "Clousing brace is encauntered"<< "\n";
 			depth--;
-			currToken++;
 			continue;
 		}
 		else if (isTokenDirective(_tokens[currToken].type)) {
@@ -270,28 +272,24 @@ void	ParseConfig::parsVirtualServerBlock( vServer& serv) {
 		else if (_tokens[currToken].type == LOCATION_BLOCK) {
 			depth += LEVEL;
 			validateLocationBlockDirectives(serv);
+			depth -= LEVEL;
 		}
 		else{
-			std::cout<< "Alien object is detected at the line: " <<   _tokens[currToken].line_number << "\n";
-			return;
+			throw ConfException("Alien object is detected at the line: " + std::to_string(_tokens[currToken].line_number));
 		}
-		currToken++; // move to the next token
+
+		currToken++;
 	}
-	if (_tokens[currToken].type == SERVER_BLOCK)
-		currToken--;
-	else{
-			std::cout<< "Alien object is detected at the line: " <<   _tokens[currToken].line_number << "\n";
-			return;
-		}
 }
 
 
 Location	ParseConfig::createLocationInstance(const vServer& server) {
 	
 	currToken++;//move to the path
-	
+
 	std::string	locationPath = Location::setLocationPath(_tokens[currToken].lexem);
-	
+	if (_tokens[currToken + 1].type != OPENED_BRACE)
+		throw ConfException(std::to_string(_tokens[currToken].line_number) + " :: No open brace.");
 	currToken += 2;//move to a directive
 	Location	loc(server);
 	loc._locationPath = locationPath;
@@ -301,88 +299,88 @@ Location	ParseConfig::createLocationInstance(const vServer& server) {
 
 void	ParseConfig::validateLocationBlockDirectives(vServer& server) {
 	
+Location	loc = createLocationInstance(server);
 	
-	Location	loc = createLocationInstance(server);
+for (; _tokens[currToken].type != CLOSED_BRACE; currToken++) {
 	
-	
-	for (; _tokens[currToken].type != CLOSED_BRACE; currToken++) {
-		
-		std::pair<Token, std::vector<std::string>> pair = makeKeyValuePair();
+	std::pair<Token, std::vector<std::string>> pair = makeKeyValuePair();
 
-		switch (pair.first.type) {
-			
-			case ROOT_DIR:
-				loc._locationRoot = vServer::onlyOneArgumentCheck(pair.second, "root");
-			break;
-			
-			case INDEX_DIR:
-				loc._locationIndex = vServer::onlyOneArgumentCheck(pair.second, "index");
-			break;
-				
-			case AUTO_INDEX_DIR:
-				loc._locationAutoIndex = vServer::validateAutoIndexDirective(pair.second);
-			break;
-				
-			case BODY_MAX_SIZE:
-				loc._locationClientMaxSize = vServer::validateClientMaxSizeDirective(pair.second);
-			break;
-				
-			case ALLOWED_METHODS:
-				loc._locationAllowedMethods = vServer::validateAllowedMethodsDirective(pair.second);
-			break;
-				
-			case ERROR_PAGE_DIR:
-				loc._locationErrorPages = vServer::validateErrorPagesDirective(pair.second);
-			break;
-				
-				default:
-					std::cout << "Not found for  location" << "\n";
-			}
-		}
-			depth--;//because we stand on closed brace
-			server.getServerLocations().push_back(loc);
-	}
-	
-	void	ParseConfig::validateServerBlockDirectives(vServer& serv) {
-		
-		std::pair< Token, std::vector<std::string>> pair = makeKeyValuePair();
-		switch (pair.first.type) {
-		
-		case LISTEN_DIR:
-			serv.setServerListen(pair.second);
-		break;
-		
-		case SERVER_NAME_DIR:
-			serv.setServerNames(pair.second);
-		break;
-		
+	switch (pair.first.type) {
 		case ROOT_DIR:
-			serv.setServerRoot(pair.second);
+			loc._locationRoot = vServer::onlyOneArgumentCheck(pair.second, "root");
 		break;
 		
 		case INDEX_DIR:
-			serv.setServerIndex(pair.second);
+			loc._locationIndex = vServer::onlyOneArgumentCheck(pair.second, "index");
 		break;
-		
+			
 		case AUTO_INDEX_DIR:
-			serv.setServerAutoIndex(pair.second);
+			loc._locationAutoIndex = vServer::validateAutoIndexDirective(pair.second);
 		break;
-		
+			
 		case BODY_MAX_SIZE:
-			serv.setServerClientMaxSize(pair.second);
+			loc._locationClientMaxSize = vServer::validateClientMaxSizeDirective(pair.second);
 		break;
-		
+
+		case RETURN_DIR:
+			loc._locationReturnPages = vServer::onlyOneArgumentCheck(pair.second, "return");
+		break;
+			
 		case ALLOWED_METHODS:
-			serv.setServerAllowedMethods(pair.second);
+			loc._locationAllowedMethods = vServer::validateAllowedMethodsDirective(pair.second);
 		break;
-		
+			
 		case ERROR_PAGE_DIR:
-			serv.setServerErrorPages(pair.second);
+			loc._locationErrorPages = vServer::validateErrorPagesDirective(pair.second);
 		break;
-		
+			
 		default:
-			std::cout << "Not found" << "\n";
+			throw ConfException("No such a directive: " +  pair.first.lexem);
+		}
 	}
+	server.getServerLocations().push_back(loc);
+}
+	
+void	ParseConfig::validateServerBlockDirectives(vServer& serv) {
+		
+std::pair< Token, std::vector<std::string>> pair = makeKeyValuePair();
+
+switch (pair.first.type) {
+	case LISTEN_DIR:
+		serv.setServerListen(pair.second);
+	break;
+	
+	case SERVER_NAME_DIR:
+		serv.setServerNames(pair.second);
+	break;
+	
+	case ROOT_DIR:
+		serv.setServerRoot(pair.second);
+	break;
+	
+	case INDEX_DIR:
+		serv.setServerIndex(pair.second);
+	break;
+	
+	case AUTO_INDEX_DIR:
+		serv.setServerAutoIndex(pair.second);
+	break;
+	
+	case BODY_MAX_SIZE:
+		serv.setServerClientMaxSize(pair.second);
+	break;
+	
+	case ALLOWED_METHODS:
+		serv.setServerAllowedMethods(pair.second);
+	break;
+	
+	case ERROR_PAGE_DIR:
+		serv.setServerErrorPages(pair.second);
+	break;
+	
+	default:
+		throw ConfException("No such a directive: " + pair.first.lexem);
+}
 }
 
 
@@ -395,18 +393,19 @@ std::pair< Token, std::vector<std::string>>	ParseConfig::makeKeyValuePair() {
 	currToken ++; //sitch to the next token, potential value
 
 	if ( _tokens[currToken].type == SEMICOLON) {
-		throw ConfException("This field '" + key.lexem + "' can NOT remain empty.");
+		throw ConfException(std::to_string(_tokens[currToken].line_number) + " :: Field can not be empty.");
 	}
 	while (_tokens[currToken].type != SEMICOLON) {
 
 
 		if (isTokenDirective(_tokens[currToken].type)) {
-			throw ConfException("Enclosed line: No semicolon at the end of a line!");
+			throw ConfException(std::to_string(_tokens[currToken].line_number) + " :: Enclosed line: No semicolon.");
 		}
 		else if (_tokens[currToken].type == UNKNOWN) {
 			values.push_back(_tokens[currToken].lexem);
 		}
 		else {
+			std::cout<< _tokens[currToken].type<< "\n";
 			throw ConfException("Unexpected token type inside key-value pairing.");
 		}
 		currToken++;
@@ -414,5 +413,4 @@ std::pair< Token, std::vector<std::string>>	ParseConfig::makeKeyValuePair() {
 	pair = {key, values};
 
 	return (pair);
-	//curr toke is a secolon
 }

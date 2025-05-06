@@ -27,6 +27,7 @@ vServer::vServer() {
 Location::Location(const vServer& serv) {
 
 	_locationPath = "/";
+	_locationReturnPages = "/default";
 	_locationRoot= serv.getServerRoot();
 	_locationIndex = serv.getServerIndex();
 	_locationAutoIndex = serv.getServerAutoIndex();
@@ -247,7 +248,6 @@ size_t	vServer::validateClientMaxSizeDirective(const std::vector<std::string>& s
 		}
 		return (validMethods);
 }
-
 
 std::unordered_map<int, std::string>	vServer::validateErrorPagesDirective(const std::vector<std::string>& errorPagesVector) {
 
