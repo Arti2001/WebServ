@@ -6,19 +6,19 @@ StaticHandler::~StaticHandler() {}
 
 Response StaticHandler::serveGet(const HTTPRequest& req, const Location& loc) {
     // 1) Method must be allowed
-    if (std::find(loc._allowedMethods.begin(), loc._allowedMethods.end(),
-                  "GET") == loc._allowedMethods.end()) {
+    if (std::find(loc._locationAllowedMethods.begin(), loc._locationAllowedMethods.end(),
+                  "GET") == loc._locationAllowedMethods.end()) {
         return loadErrorPage(loc, 405);
     }
 
     // 2) Build the filesystem path
     std::string uri = req.getUri();                   // e.g. "/files" or "/files/"
     // strip the location prefix
-    std::string rel = uri.substr(loc._path.length()); // e.g. "files" or "files/"
+    std::string rel = uri.substr(loc._locationPath.length()); // e.g. "files" or "files/"
     if (rel.empty()) rel = "/";                       // treat "/" uniformly
 
     // normalize root with trailing slash
-    std::string fsRoot = loc._root;
+    std::string fsRoot = loc._locationRoot;
     if (fsRoot.back() != '/') fsRoot += '/';
 
     // normalize rel to never start with slash
@@ -47,7 +47,7 @@ Response StaticHandler::serveGet(const HTTPRequest& req, const Location& loc) {
         // b) try index file
         std::string idxPath = fullPath;
         if (idxPath.back() != '/') idxPath += '/';
-        idxPath += loc._index;                       // e.g. "./www/files/index.html"
+        idxPath += loc._locationIndex;                       // e.g. "./www/files/index.html"
 
         struct stat sb2;
         if (stat(idxPath.c_str(), &sb2) == 0 && S_ISREG(sb2.st_mode)) {
@@ -75,7 +75,7 @@ Response StaticHandler::serveGet(const HTTPRequest& req, const Location& loc) {
         }
 
         // c) no index, auto-index?
-        if (loc._auto_index) {
+        if (loc._locationAutoIndex) {
             auto listing = generateDirectoryListing(fullPath, uri);
             Response resp;
             resp.setStatusCode(200);
@@ -130,9 +130,9 @@ Response StaticHandler::serve(const HTTPRequest& req, const Location& loc) {
     resp.setStatusCode(405);
     resp.setReasonPhrase("Method Not Allowed");
     std::ostringstream allow;
-    for (size_t i = 0; i < loc._allowedMethods.size(); i++) {
+    for (size_t i = 0; i < loc._locationAllowedMethods.size(); i++) {
         if (i) allow << ", ";
-        allow << loc._allowedMethods[i];
+        allow << loc._locationAllowedMethods[i];
     }
     resp.addHeader("Allow", allow.str());
     return loadErrorPage(loc, 405);
@@ -151,9 +151,9 @@ Response StaticHandler::loadErrorPage(const Location& loc, int code) {
         case 500: resp.setReasonPhrase("Internal Server Error"); break;
         default: resp.setReasonPhrase("Error");
     }
-    auto it = loc._errorPages.find(code);
-    if (it != loc._errorPages.end()) {
-        std::string errorPage = loc._root + it->second;
+    auto it = loc._locationErrorPages.find(code);
+    if (it != loc._locationErrorPages.end()) {
+        std::string errorPage = loc._locationRoot + it->second;
         struct stat sb;
         if (stat(errorPage.c_str(), &sb) == 0 && S_ISREG(sb.st_mode)) {
             int fd = open(errorPage.c_str(), O_RDONLY);

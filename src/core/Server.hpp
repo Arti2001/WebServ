@@ -4,11 +4,12 @@
 #define MAX_EVENTS		10
 #define QUEUE_LENGTH	10
 #define RECBUFF			8192
-
-#define HARDCODEDRESP "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\nHello, World!"
+#define IN				1
+#define OUT				2
 
 
 #include <string>
+#include <sstream>
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -22,7 +23,14 @@
 #include <arpa/inet.h>
 #include <cerrno>
 #include <iostream>
+#include <exception>
 #include <map>
+#include <vector>
+#include <sstream>
+#include <bits/stdc++.h>
+
+#include "parsing/ParseConfig.hpp"
+
 
 struct clientInfo {
 
@@ -35,13 +43,13 @@ class Server
 	private:
 		int							_sockFd;
 		int							_epollFd;
-		std::string					_servPort;
-		std::string					_servHost;
+		std::string					_serverPort;
+		std::string					_serverHost;
 		bool						_isRunning;
 		std::map<int, clientInfo>	_clients;
 
 	public:
-		Server(std::string port, std::string host);
+		Server(const vServer&	serverSet);
 		//  Server(const Server& other);
 		//  Server& operator=(const Server& other);
 		~Server();
@@ -53,6 +61,7 @@ class Server
 		bool		isRunning() const;
 		clientInfo&	getclientInfo( int clientFd);
 		void		prepResponse(int clientFd);
+		void		setEvent(int clientFd, int evFlag, int op);
 		
 		private:
 			void readRequest( int clientFd );

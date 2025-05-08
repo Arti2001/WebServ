@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        ::::::::            */
-/*   main.cpp                                           :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: amysiv <amysiv@student.42.fr>                +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/03/21 10:03:46 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/04/24 15:47:05 by pminialg      ########   odam.nl         */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "core/Server.hpp"
 #include "core/HTTPRequest.hpp"
 #include "core/RequestParser.hpp"
@@ -17,64 +5,100 @@
 #include "core/StaticHandler.hpp"
 #include "core/MimeTypes.hpp"
 #include "core/Utils.hpp"
+#include "core/ServerManager.hpp"
 
-Server *g_server = nullptr;
+
+//Server *g_server = nullptr;
 bool g_running = true;
 
 
-void signalHandler(int signum)
+//void signalHandler(int signum)
+//{
+//	std::cout << "\nInterupt signal (" << signum << ") received." << "\n";
+//	g_running = false;
+//	if (g_server) {
+//		g_server->stop();
+//	}
+//	std::cout << "Server shutting down..." << "\n";
+//	exit(signum);
+//}
+
+
+int main(int argc, char *argv[])
 {
-	std::cout << "\nInterupt signal (" << signum << ") received." << "\n";
-	g_running = false;
-	if (g_server) {
-		g_server->stop();
+	
+	if (argc != 2) {
+		std::cerr<< "Error: Configuration file expected." << "\n";
+		return (0);
 	}
-	std::cout << "Server shutting down..." << "\n";
-	exit(signum);
-}
+	try{
+		std::string fileName (argv[1]);
+		ServerManager serverManager(fileName);
+		const std::vector<vServer>&	servers = serverManager.parsConfigFile();
+		
+			for(size_t i = 0; servers.size() > i; i++) {
+			
+				Server	server(servers[i]);
+				
+				server.init();
+				server.start();
+				std::cout << i << "\n";
+			}
+	}
+	catch(ServerManager::ServerManagerException& ex) {
 
-int main(void)
-{
-	signal(SIGINT, signalHandler);
-	signal(SIGTERM, signalHandler);
-	signal(SIGQUIT, signalHandler);
-
-	Server server("8080", "127.0.0.1");
-	g_server = &server; // stores the servers address in our global pointer
-
-	if (!server.init()) // calls init which sets up the socket, binds it, and starts listening
-	{
-		std::cerr << "Failed to initialize server" << "\n";
-		return 1;
+		std::cerr << "ServerManager::Error: " << ex.what()<< "\n";
+		return (1);
 	}
 
-	std::cout << "Server running on port 8080. Press Ctrl+C to exit." << "\n";
 
-	// Start the server
-	server.start(); // starts the server's main loop which will accept incoming connections, handle each connection, continue until interrupted
+	
+	
+	
+		
+	
 
+	
+	
+	//signal(SIGINT, signalHandler);
+	//signal(SIGTERM, signalHandler);
+	//signal(SIGQUIT, signalHandler);
+
+
+
+	//if (!server.init()) // calls init which sets up the socket, binds it, and starts listening
+	//{
+	//	std::cerr << "Failed to initialize server" << "\n";
+	//	return 1;
+	//}
+
+	//std::cout << "Server running on port 8080. Press Ctrl+C to exit." << "\n";
+
+	//// Start the server
+	//server.start(); // starts the server's main loop which will accept incoming connections, handle each connection, continue until interrupted
+	
 	return 0;
 }
 
-int main() {
-	Response resp;
-	resp.setStatusCode(200);
-	resp.setReasonPhrase("OK");
+//int main() {
+//	Response resp;
+//	resp.setStatusCode(200);
+//	resp.setReasonPhrase("OK");
 
-	resp.addHeader("Content-Type", "text/plain");
-	resp.addHeader("Connection", "close");
+//	resp.addHeader("Content-Type", "text/plain");
+//	resp.addHeader("Connection", "close");
 
-	std::string msg = "Hello from Webserv!\n";
-	std::vector<char> body(msg.begin(), msg.end());
-	resp.setBody(std::move(body));
+//	std::string msg = "Hello from Webserv!\n";
+//	std::vector<char> body(msg.begin(), msg.end());
+//	resp.setBody(std::move(body));
 
-	resp.addHeader("Content-Length", std::to_string(resp.getBody().size()));
+//	resp.addHeader("Content-Length", std::to_string(resp.getBody().size()));
 
-	std::vector<char> out = resp.serialize();
+//	std::vector<char> out = resp.serialize();
 
-	std::cout.write(out.data(), out.size());
-	return 0;
-}
+//	std::cout.write(out.data(), out.size());
+//	return 0;
+//}
 
 // int main() {
 //     // 1) Build a fake request
