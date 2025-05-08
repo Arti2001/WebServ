@@ -6,18 +6,18 @@
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/18 16:05:25 by pminialg          #+#    #+#             */
-/*   Updated: 2025/05/08 09:53:56 by amysiv           ###   ########.fr       */
+/*   Updated: 2025/05/08 10:33:57 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef STATICHANDLER_HPP
 #define STATICHANDLER_HPP
 
-#include "parsing/vServer.hpp"
-#include "HTTPRequest.hpp"
-#include "Response.hpp"
+#include "../parsingConfFile/vServer.hpp"
+#include "../parsingRequest/HTTPRequest.hpp"
+#include "../parsingResponse/Response.hpp"
 #include "MimeTypes.hpp"
-#include "Utils.hpp"
+#include "../Utils.hpp"
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>

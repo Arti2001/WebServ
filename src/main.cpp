@@ -1,9 +1,9 @@
 #include "core/Server.hpp"
-#include "core/HTTPRequest.hpp"
-#include "core/RequestParser.hpp"
-#include "core/Response.hpp"
-#include "core/StaticHandler.hpp"
-#include "core/MimeTypes.hpp"
+#include "core/parsingRequest/HTTPRequest.hpp"
+#include "core/parsingRequest/RequestParser.hpp"
+#include "core/parsingResponse/Response.hpp"
+#include "core/parsingResponse/StaticHandler.hpp"
+#include "core/parsingResponse/MimeTypes.hpp"
 #include "core/Utils.hpp"
 #include "core/ServerManager.hpp"
 
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 	
 	
 	
-		
+
 	
 
 	

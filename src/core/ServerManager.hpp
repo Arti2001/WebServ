@@ -1,6 +1,6 @@
 #ifndef SERVERMANAGER_HPP
 #define SERVERMANAGER_HPP
-#include "parsing/ParseConfig.hpp"
+#include "parsingConfFile/ParseConfig.hpp"
 #include "Server.hpp"
 #include <fstream>
 

@@ -29,7 +29,7 @@
 #include <sstream>
 #include <bits/stdc++.h>
 
-#include "parsing/ParseConfig.hpp"
+#include "parsingConfFile/ParseConfig.hpp"
 
 
 struct clientInfo {
