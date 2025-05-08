@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/21 10:03:46 by pminialg          #+#    #+#             */
-/*   Updated: 2025/05/06 19:25:47 by amysiv           ###   ########.fr       */
+/*   Updated: 2025/05/08 09:15:36 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,23 +40,26 @@ int main(int argc, char *argv[])
 		std::string fileName (argv[1]);
 		ServerManager serverManager(fileName);
 		const std::vector<vServer>&	servers = serverManager.parsConfigFile();
+		
+			for(size_t i = 0; servers.size() > i; i++) {
+			
+				Server	server(servers[i]);
+				
+				server.init();
+				server.start();
+			}
 	}
 	catch(ServerManager::ServerManagerException& ex) {
 
 		std::cerr << "ServerManager::Error: " << ex.what()<< "\n";
+		return (1);
 	}
 
 
 	
 	
 	
-		//const std::vector<vServer>&	servers = parsConfigFile(argv[1]);
-	
-		//for(size_t i = 0; servers.size()  > i; i++) {
 		
-		//	Server	server
-			
-	//	}
 	
 
 	
@@ -65,8 +68,7 @@ int main(int argc, char *argv[])
 	//signal(SIGTERM, signalHandler);
 	//signal(SIGQUIT, signalHandler);
 
-	//Server server("8080", "127.0.0.1");
-	//g_server = &server; // stores the servers address in our global pointer
+
 
 	//if (!server.init()) // calls init which sets up the socket, binds it, and starts listening
 	//{

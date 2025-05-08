@@ -12,12 +12,14 @@ class ServerManager {
 		std::ifstream					_configFileFd;
 
 	public:
+		//constructors
 		ServerManager(std::string& ConfigFileName);
 		~ServerManager();
 
 		//getters
-		std::ifstream&	getConfigFileFd( void );
+		std::ifstream&		getConfigFileFd( void );
 
+		//methods
 		std::vector<vServer>	parsConfigFile();
 		
 

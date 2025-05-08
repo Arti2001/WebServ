@@ -43,13 +43,13 @@ class Server
 	private:
 		int							_sockFd;
 		int							_epollFd;
-		std::string					_servPort;
-		std::string					_servHost;
+		std::string					_serverPort;
+		std::string					_serverHost;
 		bool						_isRunning;
 		std::map<int, clientInfo>	_clients;
 
 	public:
-		Server(std::string port, std::string host);
+		Server(const vServer&	serverSet);
 		//  Server(const Server& other);
 		//  Server& operator=(const Server& other);
 		~Server();

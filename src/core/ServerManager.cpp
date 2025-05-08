@@ -1,4 +1,4 @@
-#include "core/ServerManager.hpp"
+#include "ServerManager.hpp"
 
 
 ServerManager::ServerManager(std::string& fileName) {
@@ -12,6 +12,14 @@ ServerManager::ServerManager(std::string& fileName) {
 	else{
 		std::cout << "File: '" << fileName << "' is opend." << "\n";
 	}
+}
+
+ServerManager::ServerManagerException::ServerManagerException(const std::string& msg) : _message(msg) {
+
+}
+
+ServerManager::~ServerManager() {
+
 }
 
 
@@ -37,7 +45,6 @@ std::vector<vServer>	ServerManager::parsConfigFile() {
 		parser.parsConfigFileTokens();
 	}catch(ParseConfig::ConfException& ex){
 		std::cerr << "Error: " << ex.what()<< "\n";
-		return ;
 	}
 	return (parser.getVSevers());
 }

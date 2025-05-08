@@ -1,6 +1,9 @@
 #include "Server.hpp"
 
-Server::Server(std::string port,  std::string host) : _sockFd(-1), _epollFd(-1), _servPort(port), _servHost(host), _isRunning(false){
+Server::Server(const vServer& serverSet) : _sockFd(-1), _epollFd(-1), _isRunning(false){
+
+	_serverHost = serverSet.getServerNames()[0];
+	_serverPort = serverSet.getServerPort();
 
 }
 
@@ -45,8 +48,8 @@ bool Server::init()
 	hints.ai_protocol = 0;
 	hints.ai_flags = AI_PASSIVE;
 	
-
-	infoRet = getaddrinfo(_servHost.c_str(), _servPort.c_str(), &hints, &res);
+	std::cout<< "Host: " + _serverHost << "\n" << "Port:" + _serverPort<< "\n";
+	infoRet = getaddrinfo(_serverHost.c_str(), _serverPort.c_str(), &hints, &res);
 	if (infoRet != 0 ) {
 		std::cerr << "Error: getaddrinfo(): " << gai_strerror(infoRet) << "\n";//we have to return  infoRet
 		return (false);
@@ -70,11 +73,7 @@ bool Server::init()
 		std::cerr << "Failed to bind to any results" << "\n";
 		exit(EXIT_FAILURE);
 	}
-	//if (_sockFd < 0)
-	//{
-	//	std::cerr << "Error: Server not initialized" << "\n";
-	//	return (false);
-	//}
+
 	if (!Server::setNonBlocking(_sockFd)) {
 		std::cerr << "Error: Faild to set fd to a Non Blocking mode!"<< "\n";
 	}
