@@ -12,20 +12,20 @@ Server::~Server()
 	stop();
 }
 
-bool Server::setNonBlocking(int fd) {
+//bool Server::setNonBlocking(int fd) {
 
-	int prevFlags  = fcntl(fd, F_GETFL);
+//	int prevFlags  = fcntl(fd, F_GETFL);
 
-	if (prevFlags == -1) {
-		std::cerr << " Error: fctl(): Failed to get the fd's flags!"<< "\n";
-		return (false);
-	}
-	if (fcntl(fd, F_SETFL, prevFlags | O_NONBLOCK) == -1) {
-		std::cerr << " Error: fctl(): Failed to set the fd's flags!"<< "\n";
-		return (false);
-	}
-	return (true);
-}
+//	if (prevFlags == -1) {
+//		std::cerr << " Error: fctl(): Failed to get the fd's flags!"<< "\n";
+//		return (false);
+//	}
+//	if (fcntl(fd, F_SETFL, prevFlags | O_NONBLOCK) == -1) {
+//		std::cerr << " Error: fctl(): Failed to set the fd's flags!"<< "\n";
+//		return (false);
+//	}
+//	return (true);
+//}
 
 //error handler
 

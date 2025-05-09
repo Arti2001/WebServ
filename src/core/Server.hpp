@@ -57,7 +57,7 @@ class Server
 		void readRequest( int clientFd );
 		void sendResponse( int clientFd );
 		bool		init();//to change
-		bool		setNonBlocking(int fd);
+		//bool		setNonBlocking(int fd);
 		void		start();
 		void		stop();
 		bool		isRunning() const;
