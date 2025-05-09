@@ -6,7 +6,7 @@ CXXFLAGS = -std=c++17 -Wall -Wextra -Werror -g
 SRC_DIR = src
 OBJ_DIR = obj
 
-SRCS := $(shell find $(SRCDIR) -name '*.cpp')
+SRCS := $(shell find $(SRC_DIR) -name '*.cpp')
 
 OBJS = $(SRCS:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 

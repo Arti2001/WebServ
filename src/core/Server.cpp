@@ -48,7 +48,7 @@ bool Server::init()
 	hints.ai_protocol = 0;
 	hints.ai_flags = AI_PASSIVE;
 	
-	std::cout<< "Host: " + _serverHost << "\n" << "Port:" + _serverPort<< "\n";
+	
 	infoRet = getaddrinfo(_serverHost.c_str(), _serverPort.c_str(), &hints, &res);
 	if (infoRet != 0 ) {
 		std::cerr << "Error: getaddrinfo(): " << gai_strerror(infoRet) << "\n";//we have to return  infoRet
@@ -110,7 +110,7 @@ void Server::start()
 		exit(EXIT_FAILURE);
 	}
 
-	setEvent(_sockFd, IN, EPOLL_CTL_ADD);
+	setEpollEvent(_sockFd, IN, EPOLL_CTL_ADD);
 
 	std::cout << "Server started. Waiting for connections..." << "\n";
 
@@ -142,7 +142,7 @@ void Server::start()
 						close(cSock);
 						continue;
 				}
-				setEvent(cSock, IN, EPOLL_CTL_ADD);
+				setEpollEvent(cSock, IN, EPOLL_CTL_ADD);
 			}
 			if(events[i].events & EPOLLIN) {
 				readRequest(cSock);
@@ -169,7 +169,7 @@ void Server::readRequest (int clientFd) {
 		std::cout << "######Request#####\n" << recBuff << "\n";
 
 		prepResponse(clientFd);
-		setEvent(clientFd, OUT, EPOLL_CTL_MOD);
+		setEpollEvent(clientFd, OUT, EPOLL_CTL_MOD);
 		return ;
 	}
 	else if (bytesRead == 0){
@@ -191,14 +191,14 @@ void Server::sendResponse(int clientFd) {
 	
 	bytesSent = send(clientFd, servResp + totalSent, strlen(servResp) - totalSent, 0);
 	if (bytesSent == -1) {
-		setEvent(clientFd, OUT, EPOLL_CTL_MOD);
+		setEpollEvent(clientFd, OUT, EPOLL_CTL_MOD);
 		handleError("Error send: ");
 		return;
 	}
 	totalSent += bytesSent;
 	if (totalSent == strlen(servResp)) {
 		std::cout << "All data sent: Connection closed" << "\n";
-		setEvent(clientFd, IN, EPOLL_CTL_MOD);
+		setEpollEvent(clientFd, IN, EPOLL_CTL_MOD);
 		close(clientFd);
 		totalSent = 0;
 		_clients[clientFd].response.clear();
@@ -212,7 +212,7 @@ void	Server::prepResponse(int clientFd) {
 	_clients[clientFd].bytesSent = 0;
 }
 
-void Server::setEvent(int clientFd, int evFlag, int op) {
+void Server::setEpollEvent(int clientFd, int evFlag, int op) {
 
 	struct epoll_event	clientEvent;
 
