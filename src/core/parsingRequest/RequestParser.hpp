@@ -43,6 +43,8 @@ class RequestParser
         std::pair<std::string, std::string> parseHeader(const std::string& header_line);
         void parseBody(std::string& body, HTTPRequest& request);
         void validateRequestLine(const std::string& method, const std::string& uri, const std::string& version);
+        bool isChunkedTransfer(const HTTPRequest& request) const;
+        std::string decodeChunkedData(const std::string& chunked_data);
         
     public:
         RequestParser();

@@ -212,3 +212,122 @@ int main(int argc, char *argv[])
 //     std::cout << "----------" << std::endl;
 //     std::cout << resultMap[3] << std::endl;
 // }
+
+
+// #include <iostream>
+// #include <string>
+// #include <unordered_map>
+// #include "core/parsingRequest/RequestParser.hpp"
+// #include "core/parsingRequest/HTTPRequest.hpp"
+
+// // Helper function to create a chunked HTTP request
+// std::string createChunkedRequest(const std::string& body) {
+//     std::string headers = 
+//         "POST /test HTTP/1.1\r\n"
+//         "Host: localhost:8080\r\n"
+//         "Transfer-Encoding: chunked\r\n"
+//         "Content-Type: text/plain\r\n"
+//         "\r\n";
+    
+//     std::string chunked_body;
+    
+//     // Break the body into chunks (here we use 5-byte chunks for demonstration)
+//     size_t pos = 0;
+//     while (pos < body.length()) {
+//         size_t chunk_size = std::min(5UL, body.length() - pos);
+//         std::stringstream chunk_header;
+//         chunk_header << std::hex << chunk_size << "\r\n";
+        
+//         chunked_body += chunk_header.str();
+//         chunked_body += body.substr(pos, chunk_size) + "\r\n";
+//         pos += chunk_size;
+//     }
+    
+//     // Add final zero-size chunk
+//     chunked_body += "0\r\n\r\n";
+    
+//     return headers + chunked_body;
+// }
+
+// // Prints out the details of an HTTP request
+// void printRequest(const HTTPRequest& req) {
+//     std::cout << "Method: " << req.getMethod() << std::endl;
+//     std::cout << "URI: " << req.getUri() << std::endl;
+//     std::cout << "Headers:" << std::endl;
+//     for (const auto& header : req.getHeaders()) {
+//         std::cout << "  " << header.first << ": " << header.second << std::endl;
+//     }
+//     std::cout << "Body size: " << req.getBody().size() << " bytes" << std::endl;
+//     std::cout << "Body content: " << req.getBody() << std::endl;
+// }
+
+// int main() {
+//     // Create test data
+//     std::string test_body = "This is a test message that will be sent using chunked transfer encoding.";
+//     std::string full_request = createChunkedRequest(test_body);
+    
+//     std::cout << "========= CHUNKED REQUEST DATA =========\n";
+//     std::cout << full_request << std::endl;
+//     std::cout << "========================================\n\n";
+    
+//     // Simulate sending the request in multiple parts
+//     RequestParser parser;
+//     std::unordered_map<int, HTTPRequest> resultMap;
+    
+//     // Test 1: Send in one shot
+//     {
+//         std::cout << "TEST 1: Sending full request at once\n";
+//         std::unordered_map<int, HTTPRequest> localMap;
+//         parser.handleIncomingRequest(1, full_request, localMap);
+        
+//         if (localMap.find(1) != localMap.end()) {
+//             std::cout << "✓ Request successfully parsed!\n";
+//             printRequest(localMap[1]);
+//         } else {
+//             std::cout << "✗ Request parsing failed!\n";
+//         }
+//         std::cout << "\n";
+//     }
+    
+//     // Test 2: Send in multiple parts
+//     {
+//         std::cout << "TEST 2: Sending request in multiple parts\n";
+//         std::unordered_map<int, HTTPRequest> localMap;
+        
+//         // Split the request into 3 parts
+//         size_t third = full_request.length() / 3;
+//         std::string part1 = full_request.substr(0, third);
+//         std::string part2 = full_request.substr(third, third);
+//         std::string part3 = full_request.substr(2 * third);
+        
+//         std::cout << "Sending part 1 (" << part1.length() << " bytes)\n";
+//         parser.handleIncomingRequest(2, part1, localMap);
+        
+//         if (localMap.find(2) != localMap.end()) {
+//             std::cout << "  Request already complete after part 1 (unexpected)\n";
+//         } else {
+//             std::cout << "  Request incomplete after part 1 (expected)\n";
+//         }
+        
+//         std::cout << "Sending part 2 (" << part2.length() << " bytes)\n";
+//         parser.handleIncomingRequest(2, part2, localMap);
+        
+//         if (localMap.find(2) != localMap.end()) {
+//             std::cout << "  Request already complete after part 2 (unexpected)\n";
+//         } else {
+//             std::cout << "  Request incomplete after part 2 (expected)\n";
+//         }
+        
+//         std::cout << "Sending part 3 (" << part3.length() << " bytes)\n";
+//         parser.handleIncomingRequest(2, part3, localMap);
+        
+//         if (localMap.find(2) != localMap.end()) {
+//             std::cout << "✓ Request successfully parsed after all parts!\n";
+//             printRequest(localMap[2]);
+//         } else {
+//             std::cout << "✗ Request parsing failed after all parts!\n";
+//         }
+//     }
+    
+//     return 0;
+// }
