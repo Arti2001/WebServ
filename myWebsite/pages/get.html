@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Get File - Webserv</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="navbar">
+      <div class="container">
+        <div class="logo"><a href="index.html">Webserv</a></div>
+        <nav>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="upload.html">Upload</a></li>
+            <li><a href="get.html">Get</a></li>
+            <li><a href="delete.html">Delete</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="features">
+        <div class="container">
+          <h1>Get a File</h1>
+          <p>
+            Enter the name of the file you want to retrieve from the server.
+          </p>
+          <form action="/get" method="GET" class="upload-form">
+            <input
+              type="text"
+              name="filename"
+              id="filename"
+              placeholder="Enter filename"
+              required
+            />
+            <button type="submit" class="btn primary-btn">Download</button>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container">
+        <p>&copy; 2025 Webserv. All rights reserved.</p>
+      </div>
+    </footer>
+  </body>
+</html>

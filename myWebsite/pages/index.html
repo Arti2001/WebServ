@@ -1,50 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WSTeam Website</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            color: #333;
-            margin: 0;
-            padding: 0;
-        }
-        header {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 0;
-            text-align: center;
-        }
-        main {
-            padding: 20px;
-            text-align: center;
-        }
-        footer {
-            background-color: #333;
-            color: white;
-            text-align: center;
-            padding: 10px;
-            position: fixed;
-            width: 100%;
-            bottom: 0;
-        }
-    </style>
-</head>
-<body>
-    <header>
-        <h1>Welcome to WSTeam Website</h1>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Webserv - Professional Script Management</title>
+    <meta name="description" content="Professional platform for managing and executing web scripts" />
+    <meta name="author" content="Webserv" />
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="navbar">
+      <div class="container">
+        <div class="logo"><a href="index.html">Webserv</a></div>
+        <nav>
+          <ul>
+            <li><a href="#home">Home</a></li>
+            <li><a href="#scripts">Actions</a></li>
+            <li><a href="#about">About</a></li>
+          </ul>
+        </nav>
+      </div>
     </header>
 
-    <main>
-        <h2>Your go-to platform for amazing content!</h2>
-        <p>Stay tuned for more updates and features. We are working on something amazing!</p>
-    </main>
+    <section id="home" class="hero">
+      <div class="container">
+        <h1>Welcome to our Webserv</h1>
+        <div class="cta-buttons">
+          <p>Your lightweight HTTP server for static and dynamic content</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="scripts" class="scripts">
+      <div class="container">
+        <h2>Available Actions</h2>
+        <div class="script-grid">
+          <div class="script-card">
+            <div class="card-content">
+              <h3>Upload file</h3>
+              <p>Send a file to the server.</p>
+            </div>
+            <a href="upload.html" class="btn primary-btn">Upload</a>
+          </div>
+          <div class="script-card">
+            <div class="card-content">
+              <h3>Get file</h3>
+              <p>Retrieve a file from the server.</p>
+            </div>
+            <a href="get.html" class="btn primary-btn">Get</a>
+          </div>
+          <div class="script-card">
+            <div class="card-content">
+              <h3>Delete file</h3>
+              <p>Remove a file from the server.</p>
+            </div>
+            <a href="delete.html" class="btn primary-btn">Delete</a>
+          </div>
+          <div class="script-card">
+            <div class="card-content">
+              <h3>Test Error</h3>
+              <p>Trigger a timeout error script.</p>
+            </div>
+            <a href="error.html" class="btn primary-btn">Error</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="about" class="about">
+      <div class="container">
+        <h2>About Webserv</h2>
+        <With>Webserv is a fast, lightweight HTTP/1.1 server writtent in C++ that makes it easy to host static sites and run dynamic scripts. With simple configuration, you can serve files, handle uploads, and customize error pages. It's perfect for learning HTTP fundamentals or powering small web applications.</p>
+    </div>
+    </section>
 
     <footer>
-        <p>&copy; 2025 WSTeam. All rights reserved.</p>
+      <div class="container">
+        <p>&copy; 2025 Webserv. All rights reserved.</p>
+        <div class="footer-links">
+          <p>Made by <b>Artem</b> and <b>Paulius</b></p>
+        </div>
+      </div>
     </footer>
-</body>
+  </body>
 </html>

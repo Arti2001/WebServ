@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test Error - Webserv</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="navbar">
+      <div class="container">
+        <div class="logo"><a href="index.html">Webserv</a></div>
+        <nav>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="upload.html">Upload</a></li>
+            <li><a href="get.html">Get</a></li>
+            <li><a href="delete.html">Delete</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="features">
+        <div class="container">
+          <h1>Test Error Handling</h1>
+          <p>
+            Click the button below to test the server's timeout error handling.
+          </p>
+          <form action="/cgi-bin/timeout.py" method="GET" class="upload-form">
+            <div class="form-controls">
+              <label for="timeout">Timeout duration (seconds):</label>
+              <input
+                type="number"
+                name="timeout"
+                id="timeout"
+                min="1"
+                max="60"
+                value="30"
+              />
+            </div>
+            <button type="submit" class="btn primary-btn">
+              Trigger Timeout
+            </button>
+          </form>
+
+          <div class="error-options">
+            <h2>Other Error Tests</h2>
+            <div class="button-group">
+              <a href="/cgi-bin/not-found.py" class="btn secondary-btn"
+                >Test 404 Error</a
+              >
+              <a href="/cgi-bin/server-error.py" class="btn secondary-btn"
+                >Test 500 Error</a
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container">
+        <p>&copy; 2025 Webserv. All rights reserved.</p>
+      </div>
+    </footer>
+  </body>
+</html>
