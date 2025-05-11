@@ -45,7 +45,7 @@ std::string CGIHandler::resolveScriptPath(const std::string& uri) {
     //for now convert /cgi-bin/script.py to ./myWebsite/cgi-bin/script.py
     // might need to adjust this later TODO
     if (scriptPath.find("/cgi-bin/") == 0) {
-        scriptPath = "./myWebsite" + scriptPath;
+        scriptPath = "myWebsite" + scriptPath;
     }
     
     // check if the file exists
@@ -175,9 +175,204 @@ std::string CGIHandler::getInterpreter(const std::string& scriptPath) {
 }
 
 std::vector<char> CGIHandler::executeScript(const HTTPRequest& req, const std::string& scriptPath) {
+    //setup pipes for communication
+    int stdin_pipe[2];
+    int stdout_pipe[2];
 
+    if (pipe(stdin_pipe) < 0 || pipe(stdout_pipe) < 0) {
+        throw CGIException("Failed to create pipes");
+    }
+
+    pid_t pid = fork();
+
+    if (pid < 0) {
+        //fork failed
+        close(stdin_pipe[0]);
+        close(stdin_pipe[1]);
+        close(stdout_pipe[0]);
+        close(stdout_pipe[1]);
+        throw CGIException("Failed to fork");
+    }
+
+    if (pid == 0) {
+        //child process
+        //redirect stdin/stdout
+        dup2(stdin_pipe[0], STDIN_FILENO);
+        dup2(stdout_pipe[1], STDOUT_FILENO);
+
+        close(stdin_pipe[1]);
+        close(stdout_pipe[0]);
+
+        std::string scriptDir = scriptPath.substr(0, scriptPath.find_last_of('/'));
+        if (chdir(scriptDir.c_str()) != 0) {
+            exit(1);
+        }
+
+        std::string scriptName = scriptPath.substr(scriptPath.find_last_of('/') + 1);
+
+        //prepare environment
+        std::vector<std::string> envStrings = buildEnvironmentStrings(req, scriptPath);
+        char** envArray = buildEnvironmentArray(envStrings);
+
+        std::string interpreter = getInterpreter(scriptPath);
+
+        //execute script using execve
+        if (!interpreter.empty()) {
+            char* args[] = {const_cast<char*>(interpreter.c_str()), const_cast<char*>(scriptName.c_str()), nullptr};
+            execve(interpreter.c_str(), args, envArray);
+        } else {
+            char* args[] = {const_cast<char*>(scriptName.c_str()), nullptr};
+            execve(scriptName.c_str(), args, envArray);
+        }
+        //execve failed if we get here
+        exit(1);
+    }
+
+    //parent process
+    //clsoe unused pipes
+    close(stdin_pipe[0]);
+    close(stdout_pipe[1]);
+
+    //send request body to script stdin (for POST)
+    if (req.getMethod() == "POST") {
+        std::string body = req.getBody();
+        write(stdin_pipe[1], body.c_str(), body.length());
+    }
+
+    //close stdin to signal EOF
+    close(stdin_pipe[1]);
+
+    //read output from stdout_pipe[0]
+    std::vector<char> output;
+    char buffer[4096];
+    ssize_t bytesRead;
+    bool timedOut = false;
+    bool readError = false;
+
+    //set non-blocking mode for reading
+    int flags = fcntl(stdout_pipe[0], F_GETFL, 0);
+    fcntl(stdout_pipe[0], F_SETFL, flags | O_NONBLOCK);
+
+    //set up for timeout
+    time_t startTime = time(nullptr);
+    while (true) {
+        bytesRead = read(stdout_pipe[0], buffer, sizeof(buffer));
+
+        if (bytesRead > 0) {
+            output.insert(output.end(), buffer, buffer + bytesRead);
+
+            //check for max output size
+            if (output.size() > MAX_OUTPUT_SIZE) {
+                kill(pid, SIGTERM);
+                close(stdout_pipe[0]);
+                throw CGIException("Max output size exceeded");
+            }
+        } else if (bytesRead == 0) {
+            break;
+        } else {
+            if (difftime(time(nullptr), startTime) > TIMEOUT_SECONDS) {
+                timedOut = true;
+                break;
+            }
+            usleep(10000); //10ms
+        }
+    }
+    close(stdout_pipe[0]);
+
+    int status;
+    waitpid(pid, &status, 0);
+
+    if (timedOut) {
+        throw CGIException("CGI timed out");
+    }
+
+    if (readError) {
+        throw CGIException("Failed to read output");
+    }
+
+    if (WIFEXITED(status) && WEXITSTATUS(status) != 0) {
+        //script exited with non-zero status
+        throw CGIException("CGI exited with non-zero status " + std::to_string(WEXITSTATUS(status)));
+    }
+
+    return output;
 }
 
 Response CGIHandler::parseOutput(const std::vector<char>& output) {
+    Response response;
 
+    response.setStatusCode(200);
+    response.setReasonPhrase("OK");
+
+    if (output.empty()) {
+        response.setStatusCode(204);
+        response.setReasonPhrase("No Content");
+        return response;
+    }
+
+    //convert output to string for easier parsing
+    std::string outputStr(output.begin(), output.end());
+
+    //find separator between headers and body
+    size_t headerEnd = outputStr.find("\r\n\r\n");
+    if (headerEnd == std::string::npos) {
+       //no headers, treat output as body
+       response.setBody(output);
+       response.addHeader("Content-Type", "text/html");
+       response.addHeader("Content-Lenght", std::to_string(output.size()));
+       return response;
+    }
+
+    //extract headers
+    std::string headersStr = outputStr.substr(0, headerEnd);
+    std::istringstream headerStream(headersStr);
+    std::string line;
+
+    //parse each header line
+    while (std::getline(headerStream, line)) {
+        if (line.empty() || line == "\r") continue;
+
+        //remove trailing \r if present
+        if (!line.empty() && line[line.length() -1] == '\r') {
+            line.erase(line.length() - 1);
+        }
+        //find the colon separator
+        size_t colonPos = line.find(':');
+        if (colonPos != std::string::npos) {
+            std::string name = line.substr(0, colonPos);
+            std::string value = line.substr(colonPos + 1);
+
+            //trim whitespace
+            value.erase(0, value.find_first_not_of(" \t"));
+
+            //check for status header
+            if (name == "Status") {
+                size_t spacePos = value.find(' ');
+                if (spacePos != std::string::npos) {
+                    int statusCode = std::stoi(value.substr(0, spacePos));
+                    std::string reasonPhrase = value.substr(spacePos + 1);
+                    response.setStatusCode(statusCode);
+                    response.setReasonPhrase(reasonPhrase);
+                }
+            } else {
+                response.addHeader(name, value);
+            }
+        }
+    }
+
+    //extract body
+    std::vector<char> body(output.begin() + headerEnd + 4, output.end());
+    response.setBody(body);
+
+    //if content type not set, default to text/html
+    if (response.getHeaders().find("Content-Type") == response.getHeaders().end()) {
+        response.addHeader("Content-Type", "text/html");
+    }
+
+    //set content length header if not set
+    if (response.getHeaders().find("Content-Length") == response.getHeaders().end()) {
+        response.addHeader("Content-Length", std::to_string(response.getBody().size()));
+    }
+
+    return response;
 }

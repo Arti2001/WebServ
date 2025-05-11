@@ -7,6 +7,9 @@
 #include <exception>
 #include <algorithm>
 #include <sys/stat.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <signal.h>
 #include <cstring>
 #include "../parsingRequest/HTTPRequest.hpp"
 #include "../parsingResponse/Response.hpp"
@@ -26,6 +29,8 @@ class CGIHandler {
         };
     
     private:
+    static const int TIMEOUT_SECONDS = 30;
+    static const size_t MAX_OUTPUT_SIZE = 10 * 1024 * 1024;
         //Helper methods
         std::vector<std::string> buildEnvironmentStrings(const HTTPRequest& req, const std::string& scriptPath);
         char** buildEnvironmentArray(const std::vector<std::string>& envStrings);
