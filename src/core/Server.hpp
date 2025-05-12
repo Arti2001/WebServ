@@ -27,9 +27,10 @@
 #include <vector>
 #include <sstream>
 #include <bits/stdc++.h>
-#include "ServerManager.hpp"
+//#include "ServerManager.hpp"
 
 #include "parsingConfFile/ParseConfig.hpp"
+
 
 
 struct clientInfo {
@@ -41,30 +42,18 @@ struct clientInfo {
 class Server
 {
 	private:
-		int							_sockFd;
-		int							_epollFd;
-		std::string					_serverPort;
-		std::string					_serverHost;
-		bool						_isRunning;
-		std::map<int, clientInfo>	_clients;
+		int							_socketFd;
+		const vServer&				_vServer;
 
 		public:
-		Server(const vServer&	serverSet);
-		//  Server(const Server& other);
-		//  Server& operator=(const Server& other);
-		~Server();
+			Server(int	socketFd, const vServer& vServer);
+			~Server();
+
+			//getters
+			int			getSocketFd( void ) const;
 		
-		void readRequest( int clientFd );
-		void sendResponse( int clientFd );
-		bool		init();//to change
-		//bool		setNonBlocking(int fd);
-		void		start();
-		void		stop();
-		bool		isRunning() const;
-		//clientInfo&	getclientInfo( int clientFd);
-		void		prepResponse(int clientFd);
-		void		setEpollEvent(int clientFd, int evFlag, int op);
-		
+			//void readRequest( int clientFd );
+			//void sendResponse( int clientFd );
 	};
 
 #endif

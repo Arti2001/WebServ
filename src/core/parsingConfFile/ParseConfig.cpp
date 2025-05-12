@@ -94,7 +94,7 @@ void	ParseConfig::parsConfigFileTokens(std::vector<vServer>& _vServers) {
 			vServer	vserv;
 			depth = LEVEL;
 			currToken += 2;
-			parsVirtualServerBlock(vserv);
+			parsvServerBlock(vserv);
 			_vServers.push_back(vserv);
 		}
 		else {
@@ -159,7 +159,7 @@ std::ostream& operator<<(std::ostream& os, const vServer& server) {
 }
 
 
-void	ParseConfig::parsVirtualServerBlock( vServer& serv) {
+void	ParseConfig::parsvServerBlock( vServer& serv) {
 	
 	while (depth > 0) {
 

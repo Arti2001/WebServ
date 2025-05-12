@@ -1,46 +1,62 @@
 #ifndef SERVERMANAGER_HPP
 #define SERVERMANAGER_HPP
+#define EPOLL_CAPACITY				20
+#define DEFAULT_CONFIG_FILE_PATH	"./webserv.conf"
+
 #include "parsingConfFile/ParseConfig.hpp"
 #include "Server.hpp"
+#include "parsingConfFile/vServer.hpp"
 #include <fstream>
 
+class Server;
 
-#define EPOLL_CAPACITY 20
+struct Client {
+
+	Client();
+	std::string				cleintResponse;
+	size_t					clientBytesSent;
+};
+
 
 class ServerManager {
 
 	private:
-		//std::vector<Server>				_servers;
-		//const	std::vector<vServer>&	_serverSettings;
 		std::ifstream					_configFileFd;
 		int								_epollFd;
-		std::vector<int>				_socketFds;
 		std::vector<vServer>			_vServers;
-
+		std::vector<Server>				_servers;
+		std::map<int, Client>			_fdClientDataMap;
+	
 	public:
 		//constructors
 		ServerManager(std::string& ConfigFileName, int epollSize);
 		~ServerManager();
 
 		//getters
-		std::ifstream				getConfigFileFd( void ) const;
-		
-		int							getEpollFd( void ) const;
-		std::vector<int>			getSocketFds( void ) const;
-		std::vector<vServer>&		getVServers( void ) ;
-
-
-		addrinfo*					getAddrList( size_t ServerCounter) ;
+		int						getEpollFd( void ) const;
+		int						getSocketFd(const vServer& vServer);
+		addrinfo*				getAddrList(const vServer& vServer) ;
+		std::ifstream&			getConfigFileFd( void );
+		std::vector<vServer>&	getvServers( void );
 		
 		//setter
-		void						setSocketFds( size_t ServerCounter );
-
+		void					setServers(const std::vector<vServer>& vSrevers);
+		void					setSocketsToEpollIn(void);
 
 		//methods
-		void	parsConfigFile(std::vector<vServer>& _vServers);
-		int		bindSocket(addrinfo* addrList);
-		bool	setNonBlocking(int fd);
+		void					parsConfigFile(std::vector<vServer>& _vServers);
+		int						bindSocket(addrinfo* addrList);
+		bool					setNonBlocking(int fd);
+		void					setEpollCtl( int targetFd, int eventFlag, int operation);
+		void					runServers( void );
+		void					manageEpollEvent(const struct epoll_event* epollEvents, int readyFds);
+		bool					isListeningSocket(int fd);
 
+
+
+		void					readRequest( int clientFd );
+		void					sendResponse( int clientFd );
+		void					prepResponse(int clientFd );
 
 
 

@@ -57,10 +57,10 @@ class ParseConfig {
 		~ParseConfig();
 		
 		bool											openConfigFile();
-		std::map<size_t, std::vector<std::string>>		prepToTokenizeConfigData(std::ifstream configFile);
+		std::map<size_t, std::vector<std::string>>		prepToTokenizeConfigData(std::ifstream& configFile);
 		void											tokenizeConfigData(std::map<size_t, std::vector<std::string>> lineNumbLexemes);
 		void											parsConfigFileTokens(std::vector<vServer>& _vServers);
-		void											parsVirtualServerBlock(vServer& serv);
+		void											parsvServerBlock(vServer& serv);
 		void											validateServerBlockDirectives(vServer& serv);
 		void											validateLocationBlockDirectives(vServer& serv);
 		void											validateLocationBlockStructure();

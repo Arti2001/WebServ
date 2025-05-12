@@ -19,7 +19,7 @@ std::string	addSpace(const std::string& str) {
 	return (new_string);
 }
 
-std::map<size_t, std::vector<std::string>>	ParseConfig::prepToTokenizeConfigData(std::ifstream configFile) {
+std::map<size_t, std::vector<std::string>>	ParseConfig::prepToTokenizeConfigData(std::ifstream& configFile) {
 
 	std::vector<std::string>					lexemes;
 	std::map<size_t, std::vector<std::string>>	lineNumbLexemes;
