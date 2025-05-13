@@ -61,7 +61,7 @@ ServerManager::ServerManager(std::string& fileName, int epollSize) {
 
 Client::Client() {
 	this->clientBytesSent = 0;
-	this->cleintResponse = "Default response";
+	this->clientResponse = "Default response";
 }
 
 ServerManager::ServerManagerException::ServerManagerException(const std::string& msg) : _message(msg) {
@@ -204,7 +204,12 @@ int	ServerManager::bindSocket(addrinfo* addrList) {
 		if (socketFd == -1) {
 			continue;
 		}
-	
+		
+		int _switch = ENABLE;
+		if (setsockopt(socketFd, SOL_SOCKET, SO_REUSEADDR, &_switch, sizeof(_switch)) == -1){
+			close(socketFd);
+			throw ServerManagerException("Failed to set socket.");
+		}
 		if (bind(socketFd, cpList->ai_addr, cpList->ai_addrlen) == 0) {
 			std::cerr << "Successfully binded" << "\n";
 			break;
@@ -231,7 +236,7 @@ void	ServerManager::setEpollCtl( int targetFd, int eventFlag, int operation){
 
 	if (epoll_ctl(_epollFd, operation, targetFd, &targetEvent) == -1) {
 
-		throw ServerManagerException("epoll_ctl failed");
+		close(targetFd);
 	}
 }
 
@@ -255,7 +260,7 @@ void	ServerManager::setSocketsToEpollIn(void) {
 
 	for (size_t i = 0; i < _servers.size(); i++)
 	{
-		setEpollCtl(_servers[i].getSocketFd(), IN, EPOLL_CTL_ADD);
+		setEpollCtl(_servers[i].getSocketFd(), EPOLLIN, EPOLL_CTL_ADD);
 	}
 }
 
@@ -312,17 +317,16 @@ void	ServerManager::manageEpollEvent(const struct epoll_event* currEvent, int re
 				close(acceptedSocket);
 				throw ServerManagerException("Failed to set the acceptedSocket to a NON-BLOCKING mode.");
 			}
-			setEpollCtl(acceptedSocket, IN, EPOLL_CTL_ADD);
+			setEpollCtl(acceptedSocket, EPOLLIN, EPOLL_CTL_ADD);
 			Client	client;
 			_fdClientDataMap[acceptedSocket] = client;
 		
 		}
 		else if (currEvent->events & EPOLLIN) {
 			readRequest(acceptedSocket);
-
+			
 		}
 		else if (currEvent->events & EPOLLOUT) {
-
 			sendResponse(acceptedSocket);
 		}
 	}
@@ -369,8 +373,10 @@ void	ServerManager::readRequest (int clientFd) {
 		recBuff[bytesRead] = '\0';
 		std::cout << "######Request#####\n" << recBuff << "\n";
 
-		//prepResponse(clientFd);
-		setEpollCtl(clientFd, OUT, EPOLL_CTL_MOD);
+		prepResponse(clientFd);
+
+		std::cout <<_fdClientDataMap[clientFd].clientResponse<< "\n";
+		setEpollCtl(clientFd, EPOLLOUT, EPOLL_CTL_MOD);
 		return ;
 	}
 	else if (bytesRead == 0){
@@ -382,33 +388,36 @@ void	ServerManager::readRequest (int clientFd) {
 		std::cout << "Nod data to read !"<< "\n";
 }
 
+
+
 void	ServerManager::sendResponse(int clientFd) {
 
 	size_t&		totalBytesSent = _fdClientDataMap[clientFd].clientBytesSent;
-	const char*	servResp = _fdClientDataMap[clientFd].cleintResponse.c_str();
-	ssize_t		bytesSent;
+	const char*	servResp = _fdClientDataMap[clientFd].clientResponse.c_str();
+	
 	size_t		responseSize = strlen(servResp);
 
-	
-	bytesSent = send(clientFd, servResp + totalBytesSent, responseSize - totalBytesSent, 0);
+	std::cout<< "here 400"<< "\n";
+	ssize_t bytesSent = send(clientFd, servResp + totalBytesSent, responseSize - totalBytesSent, 0);
 	if (bytesSent == -1) {
-		setEpollCtl(clientFd, OUT, EPOLL_CTL_MOD);
+		setEpollCtl(clientFd, EPOLLOUT, EPOLL_CTL_MOD);
 		return;
 	}
+	std::cout<< "here 406"<< "\n";
 	totalBytesSent += bytesSent;
 	if (totalBytesSent == strlen(servResp)) {
 		std::cout << "All data sent: Connection closed" << "\n";
-		setEpollCtl(clientFd, IN, EPOLL_CTL_MOD);
+		setEpollCtl(clientFd, EPOLLIN, EPOLL_CTL_MOD);
 		totalBytesSent = 0;
 
 		close(clientFd);
 		_fdClientDataMap.erase(clientFd);
 	}
+	std::cout<< "here 416"<< "\n";
 }
 
 
-//void	ServerManager::prepResponse(int clientFd) {
+void	ServerManager::prepResponse(int clientFd) {
 
-//	_clients[clientFd].response = "lol";
-//	_clients[clientFd].bytesSent = 0;
-//}
+	_fdClientDataMap[clientFd].clientResponse = "Hell world!";
+}

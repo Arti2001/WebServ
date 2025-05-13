@@ -2,6 +2,8 @@
 #define SERVERMANAGER_HPP
 #define EPOLL_CAPACITY				20
 #define DEFAULT_CONFIG_FILE_PATH	"./webserv.conf"
+#define ENABLE						1
+#define DISABLE						0
 
 #include "parsingConfFile/ParseConfig.hpp"
 #include "Server.hpp"
@@ -13,7 +15,7 @@ class Server;
 struct Client {
 
 	Client();
-	std::string				cleintResponse;
+	std::string				clientResponse;
 	size_t					clientBytesSent;
 };
 
