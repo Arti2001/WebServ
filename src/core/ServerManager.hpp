@@ -2,8 +2,10 @@
 #define SERVERMANAGER_HPP
 #define EPOLL_CAPACITY				20
 #define DEFAULT_CONFIG_FILE_PATH	"./webserv.conf"
+#define SERVER_TIMEOUT				50
 #define ENABLE						1
 #define DISABLE						0
+#define NONE						0
 
 #include "parsingConfFile/ParseConfig.hpp"
 #include "Server.hpp"
@@ -17,6 +19,7 @@ struct Client {
 	Client();
 	std::string				clientResponse;
 	size_t					clientBytesSent;
+	time_t					lastActiveTime;
 };
 
 
@@ -39,20 +42,23 @@ class ServerManager {
 		int						getSocketFd(const vServer& vServer);
 		addrinfo*				getAddrList(const vServer& vServer) ;
 		std::ifstream&			getConfigFileFd( void );
-		std::vector<vServer>&	getvServers( void );
+		std::vector<vServer>&	getVirtualServers( void );
 		
 		//setter
 		void					setServers(const std::vector<vServer>& vSrevers);
 		void					setSocketsToEpollIn(void);
+		void					setEpollCtl( int targetFd, int eventFlag, int operation);
+		bool					setNonBlocking(int fd);
 
 		//methods
 		void					parsConfigFile(std::vector<vServer>& _vServers);
 		int						bindSocket(addrinfo* addrList);
-		bool					setNonBlocking(int fd);
-		void					setEpollCtl( int targetFd, int eventFlag, int operation);
 		void					runServers( void );
-		void					manageEpollEvent(const struct epoll_event* epollEvents, int readyFds);
+		void					manageEpollEvent(const struct epoll_event& epollEvents);
+		void					manageListenSocketEvent(const struct epoll_event& epollEvents);
 		bool					isListeningSocket(int fd);
+		void					addClient(int clientFd);
+		void					closeIdleConnections(int socketFd);
 
 
 

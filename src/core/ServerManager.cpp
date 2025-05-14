@@ -1,42 +1,5 @@
 #include "ServerManager.hpp"
 
-//#include <iostream>
-//#include <cstring>
-//#include <unistd.h>
-//#include <netinet/in.h>
-//#include <sys/socket.h>
-//#include <errno.h>
-
-//void checkSocketListen(int socketFd) {
-//    if (listen(socketFd, SOMAXCONN) == -1) {
-//        std::cerr << "listen() failed on socket " << socketFd << ": " << strerror(errno) << "\n";
-
-//        switch (errno) {
-//            case EADDRINUSE:
-//                std::cerr << "Address already in use. Another server may be using this port.\n";
-//                break;
-//            case EBADF:
-//                std::cerr << "Invalid socket file descriptor.\n";
-//                break;
-//            case ENOTSOCK:
-//                std::cerr << "The file descriptor is not a socket.\n";
-//                break;
-//            case EOPNOTSUPP:
-//                std::cerr << "Socket type does not support listen().\n";
-//                break;
-//            case EINVAL:
-//                std::cerr << "Socket is not bound, or already listening.\n";
-//                break;
-//            default:
-//                std::cerr << "Unknown listen() error.\n";
-//        }
-
-//        close(socketFd); // optional cleanup
-//    } else {
-//        std::cout << "Socket is now listening (fd: " << socketFd << ")\n";
-//    }
-//}
-
 //constructors
 ServerManager::ServerManager(std::string& fileName, int epollSize) {
 
@@ -59,15 +22,18 @@ ServerManager::ServerManager(std::string& fileName, int epollSize) {
 
 
 
+
 Client::Client() {
 	this->clientBytesSent = 0;
 	this->clientResponse = "Default response";
 }
 
+
+
+
 ServerManager::ServerManagerException::ServerManagerException(const std::string& msg) : _message(msg) {
 
 }
-
 
 
 
@@ -81,6 +47,9 @@ ServerManager::~ServerManager() {
 	close(_epollFd);
 }
 
+
+
+
 //getters
 std::ifstream&	ServerManager::getConfigFileFd( void ) {
 	
@@ -92,12 +61,11 @@ int	ServerManager::getEpollFd( void ) const {
 	return (_epollFd);
 }
 
-std::vector<vServer>&		ServerManager::getvServers( void )
+std::vector<vServer>&		ServerManager::getVirtualServers( void )
 {
 
 	return (_vServers);
 }
-
 
 
 
@@ -127,8 +95,6 @@ int	ServerManager::getSocketFd( const vServer& vServer) {
 
 
 
-
-
 bool	ServerManager::setNonBlocking(int fd) {
 
 	int prevFlags  = fcntl(fd, F_GETFL);
@@ -143,7 +109,6 @@ bool	ServerManager::setNonBlocking(int fd) {
 	}
 	return (true);
 }
-
 
 
 
@@ -166,14 +131,12 @@ void	ServerManager::parsConfigFile(std::vector<vServer>& _vServers) {
 
 
 
-
 addrinfo* ServerManager::getAddrList(const vServer& vServer) {
 
 	struct addrinfo	hints, *addrList;
 	int				infoRet;
 
 	memset(&hints, 0, sizeof(struct addrinfo));
-
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = 0;
@@ -192,7 +155,6 @@ addrinfo* ServerManager::getAddrList(const vServer& vServer) {
 
 
 
-
 int	ServerManager::bindSocket(addrinfo* addrList) {
 
 	addrinfo*	cpList;
@@ -204,7 +166,6 @@ int	ServerManager::bindSocket(addrinfo* addrList) {
 		if (socketFd == -1) {
 			continue;
 		}
-		
 		int _switch = ENABLE;
 		if (setsockopt(socketFd, SOL_SOCKET, SO_REUSEADDR, &_switch, sizeof(_switch)) == -1){
 			close(socketFd);
@@ -233,7 +194,6 @@ void	ServerManager::setEpollCtl( int targetFd, int eventFlag, int operation){
 
 	targetEvent.data.fd = targetFd;
 	targetEvent.events = eventFlag;
-
 	if (epoll_ctl(_epollFd, operation, targetFd, &targetEvent) == -1) {
 
 		close(targetFd);
@@ -255,7 +215,6 @@ void	ServerManager::setServers(const std::vector<vServer>& vServers) {
 
 
 
-
 void	ServerManager::setSocketsToEpollIn(void) {
 
 	for (size_t i = 0; i < _servers.size(); i++)
@@ -267,18 +226,45 @@ void	ServerManager::setSocketsToEpollIn(void) {
 
 
 
-
 void	ServerManager::runServers(void) {
 
 	struct epoll_event	epollEvents[EPOLL_CAPACITY];
-	setSocketsToEpollIn();//all listening fds are set to IN event now
 
+	setSocketsToEpollIn();//all listening fds are set to IN event now
 	while (1) {
-		int readyFds = epoll_wait(_epollFd, epollEvents, EPOLL_CAPACITY, 0);
+		int timeout = 1000;
+		int readyFds = epoll_wait(_epollFd, epollEvents, EPOLL_CAPACITY, timeout);
+		if (readyFds == NONE)
+		{
+			std::cout<< " idle connection "<<"\n";
+			continue;
+		}
 		if (readyFds == -1)
 			throw ServerManagerException("epoll_wait() failed");
-		manageEpollEvent(epollEvents, readyFds);
+		//manageEpollEvent(epollEvents, readyFds);
+		for (int i = 0; i < readyFds; i++) {
+			manageEpollEvent(epollEvents[i]);
+		}
 	}
+}
+
+void	ServerManager::closeIdleConnections(int socketFd) {
+
+	time_t	currTime = std::time(nullptr);
+	std::map<int, Client>::iterator it = _fdClientDataMap.begin();
+	std::map<int, Client>::iterator end = _fdClientDataMap.end();
+
+	for(; it != end; it++) {
+
+		if ((currTime - it->second.lastActiveTime) > SERVER_TIMEOUT) {
+
+			close(it->first);
+			it = _fdClientDataMap.erase(it);
+		}
+		it++;
+	}
+
+
 }
 
 
@@ -295,68 +281,61 @@ bool ServerManager::isListeningSocket(int fd) {
 	return (false);
 }
 
-void	ServerManager::manageEpollEvent(const struct epoll_event* currEvent, int readyFds) {
 
-	int						acceptedSocket;
+
+
+void	ServerManager::manageListenSocketEvent(const struct epoll_event& currEvent) {
+
 	struct sockaddr_storage	clientAddr;
 	socklen_t				clientAddrLen = sizeof(clientAddr);
 
-	for (int i = 0; i < readyFds; i++) {
+	int acceptedSocket = accept(currEvent.data.fd, (struct sockaddr *)&clientAddr, &clientAddrLen);
+	if (acceptedSocket == -1) {
 
-		if (isListeningSocket(currEvent->data.fd)) {
-	
-			acceptedSocket = accept(currEvent->data.fd, (struct sockaddr *)&clientAddr, &clientAddrLen);
-			if (acceptedSocket == -1) {
-				if (errno == EAGAIN || errno == EWOULDBLOCK) {
-					std::cerr << "No client connections available at the moment." << std::endl;
-					continue;
-				}
-				throw ServerManagerException("Failed to accept the client socket");
+			if (errno == EAGAIN || errno == EWOULDBLOCK) {
+				std::cerr << "No client connections available at the moment." << std::endl;
+				return;
 			}
-			if (!setNonBlocking(acceptedSocket)) {
-				close(acceptedSocket);
-				throw ServerManagerException("Failed to set the acceptedSocket to a NON-BLOCKING mode.");
-			}
-			setEpollCtl(acceptedSocket, EPOLLIN, EPOLL_CTL_ADD);
-			Client	client;
-			_fdClientDataMap[acceptedSocket] = client;
-		
-		}
-		else if (currEvent->events & EPOLLIN) {
-			readRequest(acceptedSocket);
-			
-		}
-		else if (currEvent->events & EPOLLOUT) {
-			sendResponse(acceptedSocket);
-		}
+			throw ServerManagerException("Failed to accept the client socket");
 	}
+	addClient(acceptedSocket);
 }
 
 
 
 
+void ServerManager::addClient(int clientFd) {
+
+	Client	client;
+	time_t	timeStapm = std::time(nullptr);
+
+	if (!setNonBlocking(clientFd)) {
+
+		close(clientFd);
+		throw ServerManagerException("Failed to set the acceptedSocket to a NON-BLOCKING mode.");
+	}
+	setEpollCtl(clientFd, EPOLLIN, EPOLL_CTL_ADD);
+
+	_fdClientDataMap[clientFd] = client;
+	_fdClientDataMap[clientFd].lastActiveTime = timeStapm;
+}
 
 
 
 
+void	ServerManager::manageEpollEvent(const struct epoll_event& currEvent) {
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	if (isListeningSocket(currEvent.data.fd)) {
+			manageListenSocketEvent(currEvent);
+	}
+	else if (currEvent.events & EPOLLIN) {
+		readRequest(currEvent.data.fd);
+	}
+	else if (currEvent.events & EPOLLOUT) {
+			sendResponse(currEvent.data.fd);
+	}
+	
+}
 
 
 
@@ -390,20 +369,18 @@ void	ServerManager::readRequest (int clientFd) {
 
 
 
+
 void	ServerManager::sendResponse(int clientFd) {
 
 	size_t&		totalBytesSent = _fdClientDataMap[clientFd].clientBytesSent;
 	const char*	servResp = _fdClientDataMap[clientFd].clientResponse.c_str();
-	
 	size_t		responseSize = strlen(servResp);
-
-	std::cout<< "here 400"<< "\n";
 	ssize_t bytesSent = send(clientFd, servResp + totalBytesSent, responseSize - totalBytesSent, 0);
+
 	if (bytesSent == -1) {
 		setEpollCtl(clientFd, EPOLLOUT, EPOLL_CTL_MOD);
 		return;
 	}
-	std::cout<< "here 406"<< "\n";
 	totalBytesSent += bytesSent;
 	if (totalBytesSent == strlen(servResp)) {
 		std::cout << "All data sent: Connection closed" << "\n";
@@ -413,8 +390,9 @@ void	ServerManager::sendResponse(int clientFd) {
 		close(clientFd);
 		_fdClientDataMap.erase(clientFd);
 	}
-	std::cout<< "here 416"<< "\n";
 }
+
+
 
 
 void	ServerManager::prepResponse(int clientFd) {
