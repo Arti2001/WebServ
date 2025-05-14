@@ -59,6 +59,7 @@ class ServerManager {
 		bool					isListeningSocket(int fd);
 		void					addClient(int clientFd);
 		void					closeIdleConnections(int socketFd);
+		void					closeClientFd(int clientfFd);
 
 
 
