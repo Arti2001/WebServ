@@ -86,8 +86,10 @@ void	vServer::setServerNames(std::vector<std::string>& namesVector) {
 	std::regex namePattern(R"(^[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+$)");
 	for (std::string& name : namesVector) {
 
-		if (std::regex_match(name, namePattern) || (name == "localhost"))
+		if (std::regex_match(name, namePattern) || (name == "localhost")) {
+			_vServerNames.clear();
 			_vServerNames.push_back(name);
+		}
 		else
 			throw ParseConfig::ConfException("Input does not match 'example.com' format .\n");
 	}

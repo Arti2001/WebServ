@@ -1,5 +1,5 @@
-#ifndef VSERVER_HPP
-#define VSERVER_HPP
+#ifndef vServer_HPP
+#define vServer_HPP
 
 #include <string>
 #include <vector>
