@@ -230,24 +230,25 @@ void	ServerManager::setSocketsToEpollIn(void) {
 
 void	ServerManager::closeClientFd(int clientFd){
 
-	epoll_ctl(_epollFd, EPOLL_CTL_DEL, clientFd, nullptr);
-	close(clientFd);
-	_fdClientDataMap.erase(clientFd);
+	
+		epoll_ctl(_epollFd, EPOLL_CTL_DEL, clientFd, nullptr);
+		close(clientFd);
+		_fdClientDataMap.erase(clientFd);
 }
 
-void	ServerManager::closeIdleConnections(int socketFd) {
-	
+void	ServerManager::closeIdleConnections() {
+
 	time_t	currTime = std::time(nullptr);
+
 	std::map<int, Client>::iterator it = _fdClientDataMap.begin();
 	std::map<int, Client>::iterator end = _fdClientDataMap.end();
-	
+
 	for(; it != end; it++) {
-		
 		if ((currTime - it->second.lastActiveTime) > SERVER_TIMEOUT) {
 
+			std::cerr<< "Time out: Closing the client. " << "\n";
 			closeClientFd(it->first);
 		}
-		it++;
 	}
 	
 	
@@ -278,9 +279,10 @@ void	ServerManager::runServers(void) {
 	while (1) {
 		int timeout = 1000;
 		int readyFds = epoll_wait(_epollFd, epollEvents, EPOLL_CAPACITY, timeout);
-		if (readyFds == NONE)
+		if (readyFds == 0)
 		{
-			std::cout<< " idle connection "<<"\n";
+	
+			closeIdleConnections();
 			continue;
 		}
 		if (readyFds == -1) {
@@ -296,7 +298,6 @@ void	ServerManager::runServers(void) {
 
 
 void	ServerManager::manageListenSocketEvent(const struct epoll_event& currEvent) {
-	
 	struct sockaddr_storage	clientAddr;
 	socklen_t				clientAddrLen = sizeof(clientAddr);
 	
@@ -310,6 +311,7 @@ void	ServerManager::manageListenSocketEvent(const struct epoll_event& currEvent)
 		throw ServerManagerException("Failed to accept the client socket");
 	}
 	addClient(acceptedSocket);
+	
 }
 
 
@@ -317,6 +319,7 @@ void	ServerManager::manageListenSocketEvent(const struct epoll_event& currEvent)
 
 void ServerManager::addClient(int clientFd) {
 	
+
 	Client	client;
 	time_t	timeStapm = std::time(nullptr);
 	
@@ -326,7 +329,6 @@ void ServerManager::addClient(int clientFd) {
 		throw ServerManagerException("Failed to set the acceptedSocket to a NON-BLOCKING mode.");
 	}
 	setEpollCtl(clientFd, EPOLLIN, EPOLL_CTL_ADD);
-	
 	_fdClientDataMap[clientFd] = client;
 	_fdClientDataMap[clientFd].lastActiveTime = timeStapm;
 }
@@ -335,7 +337,6 @@ void ServerManager::addClient(int clientFd) {
 
 
 void	ServerManager::manageEpollEvent(const struct epoll_event& currEvent) {
-	
 	if (isListeningSocket(currEvent.data.fd)) {
 		manageListenSocketEvent(currEvent);
 	}
@@ -394,12 +395,9 @@ void	ServerManager::sendResponse(int clientFd) {
 	}
 	totalBytesSent += bytesSent;
 	if (totalBytesSent == strlen(servResp)) {
-		std::cout << "All data sent: Connection closed" << "\n";
-		setEpollCtl(clientFd, EPOLLIN, EPOLL_CTL_MOD);
+		std::cout << "All data sent" << "\n";
+		closeClientFd(clientFd);
 		totalBytesSent = 0;
-
-		close(clientFd);
-		_fdClientDataMap.erase(clientFd);
 	}
 }
 

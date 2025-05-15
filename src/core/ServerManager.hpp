@@ -2,7 +2,7 @@
 #define SERVERMANAGER_HPP
 #define EPOLL_CAPACITY				20
 #define DEFAULT_CONFIG_FILE_PATH	"./webserv.conf"
-#define SERVER_TIMEOUT				50
+#define SERVER_TIMEOUT				10
 #define ENABLE						1
 #define DISABLE						0
 #define NONE						0
@@ -58,7 +58,7 @@ class ServerManager {
 		void					manageListenSocketEvent(const struct epoll_event& epollEvents);
 		bool					isListeningSocket(int fd);
 		void					addClient(int clientFd);
-		void					closeIdleConnections(int socketFd);
+		void					closeIdleConnections();
 		void					closeClientFd(int clientfFd);
 
 
