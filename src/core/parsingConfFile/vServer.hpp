@@ -47,6 +47,7 @@ class vServer {
 	private:
 		std::string								_vServerIp;
 		std::string								_vServerPort;
+		std::string								_vServerIpPort;
 		std::vector<std::string>				_vServerNames;
 		std::vector<Location>					_vServerLocations;
 		std::string								_vServerRoot;
@@ -64,6 +65,7 @@ class vServer {
 	bool										getServerAutoIndex( void ) const;
 	std::string									getServerIp( void ) const;
 	std::string									getServerPort( void ) const;
+	std::string									getServerIpPort( void ) const;
 	unsigned									getServerClientMaxSize( void ) const;
 	std::string									getServerRoot( void ) const;
 	std::vector<std::string>					getServerNames( void ) const;

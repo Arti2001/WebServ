@@ -35,7 +35,8 @@ int main(int argc, char *argv[])
 		std::string fileName (argv[1]);
 		ServerManager serverManager(fileName, EPOLL_CAPACITY);
 		serverManager.parsConfigFile(serverManager.getVirtualServers());
-		serverManager.setServers(serverManager.getVirtualServers());
+		serverManager.groupServers(serverManager.getVirtualServers());
+		serverManager.setServers();
 		serverManager.runServers();
 		
 	}

@@ -5,6 +5,7 @@ vServer::vServer() {
 
 	_vServerIp = "0.0.0.0";
 	_vServerPort = "80";
+	_vServerIpPort = "0.0.0.0:80";
 	_vServerNames = {"localhost"};
 	_vServerRoot = "/myWebsite/pages";
 	_vServerIndex = "index.html";
@@ -74,6 +75,7 @@ void vServer::setServerListen(const std::vector<std::string>& addressVector) {
 
 	_vServerIp = ipStr;
 	_vServerPort = portStr;
+	_vServerIpPort = address;
 }
 
 
@@ -133,6 +135,12 @@ std::string	vServer::getServerIp( void ) const {
 std::string	vServer::getServerPort( void ) const {
 	return (_vServerPort);
 }
+
+std::string	vServer::getServerIpPort( void ) const {
+	return (_vServerIpPort);
+}
+
+
 
 
 std::string								vServer::getServerRoot( void ) const {

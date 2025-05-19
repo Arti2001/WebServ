@@ -82,6 +82,7 @@ void	ServerManager::parsConfigFile(std::vector<vServer>& _vServers) {
 		roughData = parser.prepToTokenizeConfigData(getConfigFileFd());
 		parser.tokenizeConfigData(roughData);
 		parser.parsConfigFileTokens(_vServers);
+		
 	}catch(ParseConfig::ConfException& ex){
 		std::cerr << "Error: " << ex.what()<< "\n";
 		exit(EXIT_FAILURE);
@@ -99,21 +100,41 @@ const char*	ServerManager::ServerManagerException::what() const noexcept {
 
 
 
-void	ServerManager::setServers(const std::vector<vServer>& vServers) {
-	
-	for (const vServer& vServer : vServers) {
-		
-		int	socketFd = getSocketFd(vServer);
-		_servers.emplace_back(socketFd, vServer);
+
+
+void	ServerManager::groupServers(const std::vector<vServer>& _vServers) {
+
+	for (const vServer& vServer : _vServers) {
+		const std::string& hostPort = vServer.getServerIpPort();
+		_hostSetMap[hostPort].push_back(&vServer);
 	}
 }
 
 
 
 
-int	ServerManager::getSocketFd( const vServer& vServer) {
+
+
+void	ServerManager::setServers() {
 	
-	addrinfo*	addrList = getAddrList(vServer);
+	std::map<std::string, std::vector<const vServer*>>::iterator	it = _hostSetMap.begin();
+
+	for (;it != _hostSetMap.end(); it++) {
+
+		const std::string& host = it->second.at(0)->getServerIp();
+		const std::string& port = it->second.at(0)->getServerPort();
+		int	socketFd = getSocketFd(host, port);
+		_servers.emplace_back(socketFd, it->second);
+
+	}
+}
+
+
+
+
+int	ServerManager::getSocketFd(const std::string& host, const std::string& port) {
+	
+	addrinfo*	addrList = getAddrList(host, port);
 	int			socketFd = bindSocket(addrList);
 	
 	if (!setNonBlocking(socketFd))
@@ -129,7 +150,7 @@ int	ServerManager::getSocketFd( const vServer& vServer) {
 
 
 
-addrinfo* ServerManager::getAddrList(const vServer& vServer) {
+addrinfo* ServerManager::getAddrList(const std::string& currHost, const std::string& currPort) {
 
 	struct addrinfo	hints, *addrList;
 	int				infoRet;
@@ -140,10 +161,7 @@ addrinfo* ServerManager::getAddrList(const vServer& vServer) {
 	hints.ai_protocol = 0;
 	hints.ai_flags = AI_PASSIVE;
 	
-	const std::string& host = vServer.getServerIp();
-	const std::string& port = vServer.getServerPort();
-
-	infoRet = getaddrinfo(host.c_str(), port.c_str(), &hints, &addrList);
+	infoRet = getaddrinfo(currHost.c_str(), currPort.c_str(), &hints, &addrList);
 	if (infoRet != 0 ) {
 		throw ServerManagerException(std::string("getaddrinfo failed: ") + gai_strerror(infoRet));
 	}
@@ -281,7 +299,6 @@ void	ServerManager::runServers(void) {
 		int readyFds = epoll_wait(_epollFd, epollEvents, EPOLL_CAPACITY, timeout);
 		if (readyFds == 0)
 		{
-	
 			closeIdleConnections();
 			continue;
 		}
@@ -310,14 +327,14 @@ void	ServerManager::manageListenSocketEvent(const struct epoll_event& currEvent)
 		}
 		throw ServerManagerException("Failed to accept the client socket");
 	}
-	addClient(acceptedSocket);
+	addClient(acceptedSocket, currEvent.data.fd);
 	
 }
 
 
 
 
-void ServerManager::addClient(int clientFd) {
+void ServerManager::addClient(int clientFd, int serverFd) {
 	
 
 	Client	client;
@@ -331,6 +348,7 @@ void ServerManager::addClient(int clientFd) {
 	setEpollCtl(clientFd, EPOLLIN, EPOLL_CTL_ADD);
 	_fdClientDataMap[clientFd] = client;
 	_fdClientDataMap[clientFd].lastActiveTime = timeStapm;
+	_fdClientDataMap[clientFd].serverFd = serverFd;
 }
 
 
@@ -350,7 +368,49 @@ void	ServerManager::manageEpollEvent(const struct epoll_event& currEvent) {
 }
 
 
+std::string ServerManager::getAnyHeader(std::unordered_map<std::string, std::string> headers, std::string headerName) {
 
+	std::unordered_map<std::string, std::string>::iterator it = headers.find(headerName);
+
+	if (it != headers.end()) {
+		return (it->second);
+	}
+	else {
+		return ("");
+	}
+
+}
+
+
+
+
+const std::vector<vServer>& ServerManager::findServerCofigsByFd(int fd) {
+
+	for( const Server& server : _servers) {
+
+		if (server.getSocketFd() == fd) 
+			return (server.getServConfigs());
+	}
+	throw ServerManagerException("Failed to find server configuratons by a file descriptor");
+}
+
+
+
+
+
+const vServer& ServerManager::findServerConfigByName(const std::vector<vServer>& subConfigs, std::string serverName) {
+
+	const vServer& defaultServConfig = subConfigs.at(0);
+	for (const vServer& config : subConfigs) {
+
+		for(const std::string& name : config.getServerNames()) {
+
+			if (name == serverName) {
+				return(config);
+			}
+		}
+	}
+}
 
 void	ServerManager::readRequest (int clientFd) {
 	
@@ -362,11 +422,21 @@ void	ServerManager::readRequest (int clientFd) {
 	if (bytesRead > 0)
 	{
 		recBuff[bytesRead] = '\0';
-		std::cout << "######Request#####\n" << recBuff << "\n";
+
+		RequestParser	RequestParser;
+		const std::unordered_map<int , HTTPRequest>& parsedRequest = RequestParser.handleIncomingRequest(clientFd, recBuff);
+		std::string hostHeaderValue = getAnyHeader(parsedRequest.at(clientFd).getHeaders(), "Host");
+		std::cout<<"the host headers value is: " +  hostHeaderValue<< "\n";
+		
+		//curl -v -H "Host: server3.com" http://127.0.0.1:8055/
+		const std::vector<vServer>& subServConfigs = findServerCofigsByFd(_fdClientDataMap[clientFd].serverFd);
+		const vServer&	askedServConfig = findServerConfigByName(subServConfigs, hostHeaderValue);
+
+		StaticHandler	responser;
+
+		responser.serve(parsedRequest.at(clientFd), askedServConfig.getServerLocations());
 		
 		prepResponse(clientFd);
-		
-		std::cout <<_fdClientDataMap[clientFd].clientResponse<< "\n";
 		setEpollCtl(clientFd, EPOLLOUT, EPOLL_CTL_MOD);
 		return ;
 	}

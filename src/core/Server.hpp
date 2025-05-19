@@ -42,15 +42,16 @@ struct clientInfo {
 class Server
 {
 	private:
-		int							_socketFd;
-		const vServer&				_vServer;
+		int										_socketFd;
+		std::vector<vServer>				_servConfigs;
 
 		public:
-			Server(int	socketFd, const vServer& vServer);
+			Server(int	socketFd, std::vector<const vServer*> vServers);
 			~Server();
 
 			//getters
-			int			getSocketFd( void ) const;
+			int								getSocketFd( void ) const;
+			const std::vector<vServer>&		getServConfigs( void ) const ;
 		
 			//void readRequest( int clientFd );
 			//void sendResponse( int clientFd );
