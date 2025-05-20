@@ -21,16 +21,6 @@ ServerManager::ServerManager(std::string& fileName, int epollSize) {
 }
 
 
-
-
-Client::Client() {
-	this->clientBytesSent = 0;
-	this->clientResponse = "Default response";
-}
-
-
-
-
 ServerManager::ServerManagerException::ServerManagerException(const std::string& msg) : _message(msg) {
 
 }
@@ -169,6 +159,11 @@ addrinfo* ServerManager::getAddrList(const std::string& currHost, const std::str
 }
 
 
+std::map<int, Client>&	ServerManager::getFdClientMap(void) {
+
+	return (_fdClientMap);
+}
+
 
 int	ServerManager::bindSocket(addrinfo* addrList) {
 
@@ -251,18 +246,18 @@ void	ServerManager::closeClientFd(int clientFd){
 	
 		epoll_ctl(_epollFd, EPOLL_CTL_DEL, clientFd, nullptr);
 		close(clientFd);
-		_fdClientDataMap.erase(clientFd);
+		_fdClientMap.erase(clientFd);
 }
 
 void	ServerManager::closeIdleConnections() {
 
 	time_t	currTime = std::time(nullptr);
 
-	std::map<int, Client>::iterator it = _fdClientDataMap.begin();
-	std::map<int, Client>::iterator end = _fdClientDataMap.end();
+	std::map<int, Client>::iterator it = _fdClientMap.begin();
+	std::map<int, Client>::iterator end = _fdClientMap.end();
 
 	for(; it != end; it++) {
-		if ((currTime - it->second.lastActiveTime) > SERVER_TIMEOUT) {
+		if ((currTime - it->second.getLastActiveTime()) > SERVER_TIMEOUT) {
 
 			std::cerr<< "Time out: Closing the client. " << "\n";
 			closeClientFd(it->first);
@@ -273,15 +268,27 @@ void	ServerManager::closeIdleConnections() {
 }
 
 
+//helper functions
 
-
-bool ServerManager::isListeningSocket(int fd) {
-	
+bool	ServerManager::isListeningSocket(int fd) {
 	for(const Server& server : _servers) {
 		
 		if (server.getSocketFd() == fd) {
 			return (true);
 		}
+	}
+	return (false);
+}
+
+
+bool	ServerManager::isClientSocket(int fd) {
+
+	std::map<int, Client>::iterator it = _fdClientMap.begin();
+
+	for (;it != _fdClientMap.end(); it++) {
+
+		if (it->first == fd)
+			return (true);
 	}
 	return (false);
 }
@@ -327,64 +334,48 @@ void	ServerManager::manageListenSocketEvent(const struct epoll_event& currEvent)
 		}
 		throw ServerManagerException("Failed to accept the client socket");
 	}
-	addClient(acceptedSocket, currEvent.data.fd);
+	addClientToMap(acceptedSocket, currEvent.data.fd);
 	
 }
 
 
 
 
-void ServerManager::addClient(int clientFd, int serverFd) {
-	
+void ServerManager::addClientToMap(int clientFd, int serverFd) {
+	//callback function
 
-	Client	client;
-	time_t	timeStapm = std::time(nullptr);
-	
 	if (!setNonBlocking(clientFd)) {
 		
 		close(clientFd);
 		throw ServerManagerException("Failed to set the acceptedSocket to a NON-BLOCKING mode.");
 	}
 	setEpollCtl(clientFd, EPOLLIN, EPOLL_CTL_ADD);
-	_fdClientDataMap[clientFd] = client;
-	_fdClientDataMap[clientFd].lastActiveTime = timeStapm;
-	_fdClientDataMap[clientFd].serverFd = serverFd;
+	_fdClientMap.emplace(clientFd, Client(serverFd, this));
+
 }
 
 
 
 
 void	ServerManager::manageEpollEvent(const struct epoll_event& currEvent) {
-	if (isListeningSocket(currEvent.data.fd)) {
+
+	int	fd = currEvent.data.fd;
+
+	if (isListeningSocket(fd)) {
 		manageListenSocketEvent(currEvent);
 	}
-	else if (currEvent.events & EPOLLIN) {
-		readRequest(currEvent.data.fd);
+	else if ((currEvent.events & EPOLLIN) && isClientSocket(fd)) {
+		_fdClientMap.at(fd).readRequest(fd);
 	}
-	else if (currEvent.events & EPOLLOUT) {
-		sendResponse(currEvent.data.fd);
+	else if ((currEvent.events & EPOLLOUT) && isClientSocket(fd)) {
+		_fdClientMap.at(fd).sendResponse(fd);
 	}
 	
 }
 
 
-std::string ServerManager::getAnyHeader(std::unordered_map<std::string, std::string> headers, std::string headerName) {
 
-	std::unordered_map<std::string, std::string>::iterator it = headers.find(headerName);
-
-	if (it != headers.end()) {
-		return (it->second);
-	}
-	else {
-		return ("");
-	}
-
-}
-
-
-
-
-const std::vector<vServer>& ServerManager::findServerCofigsByFd(int fd) {
+const std::vector<const vServer*>& ServerManager::findServerCofigsByFd(int fd) {
 
 	for( const Server& server : _servers) {
 
@@ -396,85 +387,17 @@ const std::vector<vServer>& ServerManager::findServerCofigsByFd(int fd) {
 
 
 
+const vServer& ServerManager::findServerConfigByName(const std::vector<const vServer*>& subConfigs, std::string serverName) {
 
+	const vServer* defaultServConfig = subConfigs.at(0);
+	for (const vServer* config : subConfigs) {
 
-const vServer& ServerManager::findServerConfigByName(const std::vector<vServer>& subConfigs, std::string serverName) {
-
-	const vServer& defaultServConfig = subConfigs.at(0);
-	for (const vServer& config : subConfigs) {
-
-		for(const std::string& name : config.getServerNames()) {
+		for(const std::string& name : config->getServerNames()) {
 
 			if (name == serverName) {
-				return(config);
+				return(*config);
 			}
 		}
 	}
-}
-
-void	ServerManager::readRequest (int clientFd) {
-	
-	char		recBuff[RECBUFF];//8KB
-	ssize_t		bytesRead;
-	
-	bytesRead = recv(clientFd, recBuff, RECBUFF - 1, 0);
-	
-	if (bytesRead > 0)
-	{
-		recBuff[bytesRead] = '\0';
-
-		RequestParser	RequestParser;
-		const std::unordered_map<int , HTTPRequest>& parsedRequest = RequestParser.handleIncomingRequest(clientFd, recBuff);
-		std::string hostHeaderValue = getAnyHeader(parsedRequest.at(clientFd).getHeaders(), "Host");
-		std::cout<<"the host headers value is: " +  hostHeaderValue<< "\n";
-		
-		//curl -v -H "Host: server3.com" http://127.0.0.1:8055/
-		const std::vector<vServer>& subServConfigs = findServerCofigsByFd(_fdClientDataMap[clientFd].serverFd);
-		const vServer&	askedServConfig = findServerConfigByName(subServConfigs, hostHeaderValue);
-
-		StaticHandler	responser;
-
-		responser.serve(parsedRequest.at(clientFd), askedServConfig.getServerLocations());
-		
-		prepResponse(clientFd);
-		setEpollCtl(clientFd, EPOLLOUT, EPOLL_CTL_MOD);
-		return ;
-	}
-	else if (bytesRead == 0){
-		std::cout << "Connection lost" << bytesRead << "\n";
-		close(clientFd);
-		return;
-	}
-	else
-		std::cout << "Nod data to read !"<< "\n";
-}
-
-
-
-
-void	ServerManager::sendResponse(int clientFd) {
-
-	size_t&		totalBytesSent = _fdClientDataMap[clientFd].clientBytesSent;
-	const char*	servResp = _fdClientDataMap[clientFd].clientResponse.c_str();
-	size_t		responseSize = strlen(servResp);
-	ssize_t bytesSent = send(clientFd, servResp + totalBytesSent, responseSize - totalBytesSent, 0);
-
-	if (bytesSent == -1) {
-		setEpollCtl(clientFd, EPOLLOUT, EPOLL_CTL_MOD);
-		return;
-	}
-	totalBytesSent += bytesSent;
-	if (totalBytesSent == strlen(servResp)) {
-		std::cout << "All data sent" << "\n";
-		closeClientFd(clientFd);
-		totalBytesSent = 0;
-	}
-}
-
-
-
-
-void	ServerManager::prepResponse(int clientFd) {
-
-	_fdClientDataMap[clientFd].clientResponse = "Hell world!";
+	return(*defaultServConfig);
 }

@@ -1,19 +1,21 @@
 #include "Server.hpp"
 
-Server::Server(int socketFd, std::vector<const vServer*> vServers) : _vServers(vServers){
+Server::Server(int socketFd, std::vector<const vServer*>& vServers) : _servConfigs(vServers){
 	this->_socketFd = socketFd;
 	
 
-	std::cout << _vServers.at(0)->getServerIp()<< "\n";
+	std::cout << _servConfigs.at(0)->getServerRoot()<< "\n";
 
 }
 Server::~Server() {}
 
+//getters
 int	Server::getSocketFd(void) const {
 	return (_socketFd);
 }
 
-const std::vector<vServer>& Server::getServConfigs( void ) const {
+
+const std::vector<const vServer*>& Server::getServConfigs( void ) const {
 
 	return(_servConfigs);
 }

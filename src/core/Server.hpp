@@ -33,28 +33,20 @@
 
 
 
-struct clientInfo {
-
-	std::string	response;
-	size_t		bytesSent = 0;
-};
 
 class Server
 {
 	private:
 		int										_socketFd;
-		std::vector<vServer>				_servConfigs;
+		std::vector<const vServer*>				_servConfigs;
 
 		public:
-			Server(int	socketFd, std::vector<const vServer*> vServers);
+			Server(int	socketFd, std::vector<const vServer*>& vServers);
 			~Server();
 
 			//getters
 			int								getSocketFd( void ) const;
-			const std::vector<vServer>&		getServConfigs( void ) const ;
-		
-			//void readRequest( int clientFd );
-			//void sendResponse( int clientFd );
+			const std::vector<const vServer*>&		getServConfigs( void ) const ;
 	};
 
 #endif

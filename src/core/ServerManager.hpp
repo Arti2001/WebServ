@@ -13,18 +13,10 @@
 #include <fstream>
 #include "parsingRequest/HTTPRequest.hpp"
 #include "parsingResponse/StaticHandler.hpp"
+#include "Client.hpp"
 
 class Server;
-
-struct Client {
-
-	Client();
-	std::string				clientResponse;
-	size_t					clientBytesSent;
-	time_t					lastActiveTime;
-	int						serverFd;
-};
-
+class Client;
 
 class ServerManager {
 
@@ -34,7 +26,8 @@ class ServerManager {
 		std::vector<vServer>								_vServers;
 		std::map<std::string, std::vector<const vServer*>>	_hostSetMap;
 		std::vector<Server>									_servers;
-		std::map<int, Client>								_fdClientDataMap;
+		std::map<int, Client>								_fdClientMap;
+	
 	
 	public:
 		//constructors
@@ -42,43 +35,39 @@ class ServerManager {
 		~ServerManager();
 
 		//getters
+		std::ifstream&			getConfigFileFd( void );
 		int						getEpollFd( void ) const;
 		int						getSocketFd(const std::string& host, const std::string& port);
 		addrinfo*				getAddrList(const std::string& host, const std::string& port) ;
-		std::ifstream&			getConfigFileFd( void );
 		std::vector<vServer>&	getVirtualServers( void );
+		std::map<int, Client>&	getFdClientMap( void );				
 		
 		//setter
 		void					setServers();
-		//void					setServerSettingsMap(const std::vector<vServer>& _vServers);
 		void					setSocketsToEpollIn(void);
 		void					setEpollCtl( int targetFd, int eventFlag, int operation);
 		bool					setNonBlocking(int fd);
 
 		//methods
-		void								groupServers(const std::vector<vServer>& _vServers);
 		void								parsConfigFile(std::vector<vServer>& _vServers);
-		int									bindSocket(addrinfo* addrList);
 		void								runServers( void );
-		void								manageEpollEvent(const struct epoll_event& epollEvents);
+		int									bindSocket(addrinfo* addrList);
+		void								groupServers(const std::vector<vServer>& _vServers);
 		void								manageListenSocketEvent(const struct epoll_event& epollEvents);
+		void								manageEpollEvent(const struct epoll_event& epollEvents);
+
+
+		void								addClientToMap(int clientFd, int serverFd);
+		
 		bool								isListeningSocket(int fd);
-		void								addClient(int clientFd, int serverFd);
+		bool								isClientSocket(int fd);
+
 		void								closeIdleConnections();
 		void								closeClientFd(int clientfFd);
-		const vServer&						findServerConfigByName(const std::vector<vServer>& subConfigs, std::string serverName);
-		const std::vector<vServer>&			findServerCofigsByFd(int serverFd);
 
 
-		void					readRequest( int clientFd );
-		void					sendResponse( int clientFd );		
-		void					prepResponse(int clientFd );
-
-
-		//tmpFunctions
-		std::string	getAnyHeader(std::unordered_map<std::string, std::string> headers, std::string headerName);
-
-
+		const	vServer&							findServerConfigByName(const std::vector<const vServer*>& subConfigs, std::string serverName);
+		const	std::vector<const vServer*>&		findServerCofigsByFd(int serverFd);
 
 
 
