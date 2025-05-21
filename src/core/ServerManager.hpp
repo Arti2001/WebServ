@@ -68,6 +68,7 @@ class ServerManager {
 
 		const	vServer&							findServerConfigByName(const std::vector<const vServer*>& subConfigs, std::string serverName);
 		const	std::vector<const vServer*>&		findServerCofigsByFd(int serverFd);
+		const	Location							findLocationBlockByUrl(const vServer& serverConfig, const std::string& url);
 
 
 

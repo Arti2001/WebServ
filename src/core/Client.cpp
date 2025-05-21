@@ -61,10 +61,12 @@ void	Client::readRequest (int clientFd) {
 
 		std::cout<< "Asked server is:" << askedServConfig.getServerNames().at(0)<<"\n";
 
-		//StaticHandler	responser;
+		const std::string& url = parsedRequest.at(clientFd).getUri();
+		const Location& askedLocationBlock = _serverManager->findLocationBlockByUrl(askedServConfig, url);
+		StaticHandler	responser;
 
-		//responser.serve(parsedRequest.at(clientFd), askedServConfig.getServerLocations());
-		
+		responser.serve(parsedRequest.at(clientFd), askedLocationBlock);
+
 		prepResponse(clientFd);
 		_serverManager->setEpollCtl(clientFd, EPOLLOUT, EPOLL_CTL_MOD);
 		return ;

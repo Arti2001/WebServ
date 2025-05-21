@@ -13,8 +13,7 @@ class Client{
 		time_t					_lastActiveTime;
 		int						_serverFd;
 		ServerManager*			_serverManager;
-	
-		
+
 	public:
 		Client(int	serverFd, ServerManager* servManager);
 		~Client();
@@ -24,9 +23,9 @@ class Client{
 
 
 		//getters
-		std::time_t	getLastActiveTime( void ) const;
-		int			getServerFd( void ) const;
-		size_t&		getClientsBytesSent( void );
+		std::time_t			getLastActiveTime( void ) const;
+		int					getServerFd( void ) const;
+		size_t&				getClientsBytesSent( void );
 		const std::string&	getClientsResponse( void ) const;
 
 		//methods
@@ -35,7 +34,7 @@ class Client{
 		void					readRequest( int clientFd );
 		void					sendResponse( int clientFd );
 		void					prepResponse(int clientFd );
-		std::string	getAnyHeader(std::unordered_map<std::string, std::string> headers, std::string headerName);
+		std::string				getAnyHeader(std::unordered_map<std::string, std::string> headers, std::string headerName);
 
 };
 

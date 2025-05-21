@@ -401,3 +401,17 @@ const vServer& ServerManager::findServerConfigByName(const std::vector<const vSe
 	}
 	return(*defaultServConfig);
 }
+
+const Location ServerManager::findLocationBlockByUrl(const vServer& serverConfig, const std::string& url) {
+
+	const std::vector<Location>& locations = serverConfig.getServerLocations();
+	if (!locations.empty()) {
+		for (const Location& loc : locations)
+		{
+			if (loc._locationPath == url)
+				return (loc);
+		}
+	}
+	Location newLoc(serverConfig);
+		return(newLoc);
+}
