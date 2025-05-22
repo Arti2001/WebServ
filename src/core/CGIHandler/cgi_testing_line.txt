@@ -1,0 +1,1 @@
+g++ -o cgi_test src/core/CGIHandler/cgi_test.cpp src/core/CGIHandler/CGIHandler.cpp src/core/parsingRequest/HTTPRequest.cpp src/core/parsingResponse/Response.cpp -std=c++17 && ./cgi_test
