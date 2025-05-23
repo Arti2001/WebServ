@@ -402,16 +402,48 @@ const vServer& ServerManager::findServerConfigByName(const std::vector<const vSe
 	return(*defaultServConfig);
 }
 
-const Location ServerManager::findLocationBlockByUrl(const vServer& serverConfig, const std::string& url) {
+const Location*	ServerManager::findDefaultLocationBlock(const std::vector<Location>& locations) {
 
-	const std::vector<Location>& locations = serverConfig.getServerLocations();
-	if (!locations.empty()) {
-		for (const Location& loc : locations)
-		{
-			if (loc._locationPath == url)
-				return (loc);
+	for(const Location& loc : locations) {
+		if (loc._locationPath == "/") {
+			return (&loc);
 		}
 	}
-	Location newLoc(serverConfig);
-		return(newLoc);
+	return(nullptr);
+
+}
+
+const Location& ServerManager::findLocationBlockByUrl(const vServer& serverConfig, const std::string& uri) {
+
+	isDefaultLocationExist(serverConfig.getServerLocations());
+	const std::vector<Location>& locations = serverConfig.getServerLocations();
+	size_t longestMatchLen = 0;
+	const Location*	bestMatchLocation = nullptr;
+
+	for (const Location& loc : locations) {
+		
+		const std::string& locationPath = loc._locationPath;
+		
+		if (uri.find(locationPath) == 0 && locationPath.length() > longestMatchLen ) {
+			bestMatchLocation = &loc;
+			longestMatchLen = locationPath.length();
+		}
+	}
+	if (bestMatchLocation) {
+		return (*bestMatchLocation);
+	}
+	
+	const Location* defaultLocation = findDefaultLocationBlock(locations);
+	if (!defaultLocation) {
+		StaticHandler::loadNotFound();
+	}
+	return (*defaultLocation);
+}
+
+
+bool ServerManager::isDefaultLocationExist(const std::vector<Location>& locations) {
+
+	if (locations.empty())
+		throw ServerManagerException("A configuration file must have atleast a default location block");
+	return (true);
 }

@@ -33,7 +33,6 @@ class Client{
 
 		void					readRequest( int clientFd );
 		void					sendResponse( int clientFd );
-		void					prepResponse(int clientFd );
 		std::string				getAnyHeader(std::unordered_map<std::string, std::string> headers, std::string headerName);
 
 };

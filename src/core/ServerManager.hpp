@@ -55,6 +55,7 @@ class ServerManager {
 		void								groupServers(const std::vector<vServer>& _vServers);
 		void								manageListenSocketEvent(const struct epoll_event& epollEvents);
 		void								manageEpollEvent(const struct epoll_event& epollEvents);
+		bool								isDefaultLocationExist(const std::vector<Location>& locations);
 
 
 		void								addClientToMap(int clientFd, int serverFd);
@@ -68,8 +69,8 @@ class ServerManager {
 
 		const	vServer&							findServerConfigByName(const std::vector<const vServer*>& subConfigs, std::string serverName);
 		const	std::vector<const vServer*>&		findServerCofigsByFd(int serverFd);
-		const	Location							findLocationBlockByUrl(const vServer& serverConfig, const std::string& url);
-
+		const	Location&							findLocationBlockByUrl(const vServer& serverConfig, const std::string& url);
+		const	Location*							findDefaultLocationBlock(const std::vector<Location>& locations);
 
 
 

@@ -59,15 +59,22 @@ void	Client::readRequest (int clientFd) {
 		const std::vector<const vServer*>& subServConfigs = _serverManager->findServerCofigsByFd(socketClientConnectedTo);
 		const vServer&	askedServConfig = _serverManager->findServerConfigByName(subServConfigs, hostHeaderValue);
 
-		std::cout<< "Asked server is:" << askedServConfig.getServerNames().at(0)<<"\n";
-
+		//std::cout<< "Asked server is: " << askedServConfig.getServerNames().at(0)<<"\n";
+		
 		const std::string& url = parsedRequest.at(clientFd).getUri();
+		
 		const Location& askedLocationBlock = _serverManager->findLocationBlockByUrl(askedServConfig, url);
-		StaticHandler	responser;
 
-		responser.serve(parsedRequest.at(clientFd), askedLocationBlock);
-
-		prepResponse(clientFd);
+		//std::cout<< "Asked Location " << askedLocationBlock._locationPath<<"\n";
+		//std::cout<< "Asked uri is:  " << parsedRequest.at(clientFd).getUri()<<"\n";
+		
+		StaticHandler handler;
+		Response response= handler.serve(parsedRequest.at(clientFd), askedLocationBlock);
+	
+		std::vector<char> respVector = response.serialize();
+		std::string respStr(respVector.begin(), respVector.end());
+		this->_clientResponse = respStr;
+		
 		_serverManager->setEpollCtl(clientFd, EPOLLOUT, EPOLL_CTL_MOD);
 		return ;
 	}
@@ -114,10 +121,4 @@ std::string Client::getAnyHeader(std::unordered_map<std::string, std::string> he
 	else {
 		return ("");
 	}
-}
-
-
-void	Client::prepResponse(int clientFd) {
-
-	_serverManager->getFdClientMap().at(clientFd)._clientResponse = "Hell world!";
 }

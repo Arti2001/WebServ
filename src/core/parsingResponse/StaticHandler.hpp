@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/18 16:05:25 by pminialg          #+#    #+#             */
-/*   Updated: 2025/05/12 11:49:03 by amysiv           ###   ########.fr       */
+/*   Updated: 2025/05/23 11:35:22 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,11 +39,12 @@ class StaticHandler {
         Response loadErrorPage(const Location& loc, int code);
         std::vector<char> generateDirectoryListing(const std::string& fsPath, const std::string& urlPath);
         Response serveGet(const HTTPRequest& req, const Location& loc);
-    
-    public:
+		
+		public:
         StaticHandler();
         ~StaticHandler();
-
+		
+		static	Response loadNotFound();
         Response serve(const HTTPRequest& req, const Location& loc);
 
 };
