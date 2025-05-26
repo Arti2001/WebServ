@@ -2,7 +2,7 @@
 #define SERVERMANAGER_HPP
 #define EPOLL_CAPACITY				20
 #define DEFAULT_CONFIG_FILE_PATH	"./webserv.conf"
-#define SERVER_TIMEOUT				10
+#define SERVER_TIMEOUT				60
 #define ENABLE						1
 #define DISABLE						0
 #define NONE						0
@@ -69,7 +69,7 @@ class ServerManager {
 
 		const	vServer&							findServerConfigByName(const std::vector<const vServer*>& subConfigs, std::string serverName);
 		const	std::vector<const vServer*>&		findServerCofigsByFd(int serverFd);
-		const	Location&							findLocationBlockByUrl(const vServer& serverConfig, const std::string& url);
+		const	Location							findLocationBlockByUrl(const vServer& serverConfig, const std::string& url);
 		const	Location*							findDefaultLocationBlock(const std::vector<Location>& locations);
 
 

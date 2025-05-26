@@ -11,15 +11,12 @@ Response StaticHandler::serveGet(const HTTPRequest& req, const Location& loc) {
                   "GET") == loc._locationAllowedMethods.end()) {
         return loadErrorPage(loc, 405);
     }
-	std::cout<<"here!!"<< "\n";
     // 2) Build the filesystem path
     std::string uri = req.getUri();                   // e.g. "/files" or "/files/"
-	std::cout<< "URI is: " + uri + "\nLocation path is: " + loc._locationPath<<"\n";
 	//if (uri != loc._locationPath)
 	//	return loadErrorPage(loc, 404);
     // strip the location prefix
     std::string rel = uri.substr(loc._locationPath.length()); // e.g. "files" or "files/"
-	std::cout<<"here" << "\n";
     if (rel.empty()) rel = "/";                       // treat "/" uniformly
 	
     // normalize root with trailing slash
@@ -36,7 +33,7 @@ Response StaticHandler::serveGet(const HTTPRequest& req, const Location& loc) {
     // 3) Does it exist?
     if (stat(fullPath.c_str(), &sb) < 0) {
         // nothing at that path → 404
-		std::cout << "we don't exist" << std::endl;
+		std::cout << "Path ' " + fullPath + " ' does not exist!" << std::endl;
         return loadErrorPage(loc, 404);
     }
 

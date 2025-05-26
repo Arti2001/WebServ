@@ -413,9 +413,8 @@ const Location*	ServerManager::findDefaultLocationBlock(const std::vector<Locati
 
 }
 
-const Location& ServerManager::findLocationBlockByUrl(const vServer& serverConfig, const std::string& uri) {
+const Location	ServerManager::findLocationBlockByUrl(const vServer& serverConfig, const std::string& uri) {
 
-	isDefaultLocationExist(serverConfig.getServerLocations());
 	const std::vector<Location>& locations = serverConfig.getServerLocations();
 	size_t longestMatchLen = 0;
 	const Location*	bestMatchLocation = nullptr;
@@ -432,11 +431,15 @@ const Location& ServerManager::findLocationBlockByUrl(const vServer& serverConfi
 	if (bestMatchLocation) {
 		return (*bestMatchLocation);
 	}
-	
-	const Location* defaultLocation = findDefaultLocationBlock(locations);
-	if (!defaultLocation) {
-		StaticHandler::loadNotFound();
-	}
+
+		const Location* defaultLocation = findDefaultLocationBlock(locations);
+		if (!defaultLocation) {
+			std::cout<< "No location block found, no  default location block found " << "\n";
+			Location newLocation(serverConfig);
+			return(newLocation);
+		}
+		
+		std::cout<< "No  location block found, fell back to default location block " << "\n";
 	return (*defaultLocation);
 }
 

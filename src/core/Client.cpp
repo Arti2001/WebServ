@@ -52,7 +52,6 @@ void	Client::readRequest (int clientFd) {
 		RequestParser	RequestParser;
 		const std::unordered_map<int , HTTPRequest>& parsedRequest = RequestParser.handleIncomingRequest(clientFd, recBuff);
 		std::string hostHeaderValue = getAnyHeader(parsedRequest.at(clientFd).getHeaders(), "Host");
-		//std::cout<<"the host headers value is: " +  hostHeaderValue<< "\n";
 		//curl -v -H "Host: server3.com" http://127.0.0.1:8055/
 
 		int	socketClientConnectedTo = this->getServerFd();
@@ -62,12 +61,12 @@ void	Client::readRequest (int clientFd) {
 		//std::cout<< "Asked server is: " << askedServConfig.getServerNames().at(0)<<"\n";
 		
 		const std::string& url = parsedRequest.at(clientFd).getUri();
-		
 		const Location& askedLocationBlock = _serverManager->findLocationBlockByUrl(askedServConfig, url);
 
-		//std::cout<< "Asked Location " << askedLocationBlock._locationPath<<"\n";
-		//std::cout<< "Asked uri is:  " << parsedRequest.at(clientFd).getUri()<<"\n";
-		
+		std::cout << " URI is: " + url<< "\n";
+		std::cout << " Returnd location is: " + askedLocationBlock._locationPath << "\n";
+
+
 		StaticHandler handler;
 		Response response= handler.serve(parsedRequest.at(clientFd), askedLocationBlock);
 	
