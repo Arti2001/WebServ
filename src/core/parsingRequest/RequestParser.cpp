@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   RequestParser.cpp                                  :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/04/02 10:46:52 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/04/12 14:06:24 by pminialg      ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   RequestParser.cpp                                  :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/04/02 10:46:52 by pminialg          #+#    #+#             */
+/*   Updated: 2025/05/19 16:25:57 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -509,9 +509,13 @@ void RequestParser::parseFirstLineAndHeaders(std::string firstLine_and_headers, 
     }
     request._headers = headers;
 }
+//std::string& RequestParser::getHostHeader( void ) const {
+	
+//}
 
-std::unordered_map<int, HTTPRequest> &RequestParser::handleIncomingRequest(int fd, const std::string &raw_data, std::unordered_map<int, HTTPRequest> &resultMap)
+std::unordered_map<int, HTTPRequest>		RequestParser::handleIncomingRequest(int fd, const std::string &raw_data)
 {
+	std::unordered_map<int, HTTPRequest> resultMap;
     _request_buffers[fd] += raw_data;
 
     while (!_request_buffers[fd].empty()) {

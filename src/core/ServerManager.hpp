@@ -1,28 +1,77 @@
 #ifndef SERVERMANAGER_HPP
 #define SERVERMANAGER_HPP
+#define EPOLL_CAPACITY				20
+#define DEFAULT_CONFIG_FILE_PATH	"./webserv.conf"
+#define SERVER_TIMEOUT				10
+constexpr long	SERVER_TIMEOUT_MS = SERVER_TIMEOUT * 1000;
+#define ENABLE						1
+#define DISABLE						0
+#define NONE						0
+
 #include "parsingConfFile/ParseConfig.hpp"
 #include "Server.hpp"
+#include "parsingConfFile/vServer.hpp"
 #include <fstream>
+#include "parsingRequest/HTTPRequest.hpp"
+#include "parsingResponse/StaticHandler.hpp"
+#include "Client.hpp"
+
+class Server;
+class Client;
 
 class ServerManager {
 
 	private:
-		//std::vector<Server>				_servers;
-		//const	std::vector<vServer>&	_serverSettings;
-		std::ifstream					_configFileFd;
-
+		std::ifstream										_configFileFd;
+		int													_epollFd;
+		std::vector<vServer>								_vServers;
+		std::map<std::string, std::vector<const vServer*>>	_hostSetMap;
+		std::vector<Server>									_servers;
+		std::map<int, Client>								_fdClientMap;
+	
+	
 	public:
 		//constructors
-		ServerManager(std::string& ConfigFileName);
+		ServerManager(std::string& ConfigFileName, int epollSize);
 		~ServerManager();
 
 		//getters
-		std::ifstream&		getConfigFileFd( void );
+		std::ifstream&			getConfigFileFd( void );
+		int						getEpollFd( void ) const;
+		int						getSocketFd(const std::string& host, const std::string& port);
+		addrinfo*				getAddrList(const std::string& host, const std::string& port) ;
+		std::vector<vServer>&	getVirtualServers( void );
+		std::map<int, Client>&	getFdClientMap( void );				
+		
+		//setter
+		void					setServers();
+		void					setSocketsToEpollIn(void);
+		void					setEpollCtl( int targetFd, int eventFlag, int operation);
+		bool					setNonBlocking(int fd);
 
 		//methods
-		std::vector<vServer>	parsConfigFile();
-		
+		void								parsConfigFile(std::vector<vServer>& _vServers);
+		void								runServers( void );
+		int									bindSocket(addrinfo* addrList);
+		void								groupServers(const std::vector<vServer>& _vServers);
+		void								manageListenSocketEvent(const struct epoll_event& epollEvents);
+		void								manageEpollEvent(const struct epoll_event& epollEvents);
+		bool								isDefaultLocationExist(const std::vector<Location>& locations);
 
+
+		void								addClientToMap(int clientFd, int serverFd);
+		
+		bool								isListeningSocket(int fd);
+		bool								isClientSocket(int fd);
+
+		void								closeIdleConnections();
+		void								closeClientFd(int clientfFd);
+
+
+		const	vServer&							findServerConfigByName(const std::vector<const vServer*>& subConfigs, std::string serverName);
+		const	std::vector<const vServer*>&		findServerCofigsByFd(int serverFd);
+		const	Location							findLocationBlockByUrl(const vServer& serverConfig, const std::string& url);
+		const	Location*							findDefaultLocationBlock(const std::vector<Location>& locations);
 
 
 

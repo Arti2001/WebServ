@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   RequestParser.hpp                                  :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/04/02 10:30:21 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/04/18 09:49:58 by pminialg      ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   RequestParser.hpp                                  :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/04/02 10:30:21 by pminialg          #+#    #+#             */
+/*   Updated: 2025/05/19 16:25:52 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,10 @@ class RequestParser
     public:
         RequestParser();
         ~RequestParser();
-        std::unordered_map<int , HTTPRequest>& handleIncomingRequest(int fd, const std::string& raw_data, std::unordered_map<int, HTTPRequest>& resultMap);
+        std::unordered_map<int , HTTPRequest> handleIncomingRequest(int fd, const std::string& raw_data);
+
+		//std::string&	getHostHeader( void ) const;
+		
 };
 
 #endif

@@ -6,6 +6,7 @@ StaticHandler::~StaticHandler() {}
 
 Response StaticHandler::serveGet(const HTTPRequest& req, const Location& loc) {
     // 1) Method must be allowed
+
     if (std::find(loc._locationAllowedMethods.begin(), loc._locationAllowedMethods.end(),
                   "GET") == loc._locationAllowedMethods.end()) {
         return loadErrorPage(loc, 405);
@@ -21,20 +22,22 @@ Response StaticHandler::serveGet(const HTTPRequest& req, const Location& loc) {
     // strip the location prefix
     std::string rel = uri.substr(loc._locationPath.length()); // e.g. "files" or "files/"
     if (rel.empty()) rel = "/";                       // treat "/" uniformly
-
+	
     // normalize root with trailing slash
     std::string fsRoot = loc._locationRoot;
     if (fsRoot.back() != '/') fsRoot += '/';
-
+	
     // normalize rel to never start with slash
     if (rel.front() == '/') rel.erase(0,1);
-
+	
     std::string fullPath = fsRoot + rel;              // e.g. "./www/files"
+	std::cout << "full path: " + fullPath << std::endl;
 
     struct stat sb;
     // 3) Does it exist?
     if (stat(fullPath.c_str(), &sb) < 0) {
         // nothing at that path → 404
+		std::cout << "Path ' " + fullPath + " ' does not exist!" << std::endl;
         return loadErrorPage(loc, 404);
     }
 
@@ -101,7 +104,10 @@ Response StaticHandler::serveGet(const HTTPRequest& req, const Location& loc) {
     // 5) File case
     if (S_ISREG(sb.st_mode)) {
         int fd = open(fullPath.c_str(), O_RDONLY);
-        if (fd < 0) return loadErrorPage(loc, 404);
+        if (fd < 0) {
+			std::cout << "returning 404" << std::endl;
+			return loadErrorPage(loc, 404);
+		}
         std::vector<char> buf(sb.st_size);
         if (read(fd, buf.data(), sb.st_size) < 0) {
             close(fd);
@@ -126,11 +132,11 @@ Response StaticHandler::serveGet(const HTTPRequest& req, const Location& loc) {
 }
 
 Response StaticHandler::serve(const HTTPRequest& req, const Location& loc) {
+
     const auto& method = req.getMethod();
     if (method == "GET") {
-        return serveGet(req, loc);
+		return serveGet(req, loc);
     }
-    
     Response resp;
     resp.setStatusCode(405);
     resp.setReasonPhrase("Method Not Allowed");
@@ -141,6 +147,17 @@ Response StaticHandler::serve(const HTTPRequest& req, const Location& loc) {
     }
     resp.addHeader("Allow", allow.str());
     return loadErrorPage(loc, 405);
+}
+
+Response StaticHandler::loadNotFound()
+{
+	Response resp;
+	resp.setStatusCode(404);
+	resp.setReasonPhrase("Not Found");
+	resp.addHeader("Content-Type", MimeTypes::detectMimeType(".html"));
+	resp.addHeader("Content-Length", std::to_string(0));
+
+	return resp;
 }
 
 Response StaticHandler::loadErrorPage(const Location& loc, int code) {

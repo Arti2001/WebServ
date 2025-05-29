@@ -1,7 +1,6 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-#define MAX_EVENTS		10
 #define QUEUE_LENGTH	10
 #define RECBUFF			8192
 #define IN				1
@@ -28,45 +27,26 @@
 #include <vector>
 #include <sstream>
 #include <bits/stdc++.h>
+//#include "ServerManager.hpp"
 
 #include "parsingConfFile/ParseConfig.hpp"
 
 
-struct clientInfo {
 
-	std::string	response;
-	size_t		bytesSent = 0;
-};
 
 class Server
 {
 	private:
-		int							_sockFd;
-		int							_epollFd;
-		std::string					_serverPort;
-		std::string					_serverHost;
-		bool						_isRunning;
-		std::map<int, clientInfo>	_clients;
+		int										_socketFd;
+		std::vector<const vServer*>				_servConfigs;
 
-	public:
-		Server(const vServer&	serverSet);
-		//  Server(const Server& other);
-		//  Server& operator=(const Server& other);
-		~Server();
+		public:
+			Server(int	socketFd, std::vector<const vServer*>& vServers);
+			~Server();
 
-		bool		init();//to change
-		bool		setNonBlocking(int fd);
-		void		start();
-		void		stop();
-		bool		isRunning() const;
-		clientInfo&	getclientInfo( int clientFd);
-		void		prepResponse(int clientFd);
-		void		setEvent(int clientFd, int evFlag, int op);
-		
-		private:
-			void readRequest( int clientFd );
-			void sendResponse( int clientFd );
-		
+			//getters
+			int								getSocketFd( void ) const;
+			const std::vector<const vServer*>&		getServConfigs( void ) const ;
 	};
 
 #endif

@@ -31,10 +31,10 @@ const char*	ParseConfig::ConfException::what() const noexcept {
 	return (_message.c_str());
 }
 
-std::vector<vServer>	ParseConfig::getVSevers() const {
+//std::vector<vServer>	ParseConfig::getVSevers() const {
 
-	return (_vServers);
-}
+//	return (_vServers);
+//}
 
 
 Token::Token() {}
@@ -79,7 +79,7 @@ bool	ParseConfig::validBrace() {
 	return (false);
 }
 
-void	ParseConfig::parsConfigFileTokens() {
+void	ParseConfig::parsConfigFileTokens(std::vector<vServer>& _vServers) {
 	
 	if (!validBrace())
 		throw ConfException("Enclosed brace in the configuration file");
@@ -94,7 +94,7 @@ void	ParseConfig::parsConfigFileTokens() {
 			vServer	vserv;
 			depth = LEVEL;
 			currToken += 2;
-			parsVirtualServerBlock(vserv);
+			parsvServerBlock(vserv);
 			_vServers.push_back(vserv);
 		}
 		else {
@@ -159,7 +159,7 @@ std::ostream& operator<<(std::ostream& os, const vServer& server) {
 }
 
 
-void	ParseConfig::parsVirtualServerBlock( vServer& serv) {
+void	ParseConfig::parsvServerBlock( vServer& serv) {
 	
 	while (depth > 0) {
 

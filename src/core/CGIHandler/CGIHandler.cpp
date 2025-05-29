@@ -95,6 +95,7 @@ std::pair<std::string, std::string> CGIHandler::extractScriptNameAndPathInfo(con
 std::vector<std::string> CGIHandler::buildEnvironmentStrings(const HTTPRequest& req, const std::string& scriptPath) {
     std::vector<std::string> envStrings;
     std::string uri = req.getUri();
+	(void) scriptPath;
 
     auto [scriptName, pathInfo] = extractScriptNameAndPathInfo(uri);
 

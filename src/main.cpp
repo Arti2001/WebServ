@@ -27,23 +27,18 @@ bool g_running = true;
 int main(int argc, char *argv[])
 {
 	
-	if (argc != 2) {
-		std::cerr<< "Error: Configuration file expected." << "\n";
-		return (0);
+	if (argc > 2) {
+		std::cerr<< "Error: To many arguments." << "\n";
+		return (1);
 	}
 	try{
 		std::string fileName (argv[1]);
-		ServerManager serverManager(fileName);
-		const std::vector<vServer>&	servers = serverManager.parsConfigFile();
+		ServerManager serverManager(fileName, EPOLL_CAPACITY);
+		serverManager.parsConfigFile(serverManager.getVirtualServers());
+		serverManager.groupServers(serverManager.getVirtualServers());
+		serverManager.setServers();
+		serverManager.runServers();
 		
-			for(size_t i = 0; servers.size() > i; i++) {
-			
-				Server	server(servers[i]);
-				
-				server.init();
-				server.start();
-				std::cout << i << "\n";
-			}
 	}
 	catch(ServerManager::ServerManagerException& ex) {
 

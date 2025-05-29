@@ -8,7 +8,7 @@ struct Location;
 #include <unordered_map>
 #include "vServer.hpp"
 #include <fstream>
-
+#include "../ServerManager.hpp"
 
 #define LEVEL 1
 
@@ -18,8 +18,6 @@ enum TokenType {
 	SEMICOLON,
 	OPENED_BRACE,
 	CLOSED_BRACE,
-
-	
 	LISTEN_DIR,
 	ROOT_DIR,
 	INDEX_DIR,
@@ -29,13 +27,8 @@ enum TokenType {
 	BODY_MAX_SIZE,
 	ALLOWED_METHODS,
 	RETURN_DIR,
-
-	
 	SERVER_BLOCK,
 	LOCATION_BLOCK,
-
-	
-	PATH,
 	UNKNOWN
 };
 
@@ -43,7 +36,7 @@ struct Token {
 
 	Token(size_t	lineNumber, std::string word, TokenType tokenType);
 	Token();
-	std::string lexem;
+	std::string	lexem;
 	TokenType	type;
 	ssize_t		line_number;
 
@@ -54,12 +47,11 @@ class ParseConfig {
 	private:
 		std::vector<Token>											_tokens;
 		std::unordered_map<std::string, TokenType>					_keywords;
-		std::vector<vServer>										_vServers;
+		//std::vector<vServer>										_vServers;
 
 	public:
 		int			depth;
 		size_t		currToken;
-
 
 		ParseConfig();
 		~ParseConfig();
@@ -67,8 +59,8 @@ class ParseConfig {
 		bool											openConfigFile();
 		std::map<size_t, std::vector<std::string>>		prepToTokenizeConfigData(std::ifstream& configFile);
 		void											tokenizeConfigData(std::map<size_t, std::vector<std::string>> lineNumbLexemes);
-		void											parsConfigFileTokens();
-		void											parsVirtualServerBlock(vServer& serv);
+		void											parsConfigFileTokens(std::vector<vServer>& _vServers);
+		void											parsvServerBlock(vServer& serv);
 		void											validateServerBlockDirectives(vServer& serv);
 		void											validateLocationBlockDirectives(vServer& serv);
 		void											validateLocationBlockStructure();
@@ -81,8 +73,8 @@ class ParseConfig {
 		bool											isTokenDirective(TokenType type) const;
 
 
-		//getters
-		std::vector<vServer>		getVSevers( void ) const;
+		////getters
+		//std::vector<vServer>		getVSevers( void ) const;
 		
 		
 		class ConfException : public std::exception {
