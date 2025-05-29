@@ -11,10 +11,14 @@ Response StaticHandler::serveGet(const HTTPRequest& req, const Location& loc) {
                   "GET") == loc._locationAllowedMethods.end()) {
         return loadErrorPage(loc, 405);
     }
-    // 2) Build the filesystem path
-    std::string uri = req.getUri();                   // e.g. "/files" or "/files/"
-	//if (uri != loc._locationPath)
-	//	return loadErrorPage(loc, 404);
+
+    std::string uri;
+    if (!loc._locationReturnPages.empty()) {
+        uri = loc._locationReturnPages;
+    } else {
+        // 2) Build the filesystem path
+        uri = req.getUri();                   // e.g. "/files" or "/files/"
+    }
     // strip the location prefix
     std::string rel = uri.substr(loc._locationPath.length()); // e.g. "files" or "files/"
     if (rel.empty()) rel = "/";                       // treat "/" uniformly
