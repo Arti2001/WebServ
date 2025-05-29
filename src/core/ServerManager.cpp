@@ -243,28 +243,25 @@ void	ServerManager::setSocketsToEpollIn(void) {
 
 void	ServerManager::closeClientFd(int clientFd){
 
-	
-		epoll_ctl(_epollFd, EPOLL_CTL_DEL, clientFd, nullptr);
-		close(clientFd);
-		_fdClientMap.erase(clientFd);
+	epoll_ctl(_epollFd, EPOLL_CTL_DEL, clientFd, nullptr);
+	_fdClientMap.at(clientFd).setIsClosed(true);
+	close(clientFd);
+	//_fdClientMap.erase(clientFd);
 }
 
 void	ServerManager::closeIdleConnections() {
 
 	time_t	currTime = std::time(nullptr);
 
-	std::map<int, Client>::iterator it = _fdClientMap.begin();
-	std::map<int, Client>::iterator end = _fdClientMap.end();
+	for(std::map<int, Client>::iterator it = _fdClientMap.begin(); it != _fdClientMap.end(); it++) {
 
-	for(; it != end; it++) {
-		if ((currTime - it->second.getLastActiveTime()) > SERVER_TIMEOUT) {
+		if ((currTime - it->second.getLastActiveTime()) > SERVER_TIMEOUT_MS && it->second.getIsClosed() == false) {
 
-			std::cerr<< "Time out: Closing the client. " << "\n";
+			const std::vector<const vServer*>& fromThisServer = findServerCofigsByFd(it->second.getServerFd());
+			std::cerr<< "Time out: Closing the client hosted at the host: " + fromThisServer.at(0)->getServerIpPort()<< "\n";
 			closeClientFd(it->first);
 		}
 	}
-	
-	
 }
 
 

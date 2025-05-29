@@ -13,6 +13,7 @@ class Client{
 		time_t					_lastActiveTime;
 		int						_serverFd;
 		ServerManager*			_serverManager;
+		bool					_closed;
 
 	public:
 		Client(int	serverFd, ServerManager* servManager);
@@ -20,10 +21,12 @@ class Client{
 
 		//setter
 		void	setLastActiveTime(std::time_t timeStamp);
+		void	setIsClosed(bool flag);
 
 
 		//getters
 		std::time_t			getLastActiveTime( void ) const;
+		bool&				getIsClosed(void);
 		int					getServerFd( void ) const;
 		size_t&				getClientsBytesSent( void );
 		const std::string&	getClientsResponse( void ) const;

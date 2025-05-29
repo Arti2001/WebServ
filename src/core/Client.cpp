@@ -1,10 +1,9 @@
 #include "Client.hpp" 
 
 
-
-
 Client::Client(int serverFd, ServerManager* serverManager) : _clientBytesSent(0), _lastActiveTime(std::time(nullptr)),
-	_serverFd(serverFd), _serverManager(serverManager) {}
+	_serverFd(serverFd), _serverManager(serverManager), _closed(false) {}
+
 
 
 Client::~Client() {
@@ -16,6 +15,13 @@ Client::~Client() {
 void	Client::setLastActiveTime( std::time_t timeStamp) {
 	this->_lastActiveTime = timeStamp;
 }
+
+void Client::setIsClosed(bool flag) {
+	this->_closed = flag;
+}
+
+
+
 
 //Getters
 
@@ -35,6 +41,13 @@ size_t& Client::getClientsBytesSent(void) {
 const std::string&	Client::getClientsResponse(void) const {
 	return(_clientResponse);
 }
+
+bool&	Client::getIsClosed(void) {
+	return(_closed);
+}
+
+
+
 
 
 
@@ -79,7 +92,7 @@ void	Client::readRequest (int clientFd) {
 	}
 	else if (bytesRead == 0){
 		std::cout << "Connection lost" << bytesRead << "\n";
-		close(clientFd);
+		_serverManager->closeClientFd(clientFd);
 		return;
 	}
 	else
