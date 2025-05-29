@@ -116,7 +116,8 @@ Response StaticHandler::serveGet(const HTTPRequest& req, const Location& loc) {
         close(fd);
 
         Response resp;
-        if (loc._locationReturnPages.first != NULL)
+        std::set<int> validReturnCodes = {200, 301, 400, 403, 404, 405, 409, 413, 500}; //might need to add more codes here TODO
+        if (validReturnCodes.find(loc._locationReturnPages.first) != validReturnCodes.end())
             resp.setStatusCode(loc._locationReturnPages.first);
         else
             resp.setStatusCode(200);
