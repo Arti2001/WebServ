@@ -13,8 +13,8 @@ Response StaticHandler::serveGet(const HTTPRequest& req, const Location& loc) {
     }
 
     std::string uri;
-    if (!loc._locationReturnPages.empty()) {
-        uri = loc._locationReturnPages;
+    if (!loc._locationReturnPages.second.empty()) {
+        uri = loc._locationReturnPages.second;
     } else {
         // 2) Build the filesystem path
         uri = req.getUri();                   // e.g. "/files" or "/files/"
@@ -116,7 +116,10 @@ Response StaticHandler::serveGet(const HTTPRequest& req, const Location& loc) {
         close(fd);
 
         Response resp;
-        resp.setStatusCode(200);
+        if (loc._locationReturnPages.first != NULL)
+            resp.setStatusCode(loc._locationReturnPages.first);
+        else
+            resp.setStatusCode(200);
         resp.setReasonPhrase("OK");
         resp.setBody(std::move(buf));
         resp.addHeader("Content-Type", MimeTypes::detectMimeType(fullPath));
