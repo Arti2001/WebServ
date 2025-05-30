@@ -12,13 +12,42 @@ Response StaticHandler::serveGet(const HTTPRequest& req, const Location& loc) {
         return loadErrorPage(loc, 405);
     }
 
-    std::string uri;
-    if (!loc._locationReturnPages.second.empty()) {
-        uri = loc._locationReturnPages.second;
-    } else {
-        // 2) Build the filesystem path
-        uri = req.getUri();                   // e.g. "/files" or "/files/"
+    // Check for return directive first
+    if (loc._locationReturnPages.first != 0) {
+        Response resp;
+        resp.setStatusCode(loc._locationReturnPages.first);
+        
+        // Set appropriate reason phrase for common status codes
+        switch (loc._locationReturnPages.first) {
+            case 301: resp.setReasonPhrase("Moved Permanently"); break;
+            case 302: resp.setReasonPhrase("Found"); break;
+            case 303: resp.setReasonPhrase("See Other"); break;
+            case 307: resp.setReasonPhrase("Temporary Redirect"); break;
+            case 308: resp.setReasonPhrase("Permanent Redirect"); break;
+            case 400: resp.setReasonPhrase("Bad Request"); break;
+            case 403: resp.setReasonPhrase("Forbidden"); break;
+            case 404: resp.setReasonPhrase("Not Found"); break;
+            case 405: resp.setReasonPhrase("Method Not Allowed"); break;
+            case 500: resp.setReasonPhrase("Internal Server Error"); break;
+            default: resp.setReasonPhrase("OK"); break;
+        }
+        
+        // If it's a redirect code, add Location header
+        if (loc._locationReturnPages.first >= 300 && loc._locationReturnPages.first < 400) {
+            resp.addHeader("Location", loc._locationReturnPages.second);
+        }
+        
+        // Add standard headers
+        resp.addHeader("Content-Length", "0");
+        resp.addHeader("Connection", "close");
+        resp.addHeader("Date", Utils::currentDateString());
+        resp.addHeader("Server", Utils::serverNameString());
+        
+        return resp;
     }
+
+    // 2) Build the filesystem path
+    std::string uri = req.getUri();                   // e.g. "/files" or "/files/"
     // strip the location prefix
     std::string rel = uri.substr(loc._locationPath.length()); // e.g. "files" or "files/"
     if (rel.empty()) rel = "/";                       // treat "/" uniformly
