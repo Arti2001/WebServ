@@ -86,6 +86,8 @@
 		"semaphore": "cpp",
 		"stacktrace": "cpp",
 		"source_location": "cpp",
-		"syncstream": "cpp"
+		"syncstream": "cpp",
+		"expected": "cpp",
+		"spanstream": "cpp"
 	}
 }

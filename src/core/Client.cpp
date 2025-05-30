@@ -2,12 +2,12 @@
 
 
 Client::Client(int serverFd, ServerManager* serverManager) : _clientBytesSent(0), _lastActiveTime(std::time(nullptr)),
-	_serverFd(serverFd), _serverManager(serverManager), _closed(false) {}
+	_serverFd(serverFd), _serverManager(serverManager), _closed(false) {
+	}
 
 
 
 Client::~Client() {
-
 
 }
 
@@ -91,7 +91,7 @@ void	Client::readRequest (int clientFd) {
 		return ;
 	}
 	else if (bytesRead == 0){
-		std::cout << "Connection lost" << bytesRead << "\n";
+		std::cout << "Client disconnected: Clean up!" << bytesRead << "\n";
 		_serverManager->closeClientFd(clientFd);
 		return;
 	}

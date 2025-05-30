@@ -28,7 +28,7 @@ vServer::vServer() {
 Location::Location(const vServer& serv) {
 
 	_locationPath = "/";
-	_locationReturnPages = "/default";
+	_locationReturnPages = {0, ""};
 	_locationRoot= serv.getServerRoot();
 	_locationIndex = serv.getServerIndex();
 	_locationAutoIndex = serv.getServerAutoIndex();
@@ -296,4 +296,58 @@ std::string	Location::setLocationPath(std::string& pathToCheck) {
 	if (pathToCheck.empty() || pathToCheck.at(0) != '/')
 		throw ParseConfig::ConfException("Location directive must be followed by a ' /path ' ");
 	return	(pathToCheck);
+}
+
+
+
+std::pair<int, std::string> Location::setLocationReturnPages(std::vector<std::string>& redirVector) {
+
+	int							returnCode = 0;
+	std::string					path = "";
+	std::pair<int, std::string>	codePathPair;
+
+	if (redirVector.size() > MAX_ARG_ERROR_PAGE) {
+		throw ParseConfig::ConfException("Invalid return directive: too many arguments!");
+	}
+
+	if (isNumber(redirVector.at(0)) && redirVector.size() == 2) {
+		try {
+			returnCode = stoi(redirVector.at(0), nullptr, 10);
+			path = redirVector.at(1);
+		}
+		catch (const std::exception& e) {
+			throw ParseConfig::ConfException("Invalid return code: stoi() failed.");
+		}
+	}
+
+	else if (redirVector.size() == 1) {
+		if (isNumber(redirVector.at(0))) {
+			try {
+				returnCode = stoi(redirVector.at(0), nullptr, 10);
+			}
+			catch (const std::exception& e) {
+				throw ParseConfig::ConfException("Invalid return code: stoi() failed.");
+			}
+		}
+		else {
+			path = redirVector.at(0);
+		}
+	}
+	
+	else {
+		throw ParseConfig::ConfException("Bad syntax for return field");
+	}
+
+	return(std::make_pair(returnCode, path));
+}
+
+
+
+bool	isNumber(std::string number) {
+
+	for (char c : number) {
+		if (!isdigit(c))
+			return (false);
+	}
+	return (true);
 }

@@ -225,7 +225,7 @@ for (; _tokens[currToken].type != CLOSED_BRACE; currToken++) {
 		break;
 
 		case RETURN_DIR:
-			loc._locationReturnPages = vServer::onlyOneArgumentCheck(pair.second, "return");
+			loc._locationReturnPages = Location::setLocationReturnPages(pair.second);
 		break;
 			
 		case ALLOWED_METHODS:

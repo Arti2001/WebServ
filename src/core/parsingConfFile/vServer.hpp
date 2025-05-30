@@ -36,10 +36,12 @@ struct Location {
 	bool									_locationAutoIndex;
 	unsigned								_locationClientMaxSize;
 	std::vector<std::string>				_locationAllowedMethods;
-	std::string								_locationReturnPages;
+	std::pair<int, std::string>				_locationReturnPages;
 	std::unordered_map<int, std::string>	_locationErrorPages;
 
-	static std::string	setLocationPath(std::string& path);
+	static std::string					setLocationPath(std::string& path);
+	static std::pair<int, std::string>	setLocationReturnPages(std::vector<std::string>& returnPageVector);
+
 
 };
 
@@ -92,7 +94,6 @@ class vServer {
 	
 	//validators
 	static	bool															validateAutoIndexDirective(const std::vector<std::string>& flagVector);
-	//std::string																validateReturnDirective(const std::vector<std::string>& returnPagesVector);
 	static	size_t															validateClientMaxSizeDirective(const std::vector<std::string>& sizeVector);
 	static	std::unordered_map<int, std::string>							validateErrorPagesDirective(const std::vector<std::string>& errorPagesVector);
 	static	std::vector<std::string>										validateAllowedMethodsDirective(const std::vector<std::string>& allowedMethodsVector);
@@ -102,5 +103,7 @@ class vServer {
 	//methods
 	static	unsigned				megaBytesToBits(int	mB);
 };
+
+bool	isNumber(std::string number);
 
 #endif

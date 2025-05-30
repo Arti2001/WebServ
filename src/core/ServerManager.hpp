@@ -2,8 +2,8 @@
 #define SERVERMANAGER_HPP
 #define EPOLL_CAPACITY				20
 #define DEFAULT_CONFIG_FILE_PATH	"./webserv.conf"
-#define SERVER_TIMEOUT				10
-constexpr long	SERVER_TIMEOUT_MS = SERVER_TIMEOUT * 1000;
+//#define SERVER_TIMEOUT				10
+//constexpr long	SERVER_TIMEOUT_MS = SERVER_TIMEOUT * 1000;
 #define ENABLE						1
 #define DISABLE						0
 #define NONE						0
@@ -83,5 +83,6 @@ class ServerManager {
 				const char*	what() const noexcept override;
 		};
 };
+
 
 #endif

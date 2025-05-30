@@ -244,25 +244,24 @@ void	ServerManager::setSocketsToEpollIn(void) {
 void	ServerManager::closeClientFd(int clientFd){
 
 	epoll_ctl(_epollFd, EPOLL_CTL_DEL, clientFd, nullptr);
-	_fdClientMap.at(clientFd).setIsClosed(true);
+	//_fdClientMap.at(clientFd).setIsClosed(true);
 	close(clientFd);
-	//_fdClientMap.erase(clientFd);
+	_fdClientMap.erase(clientFd);
 }
 
-void	ServerManager::closeIdleConnections() {
+//void	ServerManager::closeIdleConnections() {
 
-	time_t	currTime = std::time(nullptr);
+//	time_t	currTime = std::time(nullptr);
 
-	for(std::map<int, Client>::iterator it = _fdClientMap.begin(); it != _fdClientMap.end(); it++) {
-
-		if ((currTime - it->second.getLastActiveTime()) > SERVER_TIMEOUT_MS && it->second.getIsClosed() == false) {
-
-			const std::vector<const vServer*>& fromThisServer = findServerCofigsByFd(it->second.getServerFd());
-			std::cerr<< "Time out: Closing the client hosted at the host: " + fromThisServer.at(0)->getServerIpPort()<< "\n";
-			closeClientFd(it->first);
-		}
-	}
-}
+//	for(std::map<int, Client>::iterator it = _fdClientMap.begin(); it != _fdClientMap.end(); it++) {
+//		if ((currTime - it->second.getLastActiveTime()) > SERVER_TIMEOUT_MS) {
+//			std::cout<< "Found an idle connection"<< "\n";
+//			const std::vector<const vServer*>& fromThisServer = findServerCofigsByFd(it->second.getServerFd());
+//			std::cerr<< "Time out: Closing the client hosted at the host: " + fromThisServer.at(0)->getServerIpPort()<< "\n";
+//			closeClientFd(it->first);
+//		}
+//	}
+//}
 
 
 //helper functions
@@ -301,11 +300,11 @@ void	ServerManager::runServers(void) {
 	while (1) {
 		int timeout = 1000;
 		int readyFds = epoll_wait(_epollFd, epollEvents, EPOLL_CAPACITY, timeout);
-		if (readyFds == 0)
-		{
-			closeIdleConnections();
-			continue;
-		}
+		//if (readyFds == 0)
+		//{
+		//	closeIdleConnections();
+		//	continue;
+		//}
 		if (readyFds == -1) {
 			throw ServerManagerException("epoll_wait() failed");
 		}
