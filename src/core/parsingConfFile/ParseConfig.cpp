@@ -144,7 +144,6 @@ std::ostream& operator<<(std::ostream& os, const vServer& server) {
 		os << "  Path:           " << loc._locationPath << "\n";
 		os << "  Root:           " << loc._locationRoot << "\n";
 		os << "  Index:          " << loc._locationIndex << "\n";
-		os << "  Return:          " << loc._locationReturnPages<< "\n";
 		os << "  AutoIndex:      " << loc._locationAutoIndex << "\n";
 		os << "  Max Body Size:  " << loc._locationClientMaxSize << "\n";
 		os << "  Allowed Methods:";
