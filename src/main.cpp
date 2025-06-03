@@ -9,19 +9,17 @@
 
 
 //Server *g_server = nullptr;
-bool g_running = true;
+volatile sig_atomic_t	running = 1;
 
 
-//void signalHandler(int signum)
-//{
-//	std::cout << "\nInterupt signal (" << signum << ") received." << "\n";
-//	g_running = false;
-//	if (g_server) {
-//		g_server->stop();
-//	}
-//	std::cout << "Server shutting down..." << "\n";
-//	exit(signum);
-//}
+void signalHandler(int signum)
+{
+	std::cout << "\nInterupt signal (" << signum << ") received." << "\n";
+	running = 0;
+	std::cout << "Cleaning up all resources" << "\n";
+	std::cout << "Server shutting down..." << "\n";
+	exit(signum);
+}
 
 
 int main(int argc, char *argv[])
@@ -34,10 +32,12 @@ int main(int argc, char *argv[])
 	try{
 		std::string fileName (argv[1]);
 		ServerManager serverManager(fileName, EPOLL_CAPACITY);
+		signal(SIGINT, signalHandler);
 		serverManager.parsConfigFile(serverManager.getVirtualServers());
 		serverManager.groupServers(serverManager.getVirtualServers());
 		serverManager.setServers();
 		serverManager.runServers();
+		serverManager.closeAllSockets();
 		
 	}
 	catch(ServerManager::ServerManagerException& ex) {

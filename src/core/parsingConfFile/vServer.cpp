@@ -302,7 +302,7 @@ std::string	Location::setLocationPath(std::string& pathToCheck) {
 
 std::pair<int, std::string> Location::setLocationReturnPages(std::vector<std::string>& redirVector) {
 
-	int							returnCode = 0;
+	int							returnCode = -1;
 	std::string					path = "";
 	std::pair<int, std::string>	codePathPair;
 
@@ -333,10 +333,12 @@ std::pair<int, std::string> Location::setLocationReturnPages(std::vector<std::st
 			path = redirVector.at(0);
 		}
 	}
-	
 	else {
 		throw ParseConfig::ConfException("Bad syntax for return field");
 	}
+	
+	if (returnCode == -1)
+		throw ParseConfig::ConfException("Return directive must include a status code.");
 
 	return(std::make_pair(returnCode, path));
 }

@@ -57,6 +57,10 @@ std::vector<vServer>&		ServerManager::getVirtualServers( void )
 	return (_vServers);
 }
 
+std::vector<Server>&	ServerManager::getServers(void) {
+	return (_servers);
+}
+
 
 
 
@@ -297,7 +301,7 @@ void	ServerManager::runServers(void) {
 	struct epoll_event	epollEvents[EPOLL_CAPACITY];
 
 	setSocketsToEpollIn();//all listening fds are set to IN event now
-	while (1) {
+	while (running) {
 		int timeout = 1000;
 		int readyFds = epoll_wait(_epollFd, epollEvents, EPOLL_CAPACITY, timeout);
 		//if (readyFds == 0)
@@ -445,4 +449,11 @@ bool ServerManager::isDefaultLocationExist(const std::vector<Location>& location
 	if (locations.empty())
 		throw ServerManagerException("A configuration file must have atleast a default location block");
 	return (true);
+}
+
+void ServerManager::closeAllSockets() {
+
+	for (const Server& server : _servers) {
+		close(server.getSocketFd());
+	}
 }

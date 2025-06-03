@@ -16,6 +16,9 @@
 #include "parsingResponse/StaticHandler.hpp"
 #include "Client.hpp"
 
+
+extern volatile sig_atomic_t running;
+
 class Server;
 class Client;
 
@@ -41,7 +44,8 @@ class ServerManager {
 		int						getSocketFd(const std::string& host, const std::string& port);
 		addrinfo*				getAddrList(const std::string& host, const std::string& port) ;
 		std::vector<vServer>&	getVirtualServers( void );
-		std::map<int, Client>&	getFdClientMap( void );				
+		std::map<int, Client>&	getFdClientMap( void );
+		std::vector<Server>&	getServers(void);
 		
 		//setter
 		void					setServers();
@@ -64,8 +68,9 @@ class ServerManager {
 		bool								isListeningSocket(int fd);
 		bool								isClientSocket(int fd);
 
-		void								closeIdleConnections();
+		//void								closeIdleConnections();
 		void								closeClientFd(int clientfFd);
+		void								closeAllSockets(); 
 
 
 		const	vServer&							findServerConfigByName(const std::vector<const vServer*>& subConfigs, std::string serverName);
