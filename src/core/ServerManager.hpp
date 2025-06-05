@@ -15,12 +15,14 @@
 #include "parsingRequest/HTTPRequest.hpp"
 #include "parsingResponse/StaticHandler.hpp"
 #include "Client.hpp"
+#include "CGIHandler/CGIHandler.hpp"
 
 
 extern volatile sig_atomic_t running;
 
 class Server;
 class Client;
+
 
 class ServerManager {
 

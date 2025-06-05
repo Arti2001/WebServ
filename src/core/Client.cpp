@@ -12,13 +12,13 @@ Client::~Client() {
 }
 
 //Setters
-void	Client::setLastActiveTime( std::time_t timeStamp) {
-	this->_lastActiveTime = timeStamp;
-}
+//void	Client::setLastActiveTime( std::time_t timeStamp) {
+//	this->_lastActiveTime = timeStamp;
+//}
 
-void Client::setIsClosed(bool flag) {
-	this->_closed = flag;
-}
+//void Client::setIsClosed(bool flag) {
+//	this->_closed = flag;
+//}
 
 
 
@@ -42,14 +42,24 @@ const std::string&	Client::getClientsResponse(void) const {
 	return(_clientResponse);
 }
 
-bool&	Client::getIsClosed(void) {
-	return(_closed);
+//bool&	Client::getIsClosed(void) {
+//	return(_closed);
+//}
+
+
+
+
+const Response&	Client::getCgiResponse(HTTPRequest request) {
+
+	CGIHandler	cgiHandler;
+
+	Response cgiResponse = cgiHandler.handle(request);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
 }
 
+const Response& Client::getResponse(HTTPRequest request, int clientFd) {
 
 
-
-
+}
 
 void	Client::readRequest (int clientFd) {
 	
@@ -63,9 +73,30 @@ void	Client::readRequest (int clientFd) {
 		recBuff[bytesRead] = '\0';
 
 		RequestParser	RequestParser;
+
 		const std::unordered_map<int , HTTPRequest>& parsedRequest = RequestParser.handleIncomingRequest(clientFd, recBuff);
+
 		std::string hostHeaderValue = getAnyHeader(parsedRequest.at(clientFd).getHeaders(), "Host");
 		//curl -v -H "Host: server3.com" http://127.0.0.1:8055/
+		const std::string& uri = parsedRequest.at(clientFd).getUri();
+
+		if (CGIHandler::isCGIRequest(uri)) {
+
+			getCgiResponse(parsedRequest.at(clientFd));
+		}
+		else{
+			getResponse(parsedRequest.at(clientFd), int clientFd);
+		}
+
+
+
+
+
+
+
+
+
+
 
 		int	socketClientConnectedTo = this->getServerFd();
 		const std::vector<const vServer*>& subServConfigs = _serverManager->findServerCofigsByFd(socketClientConnectedTo);
@@ -73,10 +104,9 @@ void	Client::readRequest (int clientFd) {
 
 		//std::cout<< "Asked server is: " << askedServConfig.getServerNames().at(0)<<"\n";
 		
-		const std::string& url = parsedRequest.at(clientFd).getUri();
-		const Location& askedLocationBlock = _serverManager->findLocationBlockByUrl(askedServConfig, url);
+		const Location& askedLocationBlock = _serverManager->findLocationBlockByUrl(askedServConfig, uri);
 
-		std::cout << " URI is: " + url<< "\n";
+		std::cout << " URI is: " + uri<< "\n";
 		std::cout << " Returnd location is: " + askedLocationBlock._locationPath << "\n";
 
 

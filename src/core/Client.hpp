@@ -13,20 +13,20 @@ class Client{
 		time_t					_lastActiveTime;
 		int						_serverFd;
 		ServerManager*			_serverManager;
-		bool					_closed;
+		//bool					_closed;
 
 	public:
 		Client(int	serverFd, ServerManager* servManager);
 		~Client();
 
 		//setter
-		void	setLastActiveTime(std::time_t timeStamp);
-		void	setIsClosed(bool flag);
+		//void	setLastActiveTime(std::time_t timeStamp);
+		//void	setIsClosed(bool flag);
 
 
 		//getters
 		std::time_t			getLastActiveTime( void ) const;
-		bool&				getIsClosed(void);
+		//bool&				getIsClosed(void);
 		int					getServerFd( void ) const;
 		size_t&				getClientsBytesSent( void );
 		const std::string&	getClientsResponse( void ) const;
@@ -36,6 +36,9 @@ class Client{
 
 		void					readRequest( int clientFd );
 		void					sendResponse( int clientFd );
+		const Response&			getResponse(HTTPRequest request);
+		const Response&			getCgiResponse(HTTPRequest request);
+
 		std::string				getAnyHeader(std::unordered_map<std::string, std::string> headers, std::string headerName);
 
 };
