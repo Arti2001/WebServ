@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   RequestParser.cpp                                  :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/04/02 10:46:52 by pminialg          #+#    #+#             */
-/*   Updated: 2025/05/19 16:25:57 by amysiv           ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   RequestParser.cpp                                  :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: amysiv <amysiv@student.42.fr>                +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/04/02 10:46:52 by pminialg      #+#    #+#                 */
+/*   Updated: 2025/06/06 12:19:14 by pminialg      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -527,11 +527,11 @@ std::unordered_map<int, HTTPRequest>		RequestParser::handleIncomingRequest(int f
         auto [headers_end_pos, headers_end_length] = findHeadersEnd(_request_buffers[fd]);
 
         if (headers_end_pos == std::string::npos) {
-            break;
+            throw std::runtime_error("request is not complete yet");
         }
-
+        
         std::string firstLine_and_headers = _request_buffers[fd].substr(0, headers_end_pos + headers_end_length);
-
+        
         HTTPRequest request;
         try {
             parseFirstLineAndHeaders(firstLine_and_headers, request);
@@ -553,10 +553,10 @@ std::unordered_map<int, HTTPRequest>		RequestParser::handleIncomingRequest(int f
             }
             catch (const std::exception &e) {
                 // not enough data to decode chunked data
-                break;
+                throw std::runtime_error("request is not complete yet");
             }
         }
-
+        
         int content_length = 0;
         if (request._headers.find("Content-Length") != request._headers.end()) {
             int validated_content_length = validateContentLength(request._headers["Content-Length"]);
@@ -567,10 +567,11 @@ std::unordered_map<int, HTTPRequest>		RequestParser::handleIncomingRequest(int f
             }
             content_length = validated_content_length;
         }
-
+        
         std::size_t total_request_size = headers_end_pos + headers_end_length + content_length;
         if (total_request_size > _request_buffers[fd].size()) {
-            break; // Request is not complete yet
+            // Request is not complete yet
+            throw std::runtime_error("request is not complete yet");
         }
 
         std::string body = _request_buffers[fd].substr(headers_end_pos + headers_end_length, content_length);
