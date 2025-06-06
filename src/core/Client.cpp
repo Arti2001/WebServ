@@ -98,9 +98,16 @@ void	Client::readRequest (int clientFd) {
 	
 	bytesRead = recv(clientFd, recBuff, RECBUFF - 1, 0);
 	if (bytesRead > 0) {
-		addToRequestBuff(recBuff, bytesRead);
-		RequestParser									RequestParser;
-		const std::unordered_map<int , HTTPRequest>&	parsedRequest = RequestParser.handleIncomingRequest(clientFd, recBuff);
+		recBuff[bytesRead] = '\0';
+		RequestParser							RequestParser;
+		std::unordered_map<int , HTTPRequest>	parsedRequest;
+		
+		try{
+			parsedRequest = RequestParser.handleIncomingRequest(clientFd, recBuff);
+		}
+		catch(std::runtime_error& err) {
+			return;
+		}
 		std::string										uri;
 
 		if (parsedRequest.find(clientFd) != parsedRequest.end())
