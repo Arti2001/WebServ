@@ -3,18 +3,17 @@
 
 #include "Server.hpp"
 #include "ServerManager.hpp"
+#include "parsingResponse/Response.hpp"
 
 class ServerManager;
 class Client{
 
 	private:
+		std::string				_requestBuffer;
 		std::string				_clientResponse;
 		size_t					_clientBytesSent;
-		time_t					_lastActiveTime;
 		int						_serverFd;
 		ServerManager*			_serverManager;
-		//bool					_closed;
-
 	public:
 		Client(int	serverFd, ServerManager* servManager);
 		~Client();
@@ -36,8 +35,10 @@ class Client{
 
 		void					readRequest( int clientFd );
 		void					sendResponse( int clientFd );
-		const Response&			getResponse(HTTPRequest request);
-		const Response&			getCgiResponse(HTTPRequest request);
+		void					addToRequestBuff(char* chunk, size_t bytesread);
+		
+		std::string				getResponse(HTTPRequest request);
+		std::string				getCgiResponse(HTTPRequest request);
 
 		std::string				getAnyHeader(std::unordered_map<std::string, std::string> headers, std::string headerName);
 

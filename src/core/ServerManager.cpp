@@ -377,6 +377,7 @@ void	ServerManager::manageEpollEvent(const struct epoll_event& currEvent) {
 
 const std::vector<const vServer*>& ServerManager::findServerCofigsByFd(int fd) {
 
+	std::cout<<"here"<<"\n";
 	for( const Server& server : _servers) {
 
 		if (server.getSocketFd() == fd) 

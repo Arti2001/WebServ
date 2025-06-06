@@ -1,8 +1,8 @@
 #include "Client.hpp" 
 
 
-Client::Client(int serverFd, ServerManager* serverManager) : _clientBytesSent(0), _lastActiveTime(std::time(nullptr)),
-	_serverFd(serverFd), _serverManager(serverManager), _closed(false) {
+Client::Client(int serverFd, ServerManager* serverManager) : _clientBytesSent(0),
+	_serverFd(serverFd), _serverManager(serverManager){
 	}
 
 
@@ -25,10 +25,10 @@ Client::~Client() {
 
 //Getters
 
-std::time_t	Client::getLastActiveTime( void ) const {
+//std::time_t	Client::getLastActiveTime( void ) const {
 
-	return(_lastActiveTime);
-}
+//	return(_lastActiveTime);
+//}
 
 int	Client::getServerFd(void) const {
 	return(_serverFd);
@@ -49,95 +49,94 @@ const std::string&	Client::getClientsResponse(void) const {
 
 
 
-const Response&	Client::getCgiResponse(HTTPRequest request) {
+std::string	Client::getCgiResponse(HTTPRequest request) {
 
 	CGIHandler	cgiHandler;
 
-	Response cgiResponse = cgiHandler.handle(request);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+	Response cgiResponse = cgiHandler.handle(request);
+	std::vector<char> respVector = cgiResponse.serialize();
+	std::string respStr(respVector.begin(), respVector.end());
+
+	return(respStr);
 }
 
-const Response& Client::getResponse(HTTPRequest request, int clientFd) {
+
+std::string	Client::getResponse(HTTPRequest request) {
+
+	int									socketClientConnectedTo = this->getServerFd();
+	const std::vector<const vServer*>&	subServConfigs = _serverManager->findServerCofigsByFd(socketClientConnectedTo);
+	std::string							hostHeaderValue = getAnyHeader(request.getHeaders(), "Host");
+	const vServer&						askedServConfig = _serverManager->findServerConfigByName(subServConfigs, hostHeaderValue);
+	const Location&						askedLocationBlock = _serverManager->findLocationBlockByUrl(askedServConfig, request.getUri());
+	std::cout << " URI is: " + request.getUri()<< "\n";
+	std::cout << " Returnd location is: " + askedLocationBlock._locationPath << "\n";
 
 
+	StaticHandler handler;
+	Response response= handler.serve(request, askedLocationBlock);
+
+	std::vector<char> respVector = response.serialize();
+	std::string respStr(respVector.begin(), respVector.end());
+	return (respStr);
 }
+
+
+void Client::addToRequestBuff(char* chunk, size_t bytesRead){
+
+std::string strChunk(chunk);
+_requestBuffer.append(chunk, bytesRead);
+}
+
+
+
+//curl -v -H "Host: server3.com" http://127.0.0.1:8055/
 
 void	Client::readRequest (int clientFd) {
-	
+
 	char		recBuff[RECBUFF];//8KB
 	ssize_t		bytesRead;
 	
 	bytesRead = recv(clientFd, recBuff, RECBUFF - 1, 0);
-	
-	if (bytesRead > 0)
-	{
-		recBuff[bytesRead] = '\0';
+	if (bytesRead > 0) {
+		addToRequestBuff(recBuff, bytesRead);
+		RequestParser									RequestParser;
+		const std::unordered_map<int , HTTPRequest>&	parsedRequest = RequestParser.handleIncomingRequest(clientFd, recBuff);
+		std::string										uri;
 
-		RequestParser	RequestParser;
-
-		const std::unordered_map<int , HTTPRequest>& parsedRequest = RequestParser.handleIncomingRequest(clientFd, recBuff);
-
-		std::string hostHeaderValue = getAnyHeader(parsedRequest.at(clientFd).getHeaders(), "Host");
-		//curl -v -H "Host: server3.com" http://127.0.0.1:8055/
-		const std::string& uri = parsedRequest.at(clientFd).getUri();
+		if (parsedRequest.find(clientFd) != parsedRequest.end())
+			uri = parsedRequest.at(clientFd).getUri();
+		else
+			throw ServerManager::ServerManagerException("Key is not found");
 
 		if (CGIHandler::isCGIRequest(uri)) {
-
-			getCgiResponse(parsedRequest.at(clientFd));
+			this->_clientResponse = getCgiResponse(parsedRequest.at(clientFd));
 		}
 		else{
-			getResponse(parsedRequest.at(clientFd), int clientFd);
+			this->_clientResponse = getResponse(parsedRequest.at(clientFd));
 		}
-
-
-
-
-
-
-
-
-
-
-
-		int	socketClientConnectedTo = this->getServerFd();
-		const std::vector<const vServer*>& subServConfigs = _serverManager->findServerCofigsByFd(socketClientConnectedTo);
-		const vServer&	askedServConfig = _serverManager->findServerConfigByName(subServConfigs, hostHeaderValue);
-
-		//std::cout<< "Asked server is: " << askedServConfig.getServerNames().at(0)<<"\n";
-		
-		const Location& askedLocationBlock = _serverManager->findLocationBlockByUrl(askedServConfig, uri);
-
-		std::cout << " URI is: " + uri<< "\n";
-		std::cout << " Returnd location is: " + askedLocationBlock._locationPath << "\n";
-
-
-		StaticHandler handler;
-		Response response= handler.serve(parsedRequest.at(clientFd), askedLocationBlock);
-	
-		std::vector<char> respVector = response.serialize();
-		std::string respStr(respVector.begin(), respVector.end());
-		this->_clientResponse = respStr;
-		
 		_serverManager->setEpollCtl(clientFd, EPOLLOUT, EPOLL_CTL_MOD);
 		return ;
 	}
 	else if (bytesRead == 0){
+
 		std::cout << "Client disconnected: Clean up!" << bytesRead << "\n";
 		_serverManager->closeClientFd(clientFd);
 		return;
 	}
-	else
-		std::cout << "Nod data to read !"<< "\n";
+	else {
+		std::cout << "Not data to read !"<< "\n";
+	}
 }
 
 
 
 
 void	Client::sendResponse(int clientFd) {
-
+	
 	size_t&		totalBytesSent = this->getClientsBytesSent();
 	const char*	servResp = this->getClientsResponse().c_str();
 	size_t		responseSize = strlen(servResp);
-	ssize_t bytesSent = send(clientFd, servResp + totalBytesSent, responseSize - totalBytesSent, 0);
+	ssize_t		bytesSent = send(clientFd, servResp + totalBytesSent, responseSize - totalBytesSent, 0);
 
 	if (bytesSent == -1) {
 		_serverManager->setEpollCtl(clientFd, EPOLLOUT, EPOLL_CTL_MOD);
