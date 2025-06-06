@@ -473,7 +473,12 @@
           <p>
             Enter the name of the file you want to retrieve from the server.
           </p>
-          <form action="/get" method="GET" class="upload-form">
+          <form
+            action="/cgi-bin/get.py"
+            method="GET"
+            class="upload-form"
+            id="getForm"
+          >
             <input
               type="text"
               name="filename"
@@ -483,6 +488,20 @@
             />
             <button type="submit" class="btn primary-btn">Download</button>
           </form>
+          <div id="response" style="margin-top: 20px; display: none"></div>
+
+          <script>
+            document.getElementById("getForm").onsubmit = function (e) {
+              var filename = document.getElementById("filename").value;
+              if (!filename) {
+                e.preventDefault();
+                var responseDiv = document.getElementById("response");
+                responseDiv.style.display = "block";
+                responseDiv.innerHTML =
+                  '<div class="error-message" style="padding: 10px; border-radius: 5px; background-color: #f8d7da; color: #721c24;">Please enter a filename</div>';
+              }
+            };
+          </script>
         </div>
       </section>
     </main>

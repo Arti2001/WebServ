@@ -471,7 +471,12 @@
         <div class="container">
           <h1>Delete a File</h1>
           <p>Enter the name of the file you want to remove from the server.</p>
-          <form action="/delete" method="POST" class="upload-form">
+          <form
+            action="/cgi-bin/delete.py"
+            method="POST"
+            class="upload-form"
+            id="deleteForm"
+          >
             <input
               type="text"
               name="filename"
@@ -481,6 +486,39 @@
             />
             <button type="submit" class="btn primary-btn">Delete File</button>
           </form>
+          <div id="response" style="margin-top: 20px; display: none"></div>
+
+          <script>
+            document.getElementById("deleteForm").onsubmit = function (e) {
+              e.preventDefault();
+
+              var formData = new FormData(this);
+
+              if (confirm("Are you sure you want to delete this file?")) {
+                fetch(this.action, {
+                  method: "POST",
+                  body: formData,
+                })
+                  .then((response) => response.json())
+                  .then((data) => {
+                    var responseDiv = document.getElementById("response");
+                    responseDiv.style.display = "block";
+                    responseDiv.innerHTML = `<div class="${
+                      data.status === "success" ? "success" : "error"
+                    }-message" style="padding: 10px; border-radius: 5px; ${
+                      data.status === "success"
+                        ? "background-color: #d4edda; color: #155724;"
+                        : "background-color: #f8d7da; color: #721c24;"
+                    }">${data.message}</div>`;
+                  })
+                  .catch((error) => {
+                    document.getElementById(
+                      "response"
+                    ).innerHTML = `<div class="error-message" style="padding: 10px; border-radius: 5px; background-color: #f8d7da; color: #721c24;">Error: ${error.message}</div>`;
+                  });
+              }
+            };
+          </script>
         </div>
       </section>
     </main>
