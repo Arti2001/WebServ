@@ -1,14 +1,16 @@
 #include "Client.hpp" 
+#include "parsingRequest/RequestParser.hpp"
 
 
 Client::Client(int serverFd, ServerManager* serverManager) : _clientBytesSent(0),
 	_serverFd(serverFd), _serverManager(serverManager){
+		_requestParser = new RequestParser();
 	}
 
 
 
 Client::~Client() {
-
+	delete _requestParser;
 }
 
 //Setters
@@ -52,7 +54,7 @@ const std::string&	Client::getClientsResponse(void) const {
 std::string	Client::getCgiResponse(HTTPRequest request) {
 
 	CGIHandler	cgiHandler;
-
+	std::cout << "we call CGI" << std::endl;
 	Response cgiResponse = cgiHandler.handle(request);
 	std::vector<char> respVector = cgiResponse.serialize();
 	std::string respStr(respVector.begin(), respVector.end());
@@ -91,48 +93,58 @@ _requestBuffer.append(chunk, bytesRead);
 
 //curl -v -H "Host: server3.com" http://127.0.0.1:8055/
 
-void	Client::readRequest (int clientFd) {
+void    Client::readRequest (int clientFd) {
+    
+    char        recBuff[RECBUFF];//8KB
+    ssize_t     bytesRead;
+    
+    bytesRead = recv(clientFd, recBuff, RECBUFF - 1, 0);
+    
+    if (bytesRead > 0)
+    {
+        recBuff[bytesRead] = '\0';
 
-	char		recBuff[RECBUFF];//8KB
-	ssize_t		bytesRead;
-	
-	bytesRead = recv(clientFd, recBuff, RECBUFF - 1, 0);
-	if (bytesRead > 0) {
-		recBuff[bytesRead] = '\0';
-		RequestParser							RequestParser;
-		std::unordered_map<int , HTTPRequest>	parsedRequest;
-		
-		try{
-			parsedRequest = RequestParser.handleIncomingRequest(clientFd, recBuff);
-		}
-		catch(std::runtime_error& err) {
-			return;
-		}
-		std::string										uri;
+        const auto& parsedRequests = _requestParser->handleIncomingRequest(clientFd, recBuff);
+        
+        if (parsedRequests.empty()) {
+            // Request is still incomplete, wait for more data.
+            return;
+        }
 
-		if (parsedRequest.find(clientFd) != parsedRequest.end())
-			uri = parsedRequest.at(clientFd).getUri();
-		else
-			throw ServerManager::ServerManagerException("Key is not found");
+        const HTTPRequest& request = parsedRequests.at(clientFd);
+        std::string hostHeaderValue = getAnyHeader(request.getHeaders(), "Host");
+        //curl -v -H "Host: server3.com" http://127.0.0.1:8055/
 
-		if (CGIHandler::isCGIRequest(uri)) {
-			this->_clientResponse = getCgiResponse(parsedRequest.at(clientFd));
-		}
-		else{
-			this->_clientResponse = getResponse(parsedRequest.at(clientFd));
-		}
-		_serverManager->setEpollCtl(clientFd, EPOLLOUT, EPOLL_CTL_MOD);
-		return ;
-	}
-	else if (bytesRead == 0){
+        int socketClientConnectedTo = this->getServerFd();
+        const std::vector<const vServer*>& subServConfigs = _serverManager->findServerCofigsByFd(socketClientConnectedTo);
+        const vServer&  askedServConfig = _serverManager->findServerConfigByName(subServConfigs, hostHeaderValue);
 
-		std::cout << "Client disconnected: Clean up!" << bytesRead << "\n";
-		_serverManager->closeClientFd(clientFd);
-		return;
-	}
-	else {
-		std::cout << "Not data to read !"<< "\n";
-	}
+        //std::cout<< "Asked server is: " << askedServConfig.getServerNames().at(0)<<"\n";
+        
+        const std::string& url = request.getUri();
+        const Location& askedLocationBlock = _serverManager->findLocationBlockByUrl(askedServConfig, url);
+
+        std::cout << " URI is: " + url<< "\n";
+        std::cout << " Returnd location is: " + askedLocationBlock._locationPath << "\n";
+
+
+        StaticHandler handler;
+        Response response= handler.serve(request, askedLocationBlock);
+    
+        std::vector<char> respVector = response.serialize();
+        std::string respStr(respVector.begin(), respVector.end());
+        this->_clientResponse = respStr;
+        
+        _serverManager->setEpollCtl(clientFd, EPOLLOUT, EPOLL_CTL_MOD);
+        return ;
+    }
+    else if (bytesRead == 0){
+        std::cout << "Client disconnected: Clean up!" << bytesRead << "\n";
+        _serverManager->closeClientFd(clientFd);
+        return;
+    }
+    else
+        std::cout << "Nod data to read !"<< "\n";
 }
 
 

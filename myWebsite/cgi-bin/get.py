@@ -46,9 +46,10 @@ try:
     file_size = os.path.getsize(filepath)
 
     # Determine content type
-    content_type, encoding = mimetypes.guess_type(filepath)
-    if content_type is None:
-        content_type = "application/octet-stream"
+    # content_type, encoding = mimetypes.guess_type(filepath)
+    # if content_type is None:
+    #     content_type = "application/octet-stream"
+    content_type = "application/octet-stream"
 
     # Output headers
     print(f"Content-Type: {content_type}")

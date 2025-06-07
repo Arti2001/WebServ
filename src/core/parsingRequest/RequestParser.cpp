@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>                +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/02 10:46:52 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/06 12:19:14 by pminialg      ########   odam.nl         */
+/*   Updated: 2025/06/07 12:29:36 by pminialg      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -354,44 +354,34 @@ std::string RequestParser::decodeChunkedData(const std::string &chunked_data)
 
 void RequestParser::parseBody(std::string &body, HTTPRequest &request)
 {
-    if (request._headers.find("Content-Type") == request._headers.end()) {
-        request._body = body;
-        return;
+    // Always store the raw body for CGI or other handlers that might need it.
+    request._body = body;
+
+    auto it = request._headers.find("Content-Type");
+    if (it == request._headers.end()) {
+        return; // No content type, nothing more to parse.
     }
 
-    std::string content_type = request._headers["Content-Type"];
+    std::string content_type = it->second;
 
     if (content_type.find("multipart/form-data") != std::string::npos) {
-        // std::cout << "Processing multipart/form-data" << std::endl;
         std::string boundary = extractBoundary(content_type);
         if (!boundary.empty()) {
-            // std::cout << "Boundary found: " << boundary << std::endl;
             std::unordered_map<std::string, std::string> form_data;
             std::unordered_map<std::string, std::string> files;
-
             int status = parseMultipartFormData(body, boundary, form_data, files);
             if (status != 200) {
                 std::cerr << "Error: Failed to parse multipart/form-data: " << status << std::endl;
-                request._body = body;
                 return;
             }
             request._form_data = form_data;
             request._files = files;
         }
-        else {
-            // std::cout << "No boundary found, setting raw body" << std::endl;
-            request._body = body;
-        }
     }
     else if (content_type.find("application/x-www-form-urlencode") != std::string::npos) {
-        // std::cout << "Processing application/x-www-form-urlencoded" << std::endl;
         std::unordered_map<std::string, std::string> form_data;
         parseUrlEncodedForm(body, form_data);
         request._form_data = form_data;
-    }
-    else {
-        std::cout << "No special content type handling, setting raw body" << std::endl;
-        request._body = body;
     }
 }
 
@@ -473,49 +463,59 @@ void RequestParser::parseFirstLineAndHeaders(std::string firstLine_and_headers, 
 {
     std::istringstream stream(firstLine_and_headers);
     std::unordered_map<std::string, std::string> headers;
+    std::string line;
 
-    std::string start;
-    std::getline(stream, start);
-
-    if (!start.empty() && start.back() == '\r') {
-        start.pop_back();
+    // Get the first line (request line)
+    std::getline(stream, line);
+    if (!line.empty() && line.back() == '\r') {
+        line.pop_back();
     }
-
-    auto [method, uri, version] = parseFirstLine(start);
-
+    auto [method, uri, version] = parseFirstLine(line);
     request._method = method;
     request._uri = uri;
     request._version = version;
 
-    std::string line;
-    bool first_header_line = true;
+    std::string current_header_line;
+    while (std::getline(stream, current_header_line)) {
+        // Handle CRLF line endings
+        if (!current_header_line.empty() && current_header_line.back() == '\r') {
+            current_header_line.pop_back();
+        }
 
-    while (std::getline(stream, line) && !line.empty()) {
-        if (!line.empty() && line.back() == '\r') {
-            line.pop_back();
+        // Check for header unfolding (obsolete but good to handle)
+        if (!stream.eof() && (stream.peek() == ' ' || stream.peek() == '\t')) {
+            std::string next_part;
+            std::getline(stream, next_part);
+            if (!next_part.empty() && next_part.back() == '\r') {
+                next_part.pop_back();
+            }
+            // Trim leading whitespace from the folded part
+            next_part.erase(0, next_part.find_first_not_of(" \t"));
+            current_header_line += next_part;
+            continue; // Continue to accumulate more folded lines if they exist
         }
-        if (line.empty()) {
-            continue;
-        }
-        if (first_header_line && !line.empty() && std::isspace(line[0])) {
-            continue;
-        }
-        first_header_line = false;
         
-        auto header = parseHeader(line);
+        if (current_header_line.empty()) {
+            continue; // Skip empty lines between headers
+        }
+
+        auto header = parseHeader(current_header_line);
         if (!header.first.empty()) {
             headers[header.first] = header.second;
         }
+
+        // Reset for the next header
+        current_header_line.clear();
     }
     request._headers = headers;
 }
 //std::string& RequestParser::getHostHeader( void ) const {
-	
+    
 //}
 
-std::unordered_map<int, HTTPRequest>		RequestParser::handleIncomingRequest(int fd, const std::string &raw_data)
+std::unordered_map<int, HTTPRequest>        RequestParser::handleIncomingRequest(int fd, const std::string &raw_data)
 {
-	std::unordered_map<int, HTTPRequest> resultMap;
+    std::unordered_map<int, HTTPRequest> resultMap;
     _request_buffers[fd] += raw_data;
 
     while (!_request_buffers[fd].empty()) {
@@ -527,11 +527,11 @@ std::unordered_map<int, HTTPRequest>		RequestParser::handleIncomingRequest(int f
         auto [headers_end_pos, headers_end_length] = findHeadersEnd(_request_buffers[fd]);
 
         if (headers_end_pos == std::string::npos) {
-            throw std::runtime_error("request is not complete yet");
+            break;
         }
-        
+
         std::string firstLine_and_headers = _request_buffers[fd].substr(0, headers_end_pos + headers_end_length);
-        
+
         HTTPRequest request;
         try {
             parseFirstLineAndHeaders(firstLine_and_headers, request);
@@ -553,10 +553,10 @@ std::unordered_map<int, HTTPRequest>		RequestParser::handleIncomingRequest(int f
             }
             catch (const std::exception &e) {
                 // not enough data to decode chunked data
-                throw std::runtime_error("request is not complete yet");
+                break;
             }
         }
-        
+
         int content_length = 0;
         if (request._headers.find("Content-Length") != request._headers.end()) {
             int validated_content_length = validateContentLength(request._headers["Content-Length"]);
@@ -567,11 +567,10 @@ std::unordered_map<int, HTTPRequest>		RequestParser::handleIncomingRequest(int f
             }
             content_length = validated_content_length;
         }
-        
+
         std::size_t total_request_size = headers_end_pos + headers_end_length + content_length;
         if (total_request_size > _request_buffers[fd].size()) {
-            // Request is not complete yet
-            throw std::runtime_error("request is not complete yet");
+            break; // Request is not complete yet
         }
 
         std::string body = _request_buffers[fd].substr(headers_end_pos + headers_end_length, content_length);

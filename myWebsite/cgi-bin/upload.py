@@ -1,73 +1,74 @@
 #!/usr/bin/env python3
-import os
-import cgi
-import cgitb
-import json
+import os, sys, cgi, cgitb, shutil, json
 
-# Enable CGI error tracking
+sys.stderr.write(f"CGI got {os.environ.get('CONTENT_LENGTH')} bytes, "
+                 f"stdin has {len(sys.stdin.buffer.peek())} bytes\n")
+
+# Show trace-backs in the browser during debugging
 cgitb.enable()
+print(os.environ, file=sys.stderr)
+# --- configuration ----------------------------------------------------------
+SCRIPT_DIR   = os.path.dirname(os.path.realpath(__file__))
+UPLOAD_DIR   = os.path.join(SCRIPT_DIR, "uploads")   # absolute path is safer
+MAX_BYTES    = 50 * 1024 * 1024                     # 50 MiB
+# ---------------------------------------------------------------------------
 
-# Configuration
-UPLOAD_DIR = "uploads"  # Directory to store uploaded files
-MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB max file size
+def reply(status: str, message: str, http_code: str = "200 OK"):
+    """Send a small JSON response and exit."""
+    sys.stdout.write(f"Status: {http_code}\r\n")
+    sys.stdout.write("Content-Type: application/json\r\n\r\n")
+    sys.stdout.write(json.dumps({"status": status, "message": message}))
+    sys.exit(0)
 
-def send_response(status, message):
-    print("Content-Type: application/json")
-    print("")  # Empty line to separate headers from body
-    print(json.dumps({
-        "status": status,
-        "message": message
-    }))
 
-try:
-    # Ensure upload directory exists
-    if not os.path.exists(UPLOAD_DIR):
-        os.makedirs(UPLOAD_DIR)
+def main():
+    # Only POST is meaningful here
+    if os.environ.get("REQUEST_METHOD", "") != "POST":
+        reply("error", "Only POST uploads are accepted", "405 Method Not Allowed")
 
-    # Parse the form data
+    # Fast sanity check: make sure the web-server told us how big the body is
+    try:
+        content_len = int(os.environ.get("CONTENT_LENGTH", "0"))
+    except ValueError:
+        content_len = 0
+    if content_len == 0:
+        reply("error", "Empty request or missing CONTENT_LENGTH")
+
+    if content_len > MAX_BYTES:
+        reply("error", f"Payload exceeds {MAX_BYTES//1024//1024} MB limit")
+
+    # Parse multipart/form-data
     form = cgi.FieldStorage()
 
-    # Check if file was uploaded
     if "uploadFile" not in form:
-        send_response("error", "No file was uploaded")
-        exit()
+        reply("error", "No form part named 'uploadFile' found")
 
-    fileitem = form["uploadFile"]
+    filepart = form["uploadFile"]
+    if not filepart.filename:
+        reply("error", "No file selected")
 
-    # Check if file is empty
-    if not fileitem.filename:
-        send_response("error", "No file selected")
-        exit()
-
-    # Get file size
-    file_size = len(fileitem.file.read())
-    fileitem.file.seek(0)  # Reset file pointer
-
-    # Check file size
-    if file_size > MAX_FILE_SIZE:
-        send_response("error", f"File too large. Maximum size is {MAX_FILE_SIZE/1024/1024}MB")
-        exit()
-
-    # Create safe filename
-    filename = os.path.basename(fileitem.filename)
-    filepath = os.path.join(UPLOAD_DIR, filename)
-
-    # Check if file already exists
-    counter = 1
+    # Build safe, unique filename
+    filename = os.path.basename(filepart.filename)
     name, ext = os.path.splitext(filename)
-    while os.path.exists(filepath):
-        filename = f"{name}_{counter}{ext}"
-        filepath = os.path.join(UPLOAD_DIR, filename)
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+    counter, final = 0, filename
+    while os.path.exists(os.path.join(UPLOAD_DIR, final)):
         counter += 1
+        final = f"{name}_{counter}{ext}"
 
-    # Save the file
-    with open(filepath, 'wb') as f:
-        f.write(fileitem.file.read())
+    dest_path = os.path.join(UPLOAD_DIR, final)
 
-    # Set file permissions
-    os.chmod(filepath, 0o644)
+    # Stream the upload to disk in one pass
+    with open(dest_path, "wb") as dst:
+        shutil.copyfileobj(filepart.file, dst, length=1024 * 1024)  # 1 MB chunks
 
-    send_response("success", f"File '{filename}' was uploaded successfully")
+    os.chmod(dest_path, 0o644)
+    reply("success", f"Uploaded as {final}")
 
-except Exception as e:
-    send_response("error", f"Upload failed: {str(e)}") 
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception as exc:        # Fail safe and verbosely
+        reply("error", f"Exception: {exc}", "500 Internal Server Error")

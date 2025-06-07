@@ -6,7 +6,7 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/02 10:30:40 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/04/24 13:23:48 by pminialg      ########   odam.nl         */
+/*   Updated: 2025/06/06 16:42:24 by pminialg      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,8 @@ std::string HTTPRequest::getVersion() const {return _version;}
 std::unordered_map<std::string, std::string> HTTPRequest::getHeaders() const {return _headers;}
 
 std::string HTTPRequest::getBody() const {return _body;}
+
+std::string HTTPRequest::getRawBody() const {return _raw_body;}
 
 void HTTPRequest::setMethod(const std::string& method) {
     _method = method;

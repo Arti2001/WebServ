@@ -6,9 +6,12 @@
 #include "parsingResponse/Response.hpp"
 
 class ServerManager;
+class RequestParser;
+
 class Client{
 
 	private:
+		RequestParser*			_requestParser;
 		std::string				_requestBuffer;
 		std::string				_clientResponse;
 		size_t					_clientBytesSent;
@@ -17,6 +20,9 @@ class Client{
 	public:
 		Client(int	serverFd, ServerManager* servManager);
 		~Client();
+
+		Client(const Client&) = delete;
+		Client& operator=(const Client&) = delete;
 
 		//setter
 		//void	setLastActiveTime(std::time_t timeStamp);

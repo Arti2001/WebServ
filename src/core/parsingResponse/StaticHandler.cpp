@@ -1,4 +1,5 @@
 #include "StaticHandler.hpp"
+#include "../CGIHandler/CGIHandler.hpp"
 
 StaticHandler::StaticHandler() {}
 
@@ -51,22 +52,22 @@ Response StaticHandler::serveGet(const HTTPRequest& req, const Location& loc) {
     // strip the location prefix
     std::string rel = uri.substr(loc._locationPath.length()); // e.g. "files" or "files/"
     if (rel.empty()) rel = "/";                       // treat "/" uniformly
-	
+    
     // normalize root with trailing slash
     std::string fsRoot = loc._locationRoot;
     if (fsRoot.back() != '/') fsRoot += '/';
-	
+    
     // normalize rel to never start with slash
     if (rel.front() == '/') rel.erase(0,1);
-	
+    
     std::string fullPath = fsRoot + rel;              // e.g. "./www/files"
-	std::cout << "full path: " + fullPath << std::endl;
+    std::cout << "full path: " + fullPath << std::endl;
 
     struct stat sb;
     // 3) Does it exist?
     if (stat(fullPath.c_str(), &sb) < 0) {
         // nothing at that path → 404
-		std::cout << "Path ' " + fullPath + " ' does not exist!" << std::endl;
+        std::cout << "Path ' " + fullPath + " ' does not exist!" << std::endl;
         return loadErrorPage(loc, 404);
     }
 
@@ -134,9 +135,9 @@ Response StaticHandler::serveGet(const HTTPRequest& req, const Location& loc) {
     if (S_ISREG(sb.st_mode)) {
         int fd = open(fullPath.c_str(), O_RDONLY);
         if (fd < 0) {
-			std::cout << "returning 404" << std::endl;
-			return loadErrorPage(loc, 404);
-		}
+            std::cout << "returning 404" << std::endl;
+            return loadErrorPage(loc, 404);
+        }
         std::vector<char> buf(sb.st_size);
         if (read(fd, buf.data(), sb.st_size) < 0) {
             close(fd);
@@ -145,11 +146,7 @@ Response StaticHandler::serveGet(const HTTPRequest& req, const Location& loc) {
         close(fd);
 
         Response resp;
-        std::set<int> validReturnCodes = {200, 301, 400, 403, 404, 405, 409, 413, 500}; //might need to add more codes here TODO
-        if (validReturnCodes.find(loc._locationReturnPages.first) != validReturnCodes.end())
-            resp.setStatusCode(loc._locationReturnPages.first);
-        else
-            resp.setStatusCode(200);
+        resp.setStatusCode(200);
         resp.setReasonPhrase("OK");
         resp.setBody(std::move(buf));
         resp.addHeader("Content-Type", MimeTypes::detectMimeType(fullPath));
@@ -165,32 +162,49 @@ Response StaticHandler::serveGet(const HTTPRequest& req, const Location& loc) {
 }
 
 Response StaticHandler::serve(const HTTPRequest& req, const Location& loc) {
-
+    // 1. Check if the method is allowed in the location
     const auto& method = req.getMethod();
+    bool methodAllowed = false;
+    for (const auto& allowedMethod : loc._locationAllowedMethods) {
+        if (method == allowedMethod) {
+            methodAllowed = true;
+            break;
+        }
+    }
+    if (!methodAllowed) {
+        return loadErrorPage(loc, 405);
+    }
+
+    // 2. Check if the request is a CGI request
+    if (CGIHandler::isCGIRequest(req.getUri())) {
+        CGIHandler cgiHandler;
+        try {
+            return cgiHandler.handle(req);
+        } catch (const CGIHandler::CGIException& e) {
+            std::cerr << "CGI Exception: " << e.what() << std::endl;
+            return loadErrorPage(loc, 500); // Internal Server Error
+        }
+    }
+
+    // 3. Handle GET requests for static files
     if (method == "GET") {
-		return serveGet(req, loc);
+        return serveGet(req, loc);
     }
-    Response resp;
-    resp.setStatusCode(405);
-    resp.setReasonPhrase("Method Not Allowed");
-    std::ostringstream allow;
-    for (size_t i = 0; i < loc._locationAllowedMethods.size(); i++) {
-        if (i) allow << ", ";
-        allow << loc._locationAllowedMethods[i];
-    }
-    resp.addHeader("Allow", allow.str());
+    
+    // 4. Handle other methods like DELETE if you add logic for them
+    // For now, other non-GET, non-CGI requests are not supported
     return loadErrorPage(loc, 405);
 }
 
 Response StaticHandler::loadNotFound()
 {
-	Response resp;
-	resp.setStatusCode(404);
-	resp.setReasonPhrase("Not Found");
-	resp.addHeader("Content-Type", MimeTypes::detectMimeType(".html"));
-	resp.addHeader("Content-Length", std::to_string(0));
+    Response resp;
+    resp.setStatusCode(404);
+    resp.setReasonPhrase("Not Found");
+    resp.addHeader("Content-Type", MimeTypes::detectMimeType(".html"));
+    resp.addHeader("Content-Length", std::to_string(0));
 
-	return resp;
+    return resp;
 }
 
 Response StaticHandler::loadErrorPage(const Location& loc, int code) {
