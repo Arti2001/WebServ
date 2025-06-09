@@ -1,0 +1,10 @@
+We should check where we are throwing the exceptions if that is the intended beahviour.
+
+There was an issues with checking the arguments in the main, that it will throw uncaught exception if 
+there is no config file provided that is fixed now.
+
+Need to look into how the server manager handling multiple servers. Good to keep the location as a class instead of a struct to separate the funcitons and make it cleaner. 
+
+Imlement the checks into the config file so that we confirm everything when we parse. For some things it okay not to strictly chek them (e.g. invalid ip in the listen directive won't allow to create a socket)
+
+

@@ -24,9 +24,8 @@ void signalHandler(int signum)
 
 int main(int argc, char *argv[])
 {
-	
-	if (argc > 2) {
-		std::cerr<< "Error: To many arguments." << "\n";
+	if (argc != 2) {
+		std::cerr<< "Usage ./webserv config_file(.conf)." << "\n";
 		return (1);
 	}
 	try{
