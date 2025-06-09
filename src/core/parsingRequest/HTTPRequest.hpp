@@ -6,7 +6,7 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/02 10:30:25 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/04/24 13:22:20 by pminialg      ########   odam.nl         */
+/*   Updated: 2025/06/06 16:39:56 by pminialg      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@ class HTTPRequest
         std::string _body;
         std::unordered_map<std::string, std::string> _form_data;
         std::unordered_map<std::string, std::string> _files;
+        std::string _raw_body;
 
     public:
         HTTPRequest();
@@ -36,6 +37,7 @@ class HTTPRequest
         std::string getVersion() const;
         std::unordered_map<std::string, std::string> getHeaders() const;
         std::string getBody() const;
+        std::string getRawBody() const;
         void setMethod(const std::string& method);
         void setUri(const std::string& uri);
         void setVersion(const std::string& version);

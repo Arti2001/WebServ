@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   RequestParser.hpp                                  :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/04/02 10:30:21 by pminialg          #+#    #+#             */
-/*   Updated: 2025/05/19 16:25:52 by amysiv           ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   RequestParser.hpp                                  :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: amysiv <amysiv@student.42.fr>                +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/04/02 10:30:21 by pminialg      #+#    #+#                 */
+/*   Updated: 2025/06/06 16:20:35 by pminialg      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <regex>
 #include <unordered_map>
 #include "HTTPRequest.hpp"
 
@@ -45,6 +46,7 @@ class RequestParser
         void validateRequestLine(const std::string& method, const std::string& uri, const std::string& version);
         bool isChunkedTransfer(const HTTPRequest& request) const;
         std::string decodeChunkedData(const std::string& chunked_data);
+        bool looksLikeRequestLine(const std::string& line) const;
         
     public:
         RequestParser();

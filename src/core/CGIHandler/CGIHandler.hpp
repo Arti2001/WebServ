@@ -30,7 +30,7 @@ class CGIHandler {
         };
     
     private:
-    static const int TIMEOUT_SECONDS = 30;
+    static const int TIMEOUT_SECONDS = 5;
     static const size_t MAX_OUTPUT_SIZE = 10 * 1024 * 1024;
         //Helper methods
         std::vector<std::string> buildEnvironmentStrings(const HTTPRequest& req, const std::string& scriptPath);
