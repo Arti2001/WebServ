@@ -5,6 +5,11 @@ there is no config file provided that is fixed now.
 
 Need to look into how the server manager handling multiple servers. Good to keep the location as a class instead of a struct to separate the funcitons and make it cleaner. 
 
-Imlement the checks into the config file so that we confirm everything when we parse. For some things it okay not to strictly chek them (e.g. invalid ip in the listen directive won't allow to create a socket)
+Imlement the checks into the config file so that we confirm everything when we parse. For some things it okay not to strictly check them (e.g. invalid ip in the listen directive won't allow to create a socket)
 
 
+Need to check the language in the errors and statements printed in the terminal
+
+Need to check the CGI and run tests so that we can see if that is the inteded behaviour.
+
+Review request, response.
