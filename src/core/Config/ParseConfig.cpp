@@ -14,10 +14,10 @@ ParseConfig::ParseConfig() : depth(0), currToken(0) {
 	_keywords["return"] = RETURN_DIR;
 	_keywords["server"] = SERVER_BLOCK;
 	_keywords["location"] = LOCATION_BLOCK;
-	_keywords["autoindex"] = AUTO_INDEX_DIR;
-	_keywords["server_name"] = SERVER_NAME_DIR;
-	_keywords["error_pages"] = ERROR_PAGE_DIR;
-	_keywords["client_max_body_size"] = BODY_MAX_SIZE;
+	_keywords["autoindex"] = AUTO_INDEX_DIR; // by convention, autoindex is a directive
+	_keywords["server_name"] = SERVER_NAME_DIR; // by convention, server_name is a directive
+	_keywords["error_pages"] = ERROR_PAGE_DIR; // by convention, error_pages is a directive
+	_keywords["client_max_body_size"] = BODY_MAX_SIZE; // by convention, client_max_body_size is a directive
 	_keywords["allowed_methods"] = ALLOWED_METHODS;
 	// need to add keywords for upload path, cgi in the location block
 }
