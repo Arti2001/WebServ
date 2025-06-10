@@ -11,3 +11,5 @@ echo "\nUnknown directive\n"
 ./test_config ../../config-files/error/location/unknown-directive.conf
 echo "\nDuplicate upload path\n"
 ./test_config ../../config-files/error/location/upload_path.conf
+
+make fclean
