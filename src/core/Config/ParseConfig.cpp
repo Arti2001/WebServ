@@ -14,11 +14,12 @@ ParseConfig::ParseConfig() : depth(0), currToken(0) {
 	_keywords["return"] = RETURN_DIR;
 	_keywords["server"] = SERVER_BLOCK;
 	_keywords["location"] = LOCATION_BLOCK;
-	_keywords["auto-index"] = AUTO_INDEX_DIR;
-	_keywords["server-name"] = SERVER_NAME_DIR;
-	_keywords["error-pages"] = ERROR_PAGE_DIR;
-	_keywords["client-max-size"] = BODY_MAX_SIZE;
-	_keywords["allowed-methods"] = ALLOWED_METHODS;
+	_keywords["autoindex"] = AUTO_INDEX_DIR;
+	_keywords["server_name"] = SERVER_NAME_DIR;
+	_keywords["error_pages"] = ERROR_PAGE_DIR;
+	_keywords["client_max_body_size"] = BODY_MAX_SIZE;
+	_keywords["allowed_methods"] = ALLOWED_METHODS;
+	// need to add keywords for upload path, cgi in the location block
 }
 
 ParseConfig::ConfException::ConfException(const std::string& msg) : _message(msg) {
@@ -79,10 +80,10 @@ bool	ParseConfig::validBrace() {
 	return (false);
 }
 
-void	ParseConfig::parsConfigFileTokens(std::vector<vServer>& _vServers) {
+void	ParseConfig::parseConfigFileTokens(std::vector<vServer>& _vServers) {
 	
 	if (!validBrace())
-		throw ConfException("Enclosed brace in the configuration file");
+		throw ConfException("Floating closing brace in the configuration file");
 	for (; currToken < _tokens.size();currToken++) {
 		
 		
@@ -94,7 +95,7 @@ void	ParseConfig::parsConfigFileTokens(std::vector<vServer>& _vServers) {
 			vServer	vserv;
 			depth = LEVEL;
 			currToken += 2;
-			parsvServerBlock(vserv);
+			parsevServerBlock(vserv);
 			_vServers.push_back(vserv);
 		}
 		else {
@@ -158,12 +159,12 @@ std::ostream& operator<<(std::ostream& os, const vServer& server) {
 }
 
 
-void	ParseConfig::parsvServerBlock( vServer& serv) {
+void	ParseConfig::parsevServerBlock( vServer& serv) {
 	
 	while (depth > 0) {
 
 		if (_tokens[currToken].type == CLOSED_BRACE) {
-			std::cout << "Clousing brace is encauntered"<< "\n";
+			std::cout << "Closing brace is encountered"<< "\n";
 			depth--;
 			continue;
 		}
@@ -241,7 +242,8 @@ for (; _tokens[currToken].type != CLOSED_BRACE; currToken++) {
 	}
 	server.getServerLocations().push_back(loc);
 }
-	
+
+// it is better to have validation inside of the vServer class
 void	ParseConfig::validateServerBlockDirectives(vServer& serv) {
 		
 std::pair< Token, std::vector<std::string>> pair = makeKeyValuePair();
@@ -280,7 +282,7 @@ switch (pair.first.type) {
 	break;
 	
 	default:
-		throw ConfException("No such a directive: " + pair.first.lexem);
+		throw ConfException("Invalid directive: " + pair.first.lexem);
 }
 }
 
@@ -300,7 +302,7 @@ std::pair< Token, std::vector<std::string>>	ParseConfig::makeKeyValuePair() {
 
 
 		if (isTokenDirective(_tokens[currToken].type)) {
-			throw ConfException(std::to_string(_tokens[currToken].line_number) + " :: Enclosed line: No semicolon.");
+			throw ConfException(std::to_string(_tokens[currToken].line_number) + " :: No semicolon at the end of the line.");
 		}
 		else if (_tokens[currToken].type == UNKNOWN) {
 			values.push_back(_tokens[currToken].lexem);
