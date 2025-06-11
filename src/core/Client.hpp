@@ -1,8 +1,11 @@
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
+#define REQUEST_READ_BUFFER			8192
 
-#include "Server.hpp"
+
+#include "Request/Request.hpp"
 #include "ServerManager.hpp"
+#include "Server.hpp"
 #include "parsingResponse/Response.hpp"
 
 class ServerManager;
@@ -11,8 +14,8 @@ class RequestParser;
 class Client{
 
 	private:
-		RequestParser*			_requestParser;
-		std::string				_requestBuffer;
+		Request*				_request;
+		std::string				_accumulatedRequest;
 		std::string				_clientResponse;
 		size_t					_clientBytesSent;
 		int						_serverFd;
@@ -39,7 +42,7 @@ class Client{
 		//methods
 
 
-		void					readRequest( int clientFd );
+		void					readRawRequest( int clientFd );
 		void					sendResponse( int clientFd );
 		void					addToRequestBuff(char* chunk, size_t bytesread);
 		

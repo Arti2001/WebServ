@@ -368,7 +368,7 @@ void	ServerManager::manageEpollEvent(const struct epoll_event& currEvent) {
 		manageListenSocketEvent(currEvent);
 	}
 	else if ((currEvent.events & EPOLLIN) && isClientSocket(fd)) {
-		_fdClientMap.at(fd).readRequest(fd);
+		_fdClientMap.at(fd).readRawRequest(fd);
 	}
 	else if ((currEvent.events & EPOLLOUT) && isClientSocket(fd)) {
 		_fdClientMap.at(fd).sendResponse(fd);

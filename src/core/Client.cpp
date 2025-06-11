@@ -4,13 +4,11 @@
 
 Client::Client(int serverFd, ServerManager* serverManager) : _clientBytesSent(0),
 	_serverFd(serverFd), _serverManager(serverManager){
-		_requestParser = new RequestParser();
 	}
 
 
 
 Client::~Client() {
-	delete _requestParser;
 }
 
 //Setters
@@ -93,48 +91,34 @@ _requestBuffer.append(chunk, bytesRead);
 
 //curl -v -H "Host: server3.com" http://127.0.0.1:8055/
 
-void    Client::readRequest (int clientFd) {
+// the logic should be following:
+// 1. Read the request from the client, save the raw request as a string in Request class
+// 2. Parse the request to extract the URI (path and query), headers and body, including chunked transfer encoding if applicable
+// 3. Determine and save the target server and location block based on the "host" header
+// 
+
+
+void    Client::readRawRequest (int clientFd) {
     
-    char        recBuff[RECBUFF];//8KB
+    char        requestBuffer[REQUEST_READ_BUFFER];//8KB
     ssize_t     bytesRead;
     
-    bytesRead = recv(clientFd, recBuff, RECBUFF - 1, 0);
+    bytesRead = recv(clientFd, requestBuffer, REQUEST_READ_BUFFER, 0);
     
     if (bytesRead > 0)
     {
-        recBuff[bytesRead] = '\0';
-
-        const auto& parsedRequests = _requestParser->handleIncomingRequest(clientFd, recBuff);
-        
-        if (parsedRequests.empty()) {
-            // Request is still incomplete, wait for more data.
-            return;
-        }
-
-        const HTTPRequest& request = parsedRequests.at(clientFd);
-        std::string hostHeaderValue = getAnyHeader(request.getHeaders(), "Host");
-        //curl -v -H "Host: server3.com" http://127.0.0.1:8055/
-
-        int socketClientConnectedTo = this->getServerFd();
-        const std::vector<const vServer*>& subServConfigs = _serverManager->findServerCofigsByFd(socketClientConnectedTo);
-        const vServer&  askedServConfig = _serverManager->findServerConfigByName(subServConfigs, hostHeaderValue);
-
-        //std::cout<< "Asked server is: " << askedServConfig.getServerNames().at(0)<<"\n";
-        
-        const std::string& url = request.getUri();
-        const Location& askedLocationBlock = _serverManager->findLocationBlockByUrl(askedServConfig, url);
-
-        std::cout << " URI is: " + url<< "\n";
-        std::cout << " Returnd location is: " + askedLocationBlock._locationPath << "\n";
-
-
-        StaticHandler handler;
-        Response response= handler.serve(request, askedLocationBlock);
-    
-        std::vector<char> respVector = response.serialize();
-        std::string respStr(respVector.begin(), respVector.end());
-        this->_clientResponse = respStr;
-        
+        requestBuffer[bytesRead] = '\0';
+		_accumulatedRequest.append(requestBuffer, bytesRead);
+		if (!isRequestComplete(_accumulatedRequest)) {
+			std::cout << "Request is still incomplete, waiting for more data..." << "\n";
+			return;
+		}
+		Request request(_accumulatedRequest);
+		request.parseRequest();
+		_accumulatedRequest.clear(); // Clear the buffer after processing
+		Response response(request, _serverManager, clientFd)
+		generateResponse(); 
+        this->_clientResponse = response.getResponse();
         _serverManager->setEpollCtl(clientFd, EPOLLOUT, EPOLL_CTL_MOD);
         return ;
     }
@@ -144,7 +128,7 @@ void    Client::readRequest (int clientFd) {
         return;
     }
     else
-        std::cout << "Nod data to read !"<< "\n";
+        std::cout << "No data to read !"<< "\n";
 }
 
 
