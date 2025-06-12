@@ -261,7 +261,7 @@ size_t	vServer::validateClientMaxSizeDirective(const std::vector<std::string>& s
 
 std::unordered_map<int, std::string>	vServer::validateErrorPagesDirective(const std::vector<std::string>& errorPagesVector) {
 
-	std::set<int>							errorCodesSet {404, 403, 409, 500, 301, 406};
+	std::set<int>							errorCodesSet {404, 403, 409, 500, 301, 406}; // instead do the range between 400 and 599 as these cover the error codes
 	int										errorCode;
 	std::unordered_map<int, std::string>	errorPagesMap;
 

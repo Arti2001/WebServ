@@ -25,6 +25,9 @@
 
 class vServer;
 
+// it is better to use Location as a class instead of a struct, so that we can encapsulate the logic and data together.
+// it has it is own methods and can be extended in the future if needed.
+// I will include my own implementation of the Location class in the respective files for your reference.
 struct Location {
 	Location();
 	Location(const vServer& serv);
@@ -41,6 +44,8 @@ struct Location {
 
 	static std::string					setLocationPath(std::string& path);
 	static std::pair<int, std::string>	setLocationReturnPages(std::vector<std::string>& returnPageVector);
+	// inside of the location block we can override pretty much everything from the server block, so we should be 
+	// using same logic as in vServer class
 
 
 };
@@ -72,8 +77,11 @@ class vServer {
 	std::string									getServerRoot( void ) const;
 	std::vector<std::string>					getServerNames( void ) const;
 	std::string									getServerIndex( void ) const;
+	
+	// don't use same names for getters that have different return types, it is confusing
 	std::vector<Location>&						getServerLocations(); // allows writing
-	const std::vector<Location>&				getServerLocations() const; // allows reading	std::vector<std::string>					getServerNames( void ) const;
+	const std::vector<Location>&				getServerLocations() const; // allows reading
+	// allowed methods should be a location scope directive
 	std::vector<std::string>					getServerAllowedMethods( void ) const;
 	std::unordered_map<int, std::string>		getServerErrorPages( void ) const;
 
