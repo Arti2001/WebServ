@@ -2,6 +2,8 @@
 #define LOCATIONCONFIG_HPP
 
 #include "Webserv.hpp"
+#include <functional>
+#include <climits>
 
 #define CGI_EXTENSION ".py"
 
