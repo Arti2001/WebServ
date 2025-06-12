@@ -1,8 +1,8 @@
 #include "Client.hpp" 
-#include "parsingRequest/RequestParser.hpp"
+#include "Request/RequestParser.hpp"
 
 
-Client::Client(int serverFd, ServerManager* serverManager) : _clientBytesSent(0),
+Client::Client(int serverFd, ServerManager* serverManager) : _headersParsed(false), _clientBytesSent(0),
 	_serverFd(serverFd), _serverManager(serverManager){
 	}
 
@@ -97,41 +97,67 @@ _requestBuffer.append(chunk, bytesRead);
 // 3. Determine and save the target server and location block based on the "host" header
 // 
 
+bool Client::headersComplete(const std::string& request) const {
+	// Check if the request ends with a double CRLF, indicating the end of headers
+	size_t pos = request.find("\r\n\r\n");
+	if (pos == std::string::npos) {
+		return false; // No end of headers found
+	}
+	_bodyStart = pos + 4; // Set the start of the body after the headers
+	return true;
+}
 
-void    Client::readRawRequest (int clientFd) {
-    
+
+void    Client::handleRequest (int clientFd) {
     char        requestBuffer[REQUEST_READ_BUFFER];//8KB
     ssize_t     bytesRead;
     
     bytesRead = recv(clientFd, requestBuffer, REQUEST_READ_BUFFER, 0);
-    
     if (bytesRead > 0)
     {
         requestBuffer[bytesRead] = '\0';
-		_accumulatedRequest.append(requestBuffer, bytesRead);
-		if (!isRequestComplete(_accumulatedRequest)) {
-			std::cout << "Request is still incomplete, waiting for more data..." << "\n";
-			return;
+		std::string incomingData(requestBuffer, bytesRead);
+		if (!_headersParsed) {
+			_startLineAndHeadersBuffer += incomingData;
+			if (!headersComplete(_startLineAndHeadersBuffer)) {
+				std::cout << "Request is still incomplete, waiting for more data..." << std::endl;
+				return;
+			}
+			_request = Request(_startLineAndHeadersBuffer);
+			try {
+				_request.parseRequest();
+			} catch(const std::exception& e) {
+				std::cerr << "Failed to parse request: "<< e.what() << '\n';
+				_serverManager->closeClientFd(clientFd);
+				return;
+			}
+			_headersParsed = true;
+			_startLineAndHeadersBuffer.clear(); // Clear the buffer after parsing headers
 		}
-		Request request(_accumulatedRequest);
-		request.parseRequest();
-		_accumulatedRequest.clear(); // Clear the buffer after processing
-		Response response(request, _serverManager, clientFd)
-		generateResponse(); 
-        this->_clientResponse = response.getResponse();
-        _serverManager->setEpollCtl(clientFd, EPOLLOUT, EPOLL_CTL_MOD);
+		if (_headersParsed && _request.getBodyExpected())
+		{
+			if (_bodyBuffer.empty())
+			 	_bodyBuffer = incomingData.substr(_bodyStart);
+			else
+				_bodyBuffer += incomingData;
+			if (bodyComplete(_bodyBuffer)) {
+				_request.setBody(_bodyBuffer);
+				_request.parseBody();
+				_bodyBuffer.clear(); // Clear the body buffer after parsing
+			}
+		}
         return ;
     }
     else if (bytesRead == 0){
-        std::cout << "Client disconnected: Clean up!" << bytesRead << "\n";
+        std::cout << "Client disconnected: Clean up!" << std::endl;
         _serverManager->closeClientFd(clientFd);
         return;
     }
     else
-        std::cout << "No data to read !"<< "\n";
+        std::cout << "Recv failed"<< std::endl;
+		_serverManager->closeClientFd(clientFd);
+		return;
 }
-
-
 
 
 void	Client::sendResponse(int clientFd) {

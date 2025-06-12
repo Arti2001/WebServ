@@ -26,6 +26,7 @@ class Request
         int _bodySize; // Size of the request body
         bool _isChunked; // Flag to indicate if the request body is chunked
         bool _isCgi; // Flag to indicate if the request is a CGI request
+        bool _bodyExpected; // Flag to indicate if the body is expected in the request
 
         std::unordered_set<std::string> _supportedMethods; // Set of supported HTTP methods
         std::unordered_set<std::string> _seenHeaders; // Set of seen headers to avoid duplicates
@@ -54,6 +55,7 @@ class Request
         time_t getTimeout() const; // Get the timeout for the request
         int getStatusCode() const; // Get the status code for the request
         bool getCgiStatus() const; // Check if the request is a CGI request
+        bool getBodyExpected() const { return _bodyExpected; } // Check if the body is expected in the request
 
 
         void parseStartLine(); // Parse the start line of the request (method, path(request target), HTTP version)

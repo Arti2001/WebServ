@@ -57,9 +57,11 @@ void Request::parseRequest() {
     // Parse headers
     parseHeaders();
     if (checkError()) return;
-    // Parse body
-    parseBody();
-    if (checkError()) return;    
+    // Check if body is expected
+    _bodyExpected = checkBodyRelatedHeaders();
+    if (_bodyExpected && _headers.find("Content-Length") != _headers.end()) {
+        _bodySize = std::stoi(_headers["Content-Length"]);
+    }  
 }
 
 bool Request::checkBodyRelatedHeaders() {
@@ -168,9 +170,6 @@ void Request::parseHeaders() {
             return this->setStatusCode(400); // Bad Request, invalid header format
         }
         _currentPosition += line.size() + 1; // Move past the header line and newline character
-    }
-    if (!checkBodyRelatedHeaders()) {
-        return; // If body size headers are invalid, exit early
     }
 }
 

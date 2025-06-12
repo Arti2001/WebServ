@@ -15,7 +15,10 @@ class Client{
 
 	private:
 		Request*				_request;
-		std::string				_accumulatedRequest;
+		std::string				_startLineAndHeadersBuffer;
+		std::string				_bodyBuffer;
+		bool					_headersParsed;
+		size_t 					_bodyStart;
 		std::string				_clientResponse;
 		size_t					_clientBytesSent;
 		int						_serverFd;
@@ -42,7 +45,9 @@ class Client{
 		//methods
 
 
-		void					readRawRequest( int clientFd );
+		void					handleRequest( int clientFd );
+		void					handleBody(int clientFd, const std::string& incomingData);
+		bool					headersComplete(const std::string& request) const;
 		void					sendResponse( int clientFd );
 		void					addToRequestBuff(char* chunk, size_t bytesread);
 		
