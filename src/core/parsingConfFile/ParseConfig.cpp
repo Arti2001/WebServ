@@ -159,7 +159,7 @@ std::ostream& operator<<(std::ostream& os, const vServer& server) {
 }
 
 
-void	ParseConfig::parsevServerBlock( vServer& serv) {
+void	ParseConfig::	parsevServerBlock( vServer& serv) {
 	
 	while (depth > 0) {
 

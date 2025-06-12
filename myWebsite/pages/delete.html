@@ -473,7 +473,7 @@
           <p>Enter the name of the file you want to remove from the server.</p>
           <form
             action="/cgi-bin/delete.py"
-            method="POST"
+            method="DELETE"
             class="upload-form"
             id="deleteForm"
           >
@@ -496,7 +496,7 @@
 
               if (confirm("Are you sure you want to delete this file?")) {
                 fetch(this.action, {
-                  method: "POST",
+                  method: "DELETE",
                   body: formData,
                 })
                   .then((response) => response.json())

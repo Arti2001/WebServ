@@ -46,8 +46,6 @@ struct Location {
 	static std::pair<int, std::string>	setLocationReturnPages(std::vector<std::string>& returnPageVector);
 	// inside of the location block we can override pretty much everything from the server block, so we should be 
 	// using same logic as in vServer class
-
-
 };
 
 class vServer {
