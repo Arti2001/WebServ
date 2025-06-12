@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>                +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/02 10:46:52 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/07 12:29:36 by pminialg      ########   odam.nl         */
+/*   Updated: 2025/06/12 14:24:08 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,31 +47,6 @@ size_t RequestParser::skipLeadingEmptyLines(const std::string &data)
     return pos;
 }
 
-std::pair<size_t, size_t> RequestParser::findHeadersEnd(const std::string &data)
-{
-    size_t pos_crlf = data.find("\r\n\r\n");
-    size_t pos_lf = data.find("\n\n");
-
-    if (pos_crlf == std::string::npos && pos_lf == std::string::npos) {
-        return {std::string::npos, 0};
-    }
-    if (pos_crlf == std::string::npos) {
-        return {pos_lf, 2};
-    }
-    if (pos_lf == std::string::npos) {
-        return {pos_crlf, 4};
-    }
-    if (pos_lf == pos_crlf + 1) {
-        return {pos_crlf, 4};
-    }
-    if (pos_crlf < pos_lf) {
-        return {pos_crlf, 4};
-    }
-    else {
-        return {pos_lf, 2};
-    }
-}
-
 bool RequestParser::isValidHeaderFieldName(const std::string &name)
 {
     if (name.empty()) {
@@ -83,11 +58,6 @@ bool RequestParser::isValidHeaderFieldName(const std::string &name)
         }
     }
     return true;
-}
-
-void RequestParser::stripLeadingWhitespace(std::string &text)
-{
-    text.erase(0, text.find_first_not_of(" \r\n\t"));
 }
 
 int RequestParser::validateContentLength(const std::string &content_length)
