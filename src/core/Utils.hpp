@@ -10,5 +10,6 @@ class Utils {
     public:
         static std::string currentDateString();
         static std::string serverNameString();
+        static void trim(std::string& line);
 };
 #endif

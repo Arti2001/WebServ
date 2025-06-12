@@ -1,5 +1,5 @@
 #include "Client.hpp" 
-#include "Request/RequestParser.hpp"
+// #include "Request/RequestParser.hpp"
 
 
 Client::Client(int serverFd, ServerManager* serverManager) : _headersParsed(false), _clientBytesSent(0),
@@ -12,23 +12,23 @@ Client::~Client() {
 }
 
 //Setters
-//void	Client::setLastActiveTime( std::time_t timeStamp) {
-//	this->_lastActiveTime = timeStamp;
-//}
+void	Client::setLastActiveTime( std::time_t timeStamp) {
+	this->_lastActiveTime = timeStamp;
+}
 
-//void Client::setIsClosed(bool flag) {
-//	this->_closed = flag;
-//}
+void Client::setIsClosed(bool flag) {
+	this->_closed = flag;
+}
 
 
 
 
 //Getters
 
-//std::time_t	Client::getLastActiveTime( void ) const {
+std::time_t	Client::getLastActiveTime( void ) const {
 
-//	return(_lastActiveTime);
-//}
+	return(_lastActiveTime);
+}
 
 int	Client::getServerFd(void) const {
 	return(_serverFd);
@@ -49,7 +49,7 @@ const std::string&	Client::getClientsResponse(void) const {
 
 
 
-std::string	Client::getCgiResponse(HTTPRequest request) {
+std::string	Client::getCgiResponse(Request &request) {
 
 	CGIHandler	cgiHandler;
 	std::cout << "we call CGI" << std::endl;
@@ -61,7 +61,7 @@ std::string	Client::getCgiResponse(HTTPRequest request) {
 }
 
 
-std::string	Client::getResponse(HTTPRequest request) {
+std::string	Client::getResponse(Request &request) {
 
 	int									socketClientConnectedTo = this->getServerFd();
 	const std::vector<const vServer*>&	subServConfigs = _serverManager->findServerCofigsByFd(socketClientConnectedTo);
@@ -81,13 +81,6 @@ std::string	Client::getResponse(HTTPRequest request) {
 }
 
 
-void Client::addToRequestBuff(char* chunk, size_t bytesRead){
-
-std::string strChunk(chunk);
-_requestBuffer.append(chunk, bytesRead);
-}
-
-
 
 //curl -v -H "Host: server3.com" http://127.0.0.1:8055/
 
@@ -97,7 +90,7 @@ _requestBuffer.append(chunk, bytesRead);
 // 3. Determine and save the target server and location block based on the "host" header
 // 
 
-bool Client::headersComplete(const std::string& request) const {
+bool Client::headersComplete(const std::string& request) {
 	// Check if the request ends with a double CRLF, indicating the end of headers
 	size_t pos = request.find("\r\n\r\n");
 	if (pos == std::string::npos) {
@@ -109,12 +102,12 @@ bool Client::headersComplete(const std::string& request) const {
 
 bool Client::bodyComplete(const std::string& body) const {
 	// Check if the body is complete based on the Content-Length header or chunked transfer encoding
-	auto it = _request->getHeaders().find("Content-Length");
-	if (it != _request->getHeaders().end()) {
+	auto it = _request.getHeaders().find("Content-Length");
+	if (it != _request.getHeaders().end()) {
 		int contentLength = std::stoi(it->second);
 		return body.size() >= static_cast<size_t>(contentLength);
 	}
-	if (_request->getIsChunked()) {
+	if (_request.getIsChunked()) {
 		auto it = body.find("\r\n0\r\n\r\n");
 		if (it != std::string::npos) {
 			// If we find the end of the chunked body, we consider it complete
@@ -133,7 +126,6 @@ void    Client::handleRequest (int clientFd) {
     bytesRead = recv(clientFd, requestBuffer, REQUEST_READ_BUFFER, 0);
     if (bytesRead > 0)
     {
-        requestBuffer[bytesRead] = '\0';
 		std::string incomingData(requestBuffer, bytesRead);
 		if (!_headersParsed) {
 			_startLineAndHeadersBuffer += incomingData;
@@ -146,7 +138,7 @@ void    Client::handleRequest (int clientFd) {
 				_request.parseRequest();
 			} catch(const std::exception& e) {
 				std::cerr << "Failed to parse request: "<< e.what() << '\n';
-				_serverManager->closeClientFd(clientFd);
+				// _serverManager->closeClientFd(clientFd);
 				return;
 			}
 			_headersParsed = true;

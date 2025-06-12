@@ -4,9 +4,12 @@
 
 
 #include "Request/Request.hpp"
-#include "ServerManager.hpp"
-#include "Server.hpp"
-#include "parsingResponse/Response.hpp"
+// #include "ServerManager.hpp"
+// #include "Server.hpp"
+// #include "parsingResponse/Response.hpp"
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
 class ServerManager;
 class RequestParser;
@@ -14,7 +17,7 @@ class RequestParser;
 class Client{
 
 	private:
-		Request*				_request;
+		Request					_request;
 		std::string				_startLineAndHeadersBuffer;
 		std::string				_bodyBuffer;
 		bool					_headersParsed;
@@ -41,18 +44,20 @@ class Client{
 		int					getServerFd( void ) const;
 		size_t&				getClientsBytesSent( void );
 		const std::string&	getClientsResponse( void ) const;
+		Request&			getRequest( void ) { return (_request); }
 
 		//methods
 
 
 		void					handleRequest( int clientFd );
 		void					handleBody(int clientFd, const std::string& incomingData);
-		bool					headersComplete(const std::string& request) const;
+		bool					headersComplete(const std::string& request);
+		bool 					bodyComplete(const std::string& body) const;
 		void					sendResponse( int clientFd );
 		void					addToRequestBuff(char* chunk, size_t bytesread);
 		
-		std::string				getResponse(HTTPRequest request);
-		std::string				getCgiResponse(HTTPRequest request);
+		// std::string				getResponse(HTTPRequest request);
+		// std::string				getCgiResponse(HTTPRequest request);
 
 		std::string				getAnyHeader(std::unordered_map<std::string, std::string> headers, std::string headerName);
 

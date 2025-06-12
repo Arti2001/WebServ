@@ -2,9 +2,14 @@
 
 #ifndef REQUEST_HPP
 #define REQUEST_HPP
-#include "../Webserv.hpp"
-#include "../config/ConfigParser.hpp"
-
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <iostream>
+#include <ctime>
+#include <sstream>
+#include <vector>
+#include "../Utils.hpp"
 
 #define REQUEST_DEFAULT_TIMEOUT 60 // Default timeout for the request in seconds
 #define REQUEST_DEFAULT_STATUS_CODE 200 // Default status code for the request

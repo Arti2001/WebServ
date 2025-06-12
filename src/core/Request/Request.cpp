@@ -159,7 +159,7 @@ void Request::parseHeaders() {
         if (pos != std::string::npos) {
             std::string headerName = line.substr(0, pos);
             std::string headerValue = line.substr(pos + 1);
-            ConfigParser::trim(headerValue);
+            Utils::trim(headerValue);
             if (headerName.empty() || headerValue.empty()) {
                 std::cerr << "Invalid header: " << line << std::endl;
                 return this->setStatusCode(400); // Bad Request, invalid header
