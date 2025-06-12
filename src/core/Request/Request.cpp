@@ -175,12 +175,11 @@ void Request::parseHeaders() {
 
 void Request::parseBody() {
     // Parse the body of the request
-    if (_currentPosition >= _rawRequest.size()) {
-        std::cerr << "No body found in request." << std::endl;
+    if (!_bodyExpected) {
+        std::cerr << "No body for this request." << std::endl;
         _body = ""; // Set body to empty if no body is present
         return; // No body to parse
     }
-    _body = _rawRequest.substr(_currentPosition);
     if (_body.size() > static_cast<unsigned long>(_bodySize) || (_headers.find("Content-Length") != _headers.end() && static_cast<unsigned long>(std::stoi(_headers["Content-Length"])) > _body.size())) {
         std::cerr << "Request body size exceeds the limit." << std::endl;
         this->setStatusCode(413); // Payload Too Large

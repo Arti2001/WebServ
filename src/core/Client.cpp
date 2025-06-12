@@ -107,6 +107,24 @@ bool Client::headersComplete(const std::string& request) const {
 	return true;
 }
 
+bool Client::bodyComplete(const std::string& body) const {
+	// Check if the body is complete based on the Content-Length header or chunked transfer encoding
+	auto it = _request->getHeaders().find("Content-Length");
+	if (it != _request->getHeaders().end()) {
+		int contentLength = std::stoi(it->second);
+		return body.size() >= static_cast<size_t>(contentLength);
+	}
+	if (_request->getIsChunked()) {
+		auto it = body.find("\r\n0\r\n\r\n");
+		if (it != std::string::npos) {
+			// If we find the end of the chunked body, we consider it complete
+			return true;
+		}
+		return false; // Chunked transfer encoding, but we haven't found the end yet
+	}
+	return false; // No Content-Length or chunked transfer encoding, so we can't determine completeness
+}
+
 
 void    Client::handleRequest (int clientFd) {
     char        requestBuffer[REQUEST_READ_BUFFER];//8KB

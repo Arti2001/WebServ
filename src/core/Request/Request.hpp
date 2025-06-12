@@ -45,6 +45,8 @@ class Request
         void setTimeout(time_t timeout); // Set the timeout for the request
         void setStatusCode(int statusCode); // Set the status code for the request
         void setCgi(bool isCgi); // Set the CGI flag for the request
+        void setBody(const std::string &body) { _body = body; } // Set the request body
+
 
         const std::string &getMethod() const; // Get the HTTP method
         const std::string &getPath() const; // Get the request path
@@ -56,6 +58,7 @@ class Request
         int getStatusCode() const; // Get the status code for the request
         bool getCgiStatus() const; // Check if the request is a CGI request
         bool getBodyExpected() const { return _bodyExpected; } // Check if the body is expected in the request
+        bool getIsChunked() const { return _isChunked; } // Check if the request body is chunked
 
 
         void parseStartLine(); // Parse the start line of the request (method, path(request target), HTTP version)
