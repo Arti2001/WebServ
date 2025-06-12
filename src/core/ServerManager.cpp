@@ -77,7 +77,7 @@ void	ServerManager::parsConfigFile(std::vector<vServer>& _vServers) {
 	try{
 		roughData = parser.prepToTokenizeConfigData(getConfigFileFd());
 		parser.tokenizeConfigData(roughData);
-		parser.parsConfigFileTokens(_vServers);
+		parser.parseConfigFileTokens(_vServers);
 		
 	}catch(ParseConfig::ConfException& ex){
 		std::cerr << "Error: " << ex.what()<< "\n";
