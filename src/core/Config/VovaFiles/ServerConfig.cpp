@@ -145,7 +145,7 @@ bool ServerConfig::handleDirective(const std::string& directive, const std::vect
 
 bool ServerConfig::handleListen(const std::vector<std::string>& tokens) {
 	if (tokens.size() != 1) {
-		std::cerr << "Error: Invalid number of arguments for listen directive." << tokens.size() << std::endl;
+		std::cerr << "Error: Invalid number of arguments for listen directive. " << tokens.size() << std::endl;
 		return false; // Invalid number of arguments
 	}
 	std::string listenLine = tokens[0];
