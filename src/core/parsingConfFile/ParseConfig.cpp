@@ -174,7 +174,7 @@ void	ParseConfig::	parsevServerBlock( vServer& serv) {
 			depth -= LEVEL;
 		}
 		else{
-			throw ConfException("Alien object is detected at the line: " + std::to_string(_tokens[currToken].line_number));
+				throw ConfException("Alien object is detected at the line: " + std::to_string(_tokens[currToken].line_number));
 		}
 
 		currToken++;

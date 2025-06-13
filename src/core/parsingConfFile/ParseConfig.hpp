@@ -29,6 +29,7 @@ enum TokenType {
 	RETURN_DIR,
 	SERVER_BLOCK,
 	LOCATION_BLOCK,
+	COMMENT,
 	UNKNOWN
 };
 
