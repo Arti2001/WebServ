@@ -149,10 +149,13 @@ void    Client::handleRequest (int clientFd) {
 		// so it is separated from the headers parsing logic.
 		if (_headersParsed && _request.getBodyExpected())
 		{
-			if (_bodyBuffer.empty())
-			 	_bodyBuffer = incomingData.substr(_bodyStart);
-			else
+			if (_bodyBuffer.empty()) {
+				// Capture the initial body segment from the combined header+body buffer
+				_bodyBuffer = _startLineAndHeadersBuffer.substr(_bodyStart) + incomingData;
+			} else {
+				// Append subsequent chunks directly
 				_bodyBuffer += incomingData;
+			}
 			if (bodyComplete(_bodyBuffer)) {
 				_request.setBody(_bodyBuffer);
 				_request.parseBody();
