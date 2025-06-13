@@ -21,7 +21,6 @@ Location::Location(const Location& other) {
 }
 
 const Location&	Location::operator=(const Location& other) {
-
 	if (this != &other) {
 		this->_locationPath = other._locationPath;
 		this->_locationUploadPath = other._locationUploadPath;
