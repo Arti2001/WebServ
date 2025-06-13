@@ -64,6 +64,7 @@ class Request
         bool getCgiStatus() const; // Check if the request is a CGI request
         bool getBodyExpected() const { return _bodyExpected; } // Check if the body is expected in the request
         bool getIsChunked() const { return _isChunked; } // Check if the request body is chunked
+        const std::string getUri() const { return _path; } // Get the request URI
 
 
         void parseStartLine(); // Parse the start line of the request (method, path(request target), HTTP version)
@@ -77,25 +78,25 @@ class Request
         void printRequest() const; // Print the request for debugging purposes
         bool checkError() const; // Check if there is an error in the request
         int hexToInt(const std::string &hex) const; // Convert a hexadecimal string to an integer
-        std::ostream& operator<<(std::ostream& os, const HTTPRequest& req) {
-            os << "Method: " << req._method << "\n";
-            os << "URI: " << req._uri << "\n";
-            os << "Version: " << req._version << "\n";
-            os << "Headers:\n";
-            for (const auto& header : req._headers) {
-                os << "  " << header.first << ": " << header.second << "\n";
-            }
-            os << "Body: " << req._body << "\n";
-            os << "Form Data:\n";
-            for (const auto& header : req._form_data) {
-                os << "  " << header.first << ": " << header.second << "\n";
-            }
-            os << "Files:\n";
-            for (const auto& header : req._files) {
-                os << "  " << header.first << ": " << header.second << "\n";
-            }
-            return os;
-        }
+        // std::ostream& operator<<(std::ostream& os, const Request& req) {
+        //     os << "Method: " << req._method << "\n";
+        //     os << "URI: " << req._uri << "\n";
+        //     os << "Version: " << req._version << "\n";
+        //     os << "Headers:\n";
+        //     for (const auto& header : req._headers) {
+        //         os << "  " << header.first << ": " << header.second << "\n";
+        //     }
+        //     os << "Body: " << req._body << "\n";
+        //     os << "Form Data:\n";
+        //     for (const auto& header : req._form_data) {
+        //         os << "  " << header.first << ": " << header.second << "\n";
+        //     }
+        //     os << "Files:\n";
+        //     for (const auto& header : req._files) {
+        //         os << "  " << header.first << ": " << header.second << "\n";
+        //     }
+        //     return os;
+        // }
 };
 
 #endif

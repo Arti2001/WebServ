@@ -4,9 +4,9 @@
 
 
 #include "Request/Request.hpp"
-// #include "ServerManager.hpp"
-// #include "Server.hpp"
-// #include "parsingResponse/Response.hpp"
+#include "ServerManager.hpp"
+#include "Server.hpp"
+#include "parsingResponse/Response.hpp"
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -26,6 +26,8 @@ class Client{
 		size_t					_clientBytesSent;
 		int						_serverFd;
 		ServerManager*			_serverManager;
+		std::time_t				_lastActiveTime;
+		bool					_closed;
 	public:
 		Client(int	serverFd, ServerManager* servManager);
 		~Client();
@@ -34,8 +36,8 @@ class Client{
 		Client& operator=(const Client&) = delete;
 
 		//setter
-		//void	setLastActiveTime(std::time_t timeStamp);
-		//void	setIsClosed(bool flag);
+		void	setLastActiveTime(std::time_t timeStamp);
+		void	setIsClosed(bool flag);
 
 
 		//getters
@@ -56,8 +58,8 @@ class Client{
 		void					sendResponse( int clientFd );
 		void					addToRequestBuff(char* chunk, size_t bytesread);
 		
-		// std::string				getResponse(HTTPRequest request);
-		// std::string				getCgiResponse(HTTPRequest request);
+		std::string				getResponse(Request &request);
+		std::string				getCgiResponse(Request &request);
 
 		std::string				getAnyHeader(std::unordered_map<std::string, std::string> headers, std::string headerName);
 

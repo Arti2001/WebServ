@@ -61,24 +61,24 @@ std::string	Client::getCgiResponse(Request &request) {
 }
 
 
-std::string	Client::getResponse(Request &request) {
+// std::string	Client::getResponse(Request &request) {
 
-	int									socketClientConnectedTo = this->getServerFd();
-	const std::vector<const vServer*>&	subServConfigs = _serverManager->findServerCofigsByFd(socketClientConnectedTo);
-	std::string							hostHeaderValue = getAnyHeader(request.getHeaders(), "Host");
-	const vServer&						askedServConfig = _serverManager->findServerConfigByName(subServConfigs, hostHeaderValue);
-	const Location&						askedLocationBlock = _serverManager->findLocationBlockByUrl(askedServConfig, request.getUri());
-	std::cout << " URI is: " + request.getUri()<< "\n";
-	std::cout << " Returnd location is: " + askedLocationBlock._locationPath << "\n";
+// 	int									socketClientConnectedTo = this->getServerFd();
+// 	const std::vector<const vServer*>&	subServConfigs = _serverManager->findServerCofigsByFd(socketClientConnectedTo);
+// 	std::string							hostHeaderValue = getAnyHeader(request.getHeaders(), "Host");
+// 	const vServer&						askedServConfig = _serverManager->findServerConfigByName(subServConfigs, hostHeaderValue);
+// 	const Location&						askedLocationBlock = _serverManager->findLocationBlockByUrl(askedServConfig, request.getUri());
+// 	std::cout << " URI is: " + request.getUri()<< "\n";
+// 	std::cout << " Returnd location is: " + askedLocationBlock._locationPath << "\n";
 
 
-	StaticHandler handler;
-	Response response= handler.serve(request, askedLocationBlock);
+// 	StaticHandler handler;
+// 	Response response= handler.serve(request, askedLocationBlock);
 
-	std::vector<char> respVector = response.serialize();
-	std::string respStr(respVector.begin(), respVector.end());
-	return (respStr);
-}
+// 	std::vector<char> respVector = response.serialize();
+// 	std::string respStr(respVector.begin(), respVector.end());
+// 	return (respStr);
+// }
 
 
 
@@ -127,6 +127,7 @@ void    Client::handleRequest (int clientFd) {
     if (bytesRead > 0)
     {
 		std::string incomingData(requestBuffer, bytesRead);
+		std::cout << "Received data: " << incomingData << std::endl;
 		if (!_headersParsed) {
 			_startLineAndHeadersBuffer += incomingData;
 			if (!headersComplete(_startLineAndHeadersBuffer)) {
@@ -138,7 +139,7 @@ void    Client::handleRequest (int clientFd) {
 				_request.parseRequest();
 			} catch(const std::exception& e) {
 				std::cerr << "Failed to parse request: "<< e.what() << '\n';
-				// _serverManager->closeClientFd(clientFd);
+				_serverManager->closeClientFd(clientFd);
 				return;
 			}
 			_headersParsed = true;

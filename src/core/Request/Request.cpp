@@ -88,9 +88,11 @@ void Request::parseStartLine() {
     while (_currentPosition < _rawRequest.size() && _rawRequest[_currentPosition] != '\n') {
         startLine += _rawRequest[_currentPosition++];
     }
+    std::cout << "Start line: " << startLine << std::endl;
     std::istringstream ss(startLine);
     std::string method, uri, httpVersion;
     ss >> method >> uri >> httpVersion;
+    std::cout << "Parsing start line: " << method << " " << uri << " " << httpVersion << std::endl;
     parseMethod(method);
     parseUri(uri);
     parseHttpVersion(httpVersion);

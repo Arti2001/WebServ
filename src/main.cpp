@@ -1,6 +1,6 @@
 #include "core/Server.hpp"
-#include "core/parsingRequest/HTTPRequest.hpp"
-#include "core/parsingRequest/RequestParser.hpp"
+#include "core/Request/Request.hpp"
+#include "core/Request/RequestParser.hpp"
 #include "core/parsingResponse/Response.hpp"
 #include "core/parsingResponse/StaticHandler.hpp"
 #include "core/parsingResponse/MimeTypes.hpp"
@@ -211,8 +211,8 @@ int main(int argc, char *argv[])
 // #include <iostream>
 // #include <string>
 // #include <unordered_map>
-// #include "core/parsingRequest/RequestParser.hpp"
-// #include "core/parsingRequest/HTTPRequest.hpp"
+// #include "core/Request/RequestParser.hpp"
+// #include "core/Request/Request.hpp"
 
 // // Helper function to create a chunked HTTP request
 // std::string createChunkedRequest(const std::string& body) {

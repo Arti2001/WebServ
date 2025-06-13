@@ -12,7 +12,7 @@
 #include "Server.hpp"
 #include "parsingConfFile/vServer.hpp"
 #include <fstream>
-#include "parsingRequest/HTTPRequest.hpp"
+#include "Request/Request.hpp"
 #include "parsingResponse/StaticHandler.hpp"
 #include "Client.hpp"
 #include "CGIHandler/CGIHandler.hpp"

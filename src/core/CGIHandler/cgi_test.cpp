@@ -1,5 +1,5 @@
 //#include "CGIHandler.hpp"
-//#include "../parsingRequest/HTTPRequest.hpp"
+//#include "../Request/Request.hpp"
 //#include "../parsingResponse/Response.hpp"
 //#include <iostream>
 //#include <fstream>

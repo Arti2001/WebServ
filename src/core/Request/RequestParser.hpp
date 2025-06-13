@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>                +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/02 10:30:21 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/06 16:20:35 by pminialg      ########   odam.nl         */
+/*   Updated: 2025/06/13 12:12:45 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,9 +17,9 @@
 #include <sstream>
 #include <regex>
 #include <unordered_map>
-#include "HTTPRequest.hpp"
+#include "Request.hpp"
 
-class HTTPRequest;
+class Request;
 
 class RequestParser
 {
@@ -40,18 +40,18 @@ class RequestParser
         std::pair<size_t, size_t> findHeadersEnd(const std::string& data);
         size_t skipLeadingEmptyLines(const std::string& data);
         std::tuple<std::string, std::string, std::string> parseFirstLine(const std::string& first_line);
-        void parseFirstLineAndHeaders(std::string full_request, HTTPRequest& request);
+        void parseFirstLineAndHeaders(std::string full_request, Request& request);
         std::pair<std::string, std::string> parseHeader(const std::string& header_line);
-        void parseBody(std::string& body, HTTPRequest& request);
+        void parseBody(std::string& body, Request& request);
         void validateRequestLine(const std::string& method, const std::string& uri, const std::string& version);
-        bool isChunkedTransfer(const HTTPRequest& request) const;
+        bool isChunkedTransfer(const Request& request) const;
         std::string decodeChunkedData(const std::string& chunked_data);
         bool looksLikeRequestLine(const std::string& line) const;
         
     public:
         RequestParser();
         ~RequestParser();
-        std::unordered_map<int , HTTPRequest> handleIncomingRequest(int fd, const std::string& raw_data);
+        std::unordered_map<int , Request> handleIncomingRequest(int fd, const std::string& raw_data);
 
 		//std::string&	getHostHeader( void ) const;
 		
