@@ -129,9 +129,6 @@ std::ostream& operator<<(std::ostream& os, const vServer& server) {
 	os << "Index:                        " << server.getServerIndex() << "\n";
 	os << "AutoIndex:                    " << server.getServerAutoIndex() << "\n";
 
-	os << "Allowed Methods:              ";
-	for (size_t i = 0; i < server.getServerAllowedMethods().size(); ++i)
-	os << server.getServerAllowedMethods()[i] << (i + 1 < server.getServerAllowedMethods().size() ? ", " : "\n");
 	os << "  Error Pages:\n";
 	const std::unordered_map<int, std::string>& errorPages = server.getServerErrorPages();
 	for (std::unordered_map<int, std::string>::const_iterator it = errorPages.begin(); it != errorPages.end(); ++it)
@@ -142,14 +139,14 @@ std::ostream& operator<<(std::ostream& os, const vServer& server) {
 	for (size_t i = 0; i < locs.size(); ++i) {
 		const Location& loc = locs[i];
 		os << "Location [" << i << "]\n";
-		os << "  Path:           " << loc._locationPath << "\n";
-		os << "  Root:           " << loc._locationRoot << "\n";
-		os << "  Index:          " << loc._locationIndex << "\n";
-		os << "  AutoIndex:      " << loc._locationAutoIndex << "\n";
-		os << "  Max Body Size:  " << loc._locationClientMaxSize << "\n";
+		os << "  Path:           " << loc.getLocationPath() << "\n";
+		os << "  Root:           " << loc.getLocationRoot() << "\n";
+		os << "  Index:          " << loc.getLocationIndex() << "\n";
+		os << "  AutoIndex:      " << loc.getLocationAutoIndex() << "\n";
+		os << "  Max Body Size:  " << loc.getLocationClientMaxSize() << "\n";
 		os << "  Allowed Methods:";
-		for (size_t j = 0; j < loc._locationAllowedMethods.size(); ++j)
-			os << " " << loc._locationAllowedMethods[j];
+		for (size_t j = 0; j < loc.getLocationAllowedMethods().size(); ++j)
+			os << " " << loc.getLocationAllowedMethods()[j];
 		os << "\n";
 
 	}
@@ -185,23 +182,26 @@ void	ParseConfig::	parsevServerBlock( vServer& serv) {
 }
 
 
-Location	ParseConfig::createLocationInstance(const vServer& server) {
+std::string	ParseConfig::findLocationPath() {
 	
 	currToken++;//move to the path
-
-	std::string	locationPath = Location::setLocationPath(_tokens[currToken].lexem);
-	if (_tokens[currToken + 1].type != OPENED_BRACE)
+	if (_tokens[currToken].lexem.at(0) != '/')
+		throw ConfException(std::to_string(_tokens[currToken].line_number) + ":: Location directive must be followed by a '/path'");
+	else if (_tokens[currToken + 1].type != OPENED_BRACE)
 		throw ConfException(std::to_string(_tokens[currToken].line_number) + " :: No open brace.");
+
+	std::string	path = _tokens[currToken].lexem;
 	currToken += 2;//move to a directive
-	Location	loc(server);
-	loc._locationPath = locationPath;
-	return (loc);
+	return (path);
 }
 
 
 void	ParseConfig::validateLocationBlockDirectives(vServer& server) {
 	
-Location	loc = createLocationInstance(server);
+Location	loc(server);
+
+std::string locationPath = findLocationPath();
+loc.setLocationPath(locationPath);
 	
 for (; _tokens[currToken].type != CLOSED_BRACE; currToken++) {
 	
@@ -209,35 +209,35 @@ for (; _tokens[currToken].type != CLOSED_BRACE; currToken++) {
 
 	switch (pair.first.type) {
 		case ROOT_DIR:
-			loc._locationRoot = vServer::onlyOneArgumentCheck(pair.second, "root");
+			loc.setLocationRoot(vServer::onlyOneArgumentCheck(pair.second, "root"));
 		break;
 		
 		case INDEX_DIR:
-			loc._locationIndex = vServer::onlyOneArgumentCheck(pair.second, "index");
+			loc.setLocationIndex(vServer::onlyOneArgumentCheck(pair.second, "index"));
 		break;
 			
 		case AUTO_INDEX_DIR:
-			loc._locationAutoIndex = vServer::validateAutoIndexDirective(pair.second);
+			loc.setLocationAutoIndex(vServer::validateAutoIndexDirective(pair.second));
 		break;
 			
 		case BODY_MAX_SIZE:
-			loc._locationClientMaxSize = vServer::validateClientMaxSizeDirective(pair.second);
+			loc.setLocationClientMaxSize(vServer::validateClientMaxSizeDirective(pair.second));
 		break;
 
 		case RETURN_DIR:
-			loc._locationReturnPages = Location::setLocationReturnPages(pair.second);
+			loc.setLocationReturnPages(Location::setLocationReturnPages(pair.second));
 		break;
 			
 		case ALLOWED_METHODS:
-			loc._locationAllowedMethods = vServer::validateAllowedMethodsDirective(pair.second);
+			loc.validateAllowedMethodsDirective(pair.second);
 		break;
 			
 		case ERROR_PAGE_DIR:
-			loc._locationErrorPages = vServer::validateErrorPagesDirective(pair.second);
+			loc.setLocationErrorPages(vServer::validateErrorPagesDirective(pair.second));
 		break;
 			
 		default:
-			throw ConfException("No such a directive: " +  pair.first.lexem);
+			throw ConfException("Invalid directive name: " + pair.first.lexem + " not found!");
 		}
 	}
 	server.getServerLocations().push_back(loc);
@@ -250,39 +250,35 @@ std::pair< Token, std::vector<std::string>> pair = makeKeyValuePair();
 
 switch (pair.first.type) {
 	case LISTEN_DIR:
-		serv.setServerListen(pair.second);
+		serv.validateServerListen(pair.second);
 	break;
 	
 	case SERVER_NAME_DIR:
-		serv.setServerNames(pair.second);
+		serv.validateServerNames(pair.second);
 	break;
 	
 	case ROOT_DIR:
-		serv.setServerRoot(pair.second);
+		serv.setServerRoot(vServer::onlyOneArgumentCheck(pair.second, "root"));
 	break;
 	
 	case INDEX_DIR:
-		serv.setServerIndex(pair.second);
+		serv.setServerIndex(vServer::onlyOneArgumentCheck(pair.second, "index"));
 	break;
 	
 	case AUTO_INDEX_DIR:
-		serv.setServerAutoIndex(pair.second);
+		serv.setServerAutoIndex(vServer::validateAutoIndexDirective(pair.second));
 	break;
 	
 	case BODY_MAX_SIZE:
-		serv.setServerClientMaxSize(pair.second);
-	break;
-	
-	case ALLOWED_METHODS:
-		serv.setServerAllowedMethods(pair.second);
+		serv.setServerClientMaxSize(vServer::validateClientMaxSizeDirective(pair.second));
 	break;
 	
 	case ERROR_PAGE_DIR:
-		serv.setServerErrorPages(pair.second);
+		serv.setServerErrorPages(vServer::validateErrorPagesDirective(pair.second));
 	break;
 	
 	default:
-		throw ConfException("Invalid directive: " + pair.first.lexem);
+		throw ConfException("Invalid directive name: " + pair.first.lexem + " not found!");
 }
 }
 
