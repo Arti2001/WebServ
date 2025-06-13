@@ -1,7 +1,7 @@
 #include "CGIHandler.hpp"
 #include <sys/select.h>
 
-Response CGIHandler::handle(const HTTPRequest& req) {
+Response CGIHandler::handle(const Request& req) {
     try {
         if (!isCGIRequest(req.getUri())) {
             throw CGIException("Not a CGI request");
@@ -93,7 +93,7 @@ std::pair<std::string, std::string> CGIHandler::extractScriptNameAndPathInfo(con
     return std::make_pair(scriptName, pathInfo);
 }
 
-std::vector<std::string> CGIHandler::buildEnvironmentStrings(const HTTPRequest& req, const std::string& scriptPath) {
+std::vector<std::string> CGIHandler::buildEnvironmentStrings(const Request& req, const std::string& scriptPath) {
     std::vector<std::string> envStrings;
     std::string uri = req.getUri();
     (void) scriptPath;
@@ -107,7 +107,7 @@ std::vector<std::string> CGIHandler::buildEnvironmentStrings(const HTTPRequest& 
     }
 
     envStrings.push_back("GATEWAY_INTERFACE=CGI/1.1");
-    envStrings.push_back("SERVER_PROTOCOL=" + req.getVersion());
+    envStrings.push_back("SERVER_PROTOCOL=" + req.getHttpVersion());
     envStrings.push_back("REQUEST_METHOD=" + req.getMethod());
     envStrings.push_back("SCRIPT_NAME=" + scriptName);
     envStrings.push_back("PATH_INFO=" + pathInfo);
@@ -176,7 +176,7 @@ std::string CGIHandler::getInterpreter(const std::string& scriptPath) {
     return "";
 }
 
-std::vector<char> CGIHandler::executeScript(const HTTPRequest& req, const std::string& scriptPath) {
+std::vector<char> CGIHandler::executeScript(const Request& req, const std::string& scriptPath) {
     //setup pipes for communication
     int stdin_pipe[2];
     int stdout_pipe[2];
