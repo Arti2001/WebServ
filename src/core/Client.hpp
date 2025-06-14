@@ -25,7 +25,7 @@ class Client{
 		size_t 					_bodyStart;
 
 		size_t					_clientBytesSent;
-		Response				_response;
+		std::string				_clientResponse;
 		int						_serverFd;
 		ServerManager*			_serverManager;
 		std::time_t				_lastActiveTime;

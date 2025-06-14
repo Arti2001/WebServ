@@ -6,7 +6,7 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:04:57 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/14 14:31:48 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/06/14 15:36:37 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,14 +15,17 @@
 
 #include "../Client.hpp"
 #include "../Request/Request.hpp"
+#include "../ServerManager.hpp"
 
 class Response {
     private:
-        int _status_code;
+        Request *_request;
+        ServerManager *_serverManager;
+        int _clientSocket;
         std::map<std::string, std::string> _headers;
         std::vector<char> _body;
         int _statusCode; // HTTP status code (e.g., 200, 404, 500)
-        std::string _response;
+        std::string _rawResponse;
         std::string _statusMessage; // HTTP status message (e.g., "OK", "Not Found", "Internal Server Error")
         std::unordered_map<std::string, std::string> _headers; // HTTP headers for the response
         std::string _body; // Body of the response
@@ -64,7 +67,7 @@ class Response {
 
     public:
         Response();
-        Response(Request *request, Location *location, int clientSocket);
+        Response(Request *request, ServerManager *serverManager, int clientSocket);
         Response(const Response &src);
         Response &operator=(const Response &src);
         ~Response();
@@ -85,6 +88,7 @@ class Response {
         void setBody(const std::string &body);
         const std::vector<char>& getBody() const;
         const std::string &getBody() const;
+        const std::string& getRawResponse() const;
 
 
         //Serialize status line, headers and body into raw bytes

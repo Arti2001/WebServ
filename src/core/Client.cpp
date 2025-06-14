@@ -68,28 +68,12 @@ bool Client::isErrorCode(int statusCode)
 }
 
 
-std::string	Client::getResponse(Request &request) {
+std::string	Client::prepareResponse(Request &request) {
 
-	int									socketClientConnectedTo = this->getServerFd();
-	int		_currentStatusCode = _request.getStatusCode();
-	const std::vector<const vServer*>&	subServConfigs = _serverManager->findServerConfigsByFd(socketClientConnectedTo);
-	if (isErrorCode(_currentStatusCode) || subServConfigs.empty()) {
-		std::cerr << "No server configurations found for the connected socket." << std::endl;
-		// Handle the error, e.g., return a 500 Internal Server Error response
-		_currentStatusCode = 500;
-	}
-	std::string							hostHeaderValue = getAnyHeader(request.getHeaders(), "Host");
-	if (isErrorCode(_currentStatusCode) || hostHeaderValue.empty()) {
-		std::cerr << "Host header is missing in the request." << std::endl;
-		// Handle the error, e.g., return a 400 Bad Request response
-		_currentStatusCode = 400;
-	}
-	const vServer&						askedServConfig = _serverManager->findServerConfigByName(subServConfigs, hostHeaderValue);
-	const Location&						askedLocationBlock = _serverManager->findLocationBlockByUri(askedServConfig, request.getUri());
-
-	_response = Response(_request, askedLocationBlock, socketClientConnectedTo);
-	_response.generateResponse();
-	return (_response);
+	int		socketClientConnectedTo = this->getServerFd();
+	Response response(_request, _serverManager, socketClientConnectedTo);
+	response.generateResponse();
+	return (response.getRawResponse());
 }
 
 
