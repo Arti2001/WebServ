@@ -17,17 +17,22 @@ class RequestParser;
 class Client{
 
 	private:
+		//
 		Request					_request;
 		std::string				_startLineAndHeadersBuffer;
 		std::string				_bodyBuffer;
 		bool					_headersParsed;
 		size_t 					_bodyStart;
-		std::string				_clientResponse;
+
 		size_t					_clientBytesSent;
+		Response				_response;
 		int						_serverFd;
 		ServerManager*			_serverManager;
 		std::time_t				_lastActiveTime;
 		bool					_closed;
+
+		bool					headersComplete(const std::string& request);
+		bool 					bodyComplete(const std::string& body) const;
 	public:
 		Client(int	serverFd, ServerManager* servManager);
 		~Client();
@@ -45,18 +50,14 @@ class Client{
 		//bool&				getIsClosed(void);
 		int					getServerFd( void ) const;
 		size_t&				getClientsBytesSent( void );
-		const std::string&	getClientsResponse( void ) const;
 		Request&			getRequest( void ) { return (_request); }
+		Response&			getResponse(void) {return (_response);}
 
 		//methods
 
 
 		void					handleRequest( int clientFd );
-		void					handleBody(int clientFd, const std::string& incomingData);
-		bool					headersComplete(const std::string& request);
-		bool 					bodyComplete(const std::string& body) const;
-		void					sendResponse( int clientFd );
-		void					addToRequestBuff(char* chunk, size_t bytesread);
+		void					handleResponse( int clientFd );
 		
 		std::string				getResponse(Request &request);
 		std::string				getCgiResponse(Request &request);

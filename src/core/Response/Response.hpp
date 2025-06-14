@@ -6,34 +6,74 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:04:57 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/04/18 16:07:36 by pminialg      ########   odam.nl         */
+/*   Updated: 2025/06/14 14:31:48 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef RESPONSE_HPP
 #define RESPONSE_HPP
 
-#include <iostream>
-#include <map>
-#include <string>
-#include <vector>
-#include <sstream>
+#include "../Client.hpp"
+#include "../Request/Request.hpp"
+
 class Response {
     private:
         int _status_code;
-        std::string _reason_phrase;
         std::map<std::string, std::string> _headers;
         std::vector<char> _body;
+        int _statusCode; // HTTP status code (e.g., 200, 404, 500)
+        std::string _response;
+        std::string _statusMessage; // HTTP status message (e.g., "OK", "Not Found", "Internal Server Error")
+        std::unordered_map<std::string, std::string> _headers; // HTTP headers for the response
+        std::string _body; // Body of the response
+        std::unordered_map<int, std::string> _statusMessages = {
+            {200, "OK"},
+            {301, "Moved Permanently"},
+            {400, "Bad Request"},
+            {401, "Unauthorized"},
+            {403, "Forbidden"},
+            {404, "Not Found"},
+            {405, "Method Not Allowed"},
+            {408, "Request Timeout"},
+            {409, "Conflict"},
+            {413, "Payload Too Large"},
+            {414, "URI Too Long"},
+            {415, "Unsupported Media Type"},
+            {416, "Range Not Satisfiable"},
+            {418, "I'm a teapot"},
+            {429, "Too Many Requests"},
+            {471, "Mr. Worldwide"},
+            {500, "Internal Server Error"},
+            {501, "Not Implemented"},
+            {503, "Service Unavailable"}
+        };
+
+        void createStartLine(); // Create the start line of the HTTP response
+        void createHeaders(); // Create the headers for the HTTP response
+        void defaultHeaders(); // Set default headers for the response
+        void createBody(); // Create the body of the HTTP response
+
+        void handleGetRequest();
+        void handlePostRequest();
+        void handleDeleteRequest();
+        void handleCGIRequest(); // private
+        void handleRedirectRequest(); // private
+        void makeRegularResponse(const std::string &path);
+        void makeChunkedResponse(const std:: string &path);
+
 
     public:
         Response();
+        Response(Request *request, Location *location, int clientSocket);
+        Response(const Response &src);
+        Response &operator=(const Response &src);
         ~Response();
 
         //Status line
         int getStatusCode() const;
         void setStatusCode(int statusCode);
-        const std::string& getReasonPhrase() const;
-        void setReasonPhrase(const std::string& reasonPhrase);
+        const std::string& getStatusMessage() const;
+        void setStatusMessage(const std::string& reasonPhrase);
 
         //Headers
         void addHeader(const std::string& key, const std::string& value);
@@ -42,10 +82,19 @@ class Response {
         //Body
         void setBody(const std::vector<char>& body);
         void setBody(std::vector<char>&& body);
+        void setBody(const std::string &body);
         const std::vector<char>& getBody() const;
+        const std::string &getBody() const;
+
 
         //Serialize status line, headers and body into raw bytes
         std::vector<char> serialize() const;
+        void generateResponse(); // Generate the full HTTP response string
+        void generateErrorResponse(); // Generate an error response
+        std::vector<char> generateDirectoryListing(const std::string& fsPath, const std::string& urlPath);
+
+
+
 };
 
 #endif

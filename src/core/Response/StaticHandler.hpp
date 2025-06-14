@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>                +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:25 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/13 12:11:36 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/06/14 14:08:04 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,24 +15,9 @@
 
 #include "../parsingConfFile/vServer.hpp"
 #include "../Request/Request.hpp"
-#include "../parsingResponse/Response.hpp"
+#include "../Response/Response.hpp"
 #include "MimeTypes.hpp"
 #include "../Utils.hpp"
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <dirent.h>
-#include <sstream>
-
-//struct Location {
-//   std::string _path;
-//   std::string _root;
-//   std::string _index;
-//   bool _auto_index;
-//   unsigned _clientMaxSize;
-//   std::vector<std::string> _allowedMethods;
-//   std::unordered_map<int, std::string> _errorPages;
-//};
 
 class StaticHandler {
     private:

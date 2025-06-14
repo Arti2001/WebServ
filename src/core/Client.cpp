@@ -60,35 +60,41 @@ std::string	Client::getCgiResponse(Request &request) {
 	return(respStr);
 }
 
-
-// std::string	Client::getResponse(Request &request) {
-
-// 	int									socketClientConnectedTo = this->getServerFd();
-// 	const std::vector<const vServer*>&	subServConfigs = _serverManager->findServerCofigsByFd(socketClientConnectedTo);
-// 	std::string							hostHeaderValue = getAnyHeader(request.getHeaders(), "Host");
-// 	const vServer&						askedServConfig = _serverManager->findServerConfigByName(subServConfigs, hostHeaderValue);
-// 	const Location&						askedLocationBlock = _serverManager->findLocationBlockByUrl(askedServConfig, request.getUri());
-// 	std::cout << " URI is: " + request.getUri()<< "\n";
-// 	std::cout << " Returnd location is: " + askedLocationBlock._locationPath << "\n";
+bool Client::isErrorCode(int statusCode)
+{
+	if (statusCode >= 400 && statusCode <= 599)
+		return true;
+	return false;
+}
 
 
-// 	StaticHandler handler;
-// 	Response response= handler.serve(request, askedLocationBlock);
+std::string	Client::getResponse(Request &request) {
 
-// 	std::vector<char> respVector = response.serialize();
-// 	std::string respStr(respVector.begin(), respVector.end());
-// 	return (respStr);
-// }
+	int									socketClientConnectedTo = this->getServerFd();
+	int		_currentStatusCode = _request.getStatusCode();
+	const std::vector<const vServer*>&	subServConfigs = _serverManager->findServerConfigsByFd(socketClientConnectedTo);
+	if (isErrorCode(_currentStatusCode) || subServConfigs.empty()) {
+		std::cerr << "No server configurations found for the connected socket." << std::endl;
+		// Handle the error, e.g., return a 500 Internal Server Error response
+		_currentStatusCode = 500;
+	}
+	std::string							hostHeaderValue = getAnyHeader(request.getHeaders(), "Host");
+	if (isErrorCode(_currentStatusCode) || hostHeaderValue.empty()) {
+		std::cerr << "Host header is missing in the request." << std::endl;
+		// Handle the error, e.g., return a 400 Bad Request response
+		_currentStatusCode = 400;
+	}
+	const vServer&						askedServConfig = _serverManager->findServerConfigByName(subServConfigs, hostHeaderValue);
+	const Location&						askedLocationBlock = _serverManager->findLocationBlockByUri(askedServConfig, request.getUri());
+
+	_response = Response(_request, askedLocationBlock, socketClientConnectedTo);
+	_response.generateResponse();
+	return (_response);
+}
 
 
 
 //curl -v -H "Host: server3.com" http://127.0.0.1:8055/
-
-// the logic should be following:
-// 1. Read the request from the client, save the raw request as a string in Request class
-// 2. Parse the request to extract the URI (path and query), headers and body, including chunked transfer encoding if applicable
-// 3. Determine and save the target server and location block based on the "host" header
-// 
 
 bool Client::headersComplete(const std::string& request) {
 	// Check if the request ends with a double CRLF, indicating the end of headers
@@ -176,11 +182,16 @@ void    Client::handleRequest (int clientFd) {
 }
 
 
-void	Client::sendResponse(int clientFd) {
+void	Client::handleResponse(int clientFd) {
+	
+	// here i first should do the following:
+	// 1. have a function that will use the request to match the server and location block
+	// 2. generate the response based on the request and location block. if it is cgi request
+	// 3. send the response to the client
 	
 	size_t&		totalBytesSent = this->getClientsBytesSent();
 	const char*	servResp = this->getClientsResponse().c_str();
-	size_t		responseSize = strlen(servResp);
+	size_t		responseSize = this->getClientsResponse.size();
 	ssize_t		bytesSent = send(clientFd, servResp + totalBytesSent, responseSize - totalBytesSent, 0);
 
 	if (bytesSent == -1) {
@@ -188,14 +199,12 @@ void	Client::sendResponse(int clientFd) {
 		return;
 	}
 	totalBytesSent += bytesSent;
-	if (totalBytesSent == strlen(servResp)) {
+	if (totalBytesSent == responseSize) {
 		std::cout << "All data sent" << "\n";
 		_serverManager->closeClientFd(clientFd);
 		totalBytesSent = 0;
 	}
 }
-
-
 
 std::string Client::getAnyHeader(std::unordered_map<std::string, std::string> headers, std::string headerName) {
 
