@@ -15,6 +15,7 @@
 #include "../Request/Request.hpp"
 #include "../parsingResponse/Response.hpp"
 
+
 class CGIHandler {
     public:
         CGIHandler() = default;

@@ -112,7 +112,7 @@ void vServer::validateServerListen(const std::vector<std::string>& addressVector
 	std::smatch matches;
 
 	if (addressVector.size() != MAX_ARG) {
-		throw ParseConfig::ConfException("Invalid listen directive: expected exactly one argument in 'IP:Port' format.");
+		throw ParseConfig::ConfException("Invalid listen directive: expected only one argument, following 'IP:Port' format.");
 	}
 
 	const std::string& address = addressVector.at(0);
@@ -141,6 +141,9 @@ void vServer::validateServerListen(const std::vector<std::string>& addressVector
 }
 
 
+
+
+
 void	vServer::validateServerNames(std::vector<std::string>& namesVector) {
 
 	if (namesVector.size() > MAX_SERVER_NAME_NUMB) {
@@ -158,6 +161,8 @@ void	vServer::validateServerNames(std::vector<std::string>& namesVector) {
 			throw ParseConfig::ConfException("Input does not match 'example.com' format .\n");
 	}
 }
+
+
 const std::string&	vServer::onlyOneArgumentCheck(const std::vector<std::string>& pathVector, std::string directiveName) {
 
 	if (pathVector.size() != MAX_ARG) {
@@ -223,9 +228,40 @@ size_t	vServer::validateClientMaxSizeDirective(const std::vector<std::string>& s
 
 
 
+//std::unordered_map<int, std::string>	vServer::validateErrorPagesDirective(const std::vector<std::string>& errorPagesVector) {
+
+//	std::set<int>							errorCodesSet {404, 403, 409, 500, 301, 406}; // instead do the range between 400 and 599 as these cover the error codes
+//	int										errorCode;
+//	std::unordered_map<int, std::string>	errorPagesMap;
+
+//	if (errorPagesVector.size() != MAX_ARG_ERROR_PAGE) {
+
+//		throw ParseConfig::ConfException("Invalid error_pages directive: expected error code and path");
+//	}
+
+//	try {
+//		errorCode =  stoi(errorPagesVector.at(0), nullptr, 10);
+//	}
+//	catch (const std::exception& e) {
+//		throw ParseConfig::ConfException("Invalid error code: must be a number");
+//	}
+	
+//	if (!errorCodesSet .count(errorCode)) {
+//		throw ParseConfig::ConfException("Unsupported error code: " + std::to_string(errorCode));
+//	}
+//	const	std::string& errorPagePath = errorPagesVector.at(1);
+//	if (errorPagePath.empty()) {
+
+//		throw ParseConfig::ConfException("Invalid error page path: must start with '/'");
+//	}
+
+//	errorPagesMap[errorCode] = errorPagePath;
+//	return	errorPagesMap;
+//}
+
+
 std::unordered_map<int, std::string>	vServer::validateErrorPagesDirective(const std::vector<std::string>& errorPagesVector) {
 
-	std::set<int>							errorCodesSet {404, 403, 409, 500, 301, 406}; // instead do the range between 400 and 599 as these cover the error codes
 	int										errorCode;
 	std::unordered_map<int, std::string>	errorPagesMap;
 
@@ -240,10 +276,9 @@ std::unordered_map<int, std::string>	vServer::validateErrorPagesDirective(const 
 	catch (const std::exception& e) {
 		throw ParseConfig::ConfException("Invalid error code: must be a number");
 	}
-	
-	if (!errorCodesSet .count(errorCode)) {
-		throw ParseConfig::ConfException("Unsupported error code: " + std::to_string(errorCode));
-	}
+	if (errorCode < 400 || errorCode > 599)
+		throw ParseConfig::ConfException("Invalid error code: " + std::to_string(errorCode));
+		
 	const	std::string& errorPagePath = errorPagesVector.at(1);
 	if (errorPagePath.empty()) {
 
