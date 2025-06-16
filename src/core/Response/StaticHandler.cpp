@@ -243,20 +243,27 @@ Response StaticHandler::loadErrorPage(const Location& loc, int code) {
     return resp;
 }
 
-std::vector<char> StaticHandler::generateDirectoryListing(const std::string& fsPath, const std::string& urlPath) {
+std::string StaticHandler::generateDirectoryListing(const std::string& fsPath, const std::string& urlPath) {
     std::ostringstream html;
     html << "<html><head><title>Index of " << urlPath << "</title></head><body>";
     html << "<h1>Index of " << urlPath << "</h1><ul>";
 
     DIR* dir = opendir(fsPath.c_str());
+    if (!dir) {
+        // You might want to throw an error or return a message
+        return "<html><body><h1>Unable to open directory</h1></body></html>";
+    }
+
     struct dirent* entry;
     while ((entry = readdir(dir))) {
         std::string name = entry->d_name;
+        // Skip "." and ".." optionally
+        if (name == "." || name == "..") continue;
+
         html << "<li><a href=\"" << name << "\">" << name << "</a></li>";
     }
     closedir(dir);
 
     html << "</ul></body></html>";
-    std::string body = html.str();
-    return std::vector<char>(body.begin(), body.end());
+    return html.str();
 }

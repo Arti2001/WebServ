@@ -6,7 +6,7 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:04:57 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/16 17:10:04 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/06/16 17:59:50 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ class Response {
         Request *_request;
         ServerManager *_serverManager; // Server manager to access server configurations
         vServer *_serverConfig; // virtual server configuration for the response
-        Location *_location; // Location configuration for the response
+        Location *_locationConfig; // Location configuration for the response
         int _clientSocket;
         int _statusCode; // HTTP status code (e.g., 200, 404, 500)
         std::string _rawResponse;
@@ -40,17 +40,10 @@ class Response {
             {404, "Not Found"},
             {405, "Method Not Allowed"},
             {408, "Request Timeout"},
-            {409, "Conflict"},
-            {413, "Payload Too Large"},
-            {414, "URI Too Long"},
-            {415, "Unsupported Media Type"},
-            {416, "Range Not Satisfiable"},
             {418, "I'm a teapot"},
             {429, "Too Many Requests"},
-            {471, "Mr. Worldwide"},
             {500, "Internal Server Error"},
-            {501, "Not Implemented"},
-            {503, "Service Unavailable"}
+            {505, "HTTP Version Not Supported"}
         };
 
         void createStartLine(); // Create the start line of the HTTP response
@@ -63,8 +56,16 @@ class Response {
         void handleDeleteRequest();
         void handleCGIRequest(); // private
         void handleRedirectRequest(); // private
+        
         void makeRegularResponse(const std::string &path);
         void makeChunkedResponse(const std:: string &path);
+        void generateErrorResponse(); // Generate an error response
+        void matchServer(); // Match the server configuration based on the request
+        void matchLocation(); // Match the location configuration based on the request
+        bool isMethodAllowed(const std::string &method) const; // Check if the method is allowed in the location
+        bool fileExists(const std::string &path); // Check if the file exists
+        bool isLargeFile(const std::string &path); // Check if the file is larger than a certain threshold
+        std::string generateDirectoryListing(const std::string& fsPath, const std::string& urlPath);
 
 
     public:
@@ -89,15 +90,7 @@ class Response {
         const std::string &getBody() const;
         const std::string& getRawResponse() const;
 
-
-        //Serialize status line, headers and body into raw bytes
-        std::vector<char> serialize() const;
         void generateResponse(); // Generate the full HTTP response string
-        void generateErrorResponse(); // Generate an error response
-        std::string generateDirectoryListing(const std::string& fsPath, const std::string& urlPath);
-
-
-
 };
 
 #endif

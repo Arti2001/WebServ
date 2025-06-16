@@ -6,7 +6,7 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/16 17:24:41 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/06/16 18:10:35 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,19 +56,6 @@ void Response::setBody(const std::string &body) {
 const std::string Response::getBody() const {
     return _body;
 }
-
-// std::vector<char> Response::serialize() const {
-//     std::ostringstream resp_line;
-//     resp_line << "HTTP/1.1 " << _status_code << " " << _reason_phrase << "\r\n";
-//     for (auto& h : _headers) {
-//         resp_line << h.first << ": " << h.second << "\r\n";
-//     }
-//     resp_line << "\r\n";
-//     std::string resp_line_str = resp_line.str();
-//     std::vector<char> response(resp_line_str.begin(), resp_line_str.end());
-//     response.insert(response.end(), _body.begin(), _body.end());
-//     return response;
-// }
 
 void matchServer() {
     const std::vector<const vServer*>&	subServConfigs = _serverManager->findServerConfigsByFd(socketClientConnectedTo);
@@ -139,15 +126,11 @@ void Response::generateResponse() {
 }
 
 void Response::handleGetRequest() {
-    std::string path = _request->getPath(); // e.g., "/images/cat.png"
-
-    // Match location or server config block that applies to this path
-    matchLocation();
-    if (!_locationConfig) {
-        setStatusCode(404);
+    if (!isMethodAllowed("GET")) {
+        setStatusCode(405); // Method Not Allowed
         return generateErrorResponse();
     }
-
+    std::string path = _request->getPath(); // e.g., "/images/cat.png"
     std::string fullPath = _locationConfig->getRoot() + resolveRelativePath(path, _locationConfig->getPath());
 
     if (!fileExists(fullPath)) {
@@ -155,8 +138,10 @@ void Response::handleGetRequest() {
         return generateErrorResponse();
     }
 
-    if (isLargeFile(fullPath)) {
+    if (isLargeFile(fullPath) && _statusCode < 400) {
         makeChunkedResponse(fullPath);
+    } else if (_statusCode >= 400 ) {
+        generateErrorResponse();
     } else {
         makeRegularResponse(fullPath);
     }
@@ -199,10 +184,9 @@ bool Response::fileExists(const std::string &path) {
 
 bool Response::isLargeFile(const std::string &path) {
     struct stat fileStat;
-
     // Use stat() to get file information
     if (stat(path.c_str(), &fileStat) == -1) {
-        perror("stat");  // optional: prints error to stderr
+        setStatusCode(404);
         return false;    // Could not access file
     }
     // Compare file size to buffer size
@@ -301,7 +285,40 @@ void Response::handleRedirectRequest() {
     }
 }
 
+void Response::handlePostRequest() {
+    if (!isMethodAllowed("POST")) {
+        setStatusCode(405); // Method Not Allowed
+        return generateErrorResponse();
+    }
+    
+    // Handle POST request logic here
+    // This is a placeholder for the actual POST handling logic
+    // For example, you might want to process form data or upload files
+    _body = "POST request handled successfully"; // Example response body
+    setStatusCode(200); // Set status code to 200 OK
+    addHeader("Content-Type", "text/plain");
+    addHeader("Content-Length", std::to_string(_body.size()));
+}
+
+void Response::handleDeleteRequest() {
+    if (!isMethodAllowed("DELETE")) {
+        setStatusCode(405); // Method Not Allowed
+        return generateErrorResponse();
+    }
+    
+    // Handle DELETE request logic here
+    // This is a placeholder for the actual DELETE handling logic
+    // For example, you might want to delete a resource identified by the request path
+    _body = "DELETE request handled successfully"; // Example response body
+    setStatusCode(200); // Set status code to 200 OK
+    addHeader("Content-Type", "text/plain");
+    addHeader("Content-Length", std::to_string(_body.size()));
+}
+
 void Response::createStartLine() {
+    if (_statusMessages.find(_statusCode) = = _statusMessages.end()) 
+        _statusCode = 418; // Default to "I'm a teapot" if status code is not recognized 
+    _statusMessage = _statusMessages[_statusCode];
     std::string startLine = _request->getHttpVersion() + " " + std::to_string(_statusCode) + " " + _statusMessage + "\r\n";
     _response += startLine;
 }
@@ -313,4 +330,32 @@ void Response::createHeaders(){
     }
     _response += "\r\n"; // End of headers
     // need to add default headers as well as headers depending on request
+}
+
+std::string Response::generateDirectoryListing(const std::string& fsPath, const std::string& urlPath) {
+    std::ostringstream html;
+    html << "<html><head><title>Index of " << urlPath << "</title></head><body>";
+    html << "<h1>Index of " << urlPath << "</h1><ul>";
+
+    DIR* dir = opendir(fsPath.c_str());
+    if (!dir) {
+        setStatusCode(500); // Internal Server Error
+        return generateErrorResponse();
+    }
+
+    struct dirent* entry;
+    std::vector<std::string> entries;
+    while ((entry = readdir(dir))) {
+        std::string name = entry->d_name;
+        if (name == "." || name == "..") continue;
+        entries.push_back(name);
+    }
+    std::sort(entries.begin(), entries.end()); // Sort entries alphabetically
+    for (const std::string& name : entries) {
+        html << "<li><a href=\"" << urlEncode(name) << "\">" << name << "</a></li>";
+    }
+    closedir(dir);
+
+    html << "</ul></body></html>";
+    return html.str();
 }
