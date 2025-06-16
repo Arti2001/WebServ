@@ -174,9 +174,10 @@ void	ParseConfig::	parsevServerBlock( vServer& serv) {
 			depth -= LEVEL;
 		}
 		else{
+			std::cout<< _tokens[currToken].lexem << " = " << _tokens[currToken].type <<"\n";
+			if (_tokens[currToken].type != COMMENT) 
 				throw ConfException("Alien object is detected at the line: " + std::to_string(_tokens[currToken].line_number));
 		}
-
 		currToken++;
 	}
 }

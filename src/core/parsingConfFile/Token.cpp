@@ -68,36 +68,22 @@ std::vector<std::string>	split(const std::string& str) {
 }
 
 
-
-
-
 void	ParseConfig::tokenizeConfigData(std::map<size_t, std::vector<std::string>> lineNumbLexemes) {
 
+	TokenType													tokenType;
+	for(std::map<size_t, std::vector<std::string>>::iterator	itMap = lineNumbLexemes.begin(); itMap != lineNumbLexemes.end(); itMap++) {
+		
+		TokenType	prevTokenType = UNKNOWN;
+		size_t		lineNumber = itMap->first;
 
-    std::map<size_t, std::vector<std::string>>::iterator	itMap = lineNumbLexemes.begin();
-	size_t													lineNumber = 0;
-	std::string												word;
-	TokenType												tokenType;
-	TokenType												prevTokenType = UNKNOWN;
+		for (const std::string& word : itMap->second) {
 
-
-
-	for (; itMap != lineNumbLexemes.end();itMap++)
-	{
-		lineNumber = itMap->first;
-		for(std::vector<std::string>::iterator itVector = itMap->second.begin(); itVector !=  itMap->second.end(); itVector++) {
-			word = *itVector;
-			if (_keywords.find(*itVector) != _keywords.end()) {	
-				tokenType = _keywords[*itVector];
+			if (_keywords.find(word) != _keywords.end()) {
+				tokenType = _keywords[word];
 			}
 			else {
-				if (prevTokenType == SEMICOLON ) {
-
-					std::cout<< "previous was semcolon, current is  " + word << "\n";
-						while(_keywords.find(*itVector) == _keywords.end()){
-							
-							itVector++;
-						}
+				if (prevTokenType == SEMICOLON || prevTokenType == COMMENT) {
+					tokenType = COMMENT;
 				}
 				else
 					tokenType = UNKNOWN;
