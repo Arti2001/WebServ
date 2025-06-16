@@ -8,18 +8,18 @@ StaticHandler::~StaticHandler() {}
 Response StaticHandler::serveGet(const Request& req, const Location& loc) {
     // 1) Method must be allowed
 
-    if (std::find(loc._locationAllowedMethods.begin(), loc._locationAllowedMethods.end(),
-                  "GET") == loc._locationAllowedMethods.end()) {
+    if (std::find(loc.getLocationAllowedMethods().begin(), loc.getLocationAllowedMethods().end(),
+                  "GET") == loc.getLocationAllowedMethods().end()) {
         return loadErrorPage(loc, 405);
     }
 
     // Check for return directive first
-    if (loc._locationReturnPages.first != 0) {
+    if (loc.getLocationReturnPages().first != 0) {
         Response resp;
-        resp.setStatusCode(loc._locationReturnPages.first);
+        resp.setStatusCode(loc.getLocationReturnPages().first);
         
         // Set appropriate reason phrase for common status codes
-        switch (loc._locationReturnPages.first) {
+        switch (loc.getLocationReturnPages().first) {
             case 301: resp.setReasonPhrase("Moved Permanently"); break;
             case 302: resp.setReasonPhrase("Found"); break;
             case 303: resp.setReasonPhrase("See Other"); break;
@@ -34,8 +34,8 @@ Response StaticHandler::serveGet(const Request& req, const Location& loc) {
         }
         
         // If it's a redirect code, add Location header
-        if (loc._locationReturnPages.first >= 300 && loc._locationReturnPages.first < 400) {
-            resp.addHeader("Location", loc._locationReturnPages.second);
+        if (loc.getLocationReturnPages().first >= 300 && loc.getLocationReturnPages().first < 400) {
+            resp.addHeader("Location", loc.getLocationReturnPages().second);
         }
         
         // Add standard headers
@@ -50,11 +50,11 @@ Response StaticHandler::serveGet(const Request& req, const Location& loc) {
     // 2) Build the filesystem path
     std::string uri = req.getUri();                   // e.g. "/files" or "/files/"
     // strip the location prefix
-    std::string rel = uri.substr(loc._locationPath.length()); // e.g. "files" or "files/"
+    std::string rel = uri.substr(loc.getLocationPath().length()); // e.g. "files" or "files/"
     if (rel.empty()) rel = "/";                       // treat "/" uniformly
     
     // normalize root with trailing slash
-    std::string fsRoot = loc._locationRoot;
+    std::string fsRoot = loc.getLocationRoot();
     if (fsRoot.back() != '/') fsRoot += '/';
     
     // normalize rel to never start with slash
@@ -85,7 +85,7 @@ Response StaticHandler::serveGet(const Request& req, const Location& loc) {
         // b) try index file
         std::string idxPath = fullPath;
         if (idxPath.back() != '/') idxPath += '/';
-        idxPath += loc._locationIndex;                       // e.g. "./www/files/index.html"
+        idxPath += loc.getLocationIndex();                       // e.g. "./www/files/index.html"
 
         struct stat sb2;
         if (stat(idxPath.c_str(), &sb2) == 0 && S_ISREG(sb2.st_mode)) {
@@ -113,7 +113,7 @@ Response StaticHandler::serveGet(const Request& req, const Location& loc) {
         }
 
         // c) no index, auto-index?
-        if (loc._locationAutoIndex) {
+        if (loc.getLocationAutoIndex()) {
             auto listing = generateDirectoryListing(fullPath, uri);
             Response resp;
             resp.setStatusCode(200);
@@ -165,7 +165,7 @@ Response StaticHandler::serve(const Request& req, const Location& loc) {
     // 1. Check if the method is allowed in the location
     const auto& method = req.getMethod();
     bool methodAllowed = false;
-    for (const auto& allowedMethod : loc._locationAllowedMethods) {
+    for (const auto& allowedMethod : loc.getLocationAllowedMethods()) {
         if (method == allowedMethod) {
             methodAllowed = true;
             break;
@@ -220,9 +220,9 @@ Response StaticHandler::loadErrorPage(const Location& loc, int code) {
         case 500: resp.setReasonPhrase("Internal Server Error"); break;
         default: resp.setReasonPhrase("Error");
     }
-    auto it = loc._locationErrorPages.find(code);
-    if (it != loc._locationErrorPages.end()) {
-        std::string errorPage = loc._locationRoot + it->second;
+    auto it = loc.getLocationErrorPages().find(code);
+    if (it != loc.getLocationErrorPages().end()) {
+        std::string errorPage = loc.getLocationRoot() + it->second;
         struct stat sb;
         if (stat(errorPage.c_str(), &sb) == 0 && S_ISREG(sb.st_mode)) {
             int fd = open(errorPage.c_str(), O_RDONLY);

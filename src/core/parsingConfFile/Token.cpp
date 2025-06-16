@@ -1,5 +1,16 @@
 #include "ParseConfig.hpp"
 
+bool	isComment(const std::string& line) {
+	
+	for (char c : line) {
+		if (isspace(c)) {
+			continue;
+		}
+		return(c == '#'); 
+		
+	}
+	return (false);
+}
 std::string	addSpace(const std::string& str) {
 
 	std::string	new_string;
@@ -27,7 +38,7 @@ std::map<size_t, std::vector<std::string>>	ParseConfig::prepToTokenizeConfigData
 	int											lineCounter = 1;
 
 	while (std::getline(configFile, line)) {
-		if (line.empty() || line.at(0) == '#') {
+		if (line.empty() || isComment(line)) {
 			lineCounter++;
 			continue;
 		}
@@ -55,28 +66,28 @@ std::vector<std::string>	split(const std::string& str) {
 }
 
 
-
-
-
 void	ParseConfig::tokenizeConfigData(std::map<size_t, std::vector<std::string>> lineNumbLexemes) {
 
+	TokenType													tokenType;
+	for(std::map<size_t, std::vector<std::string>>::iterator	itMap = lineNumbLexemes.begin(); itMap != lineNumbLexemes.end(); itMap++) {
+		
+		TokenType	prevTokenType = UNKNOWN;
+		size_t		lineNumber = itMap->first;
 
-    std::map<size_t, std::vector<std::string>>::iterator	itMap = lineNumbLexemes.begin();
-	size_t													lineNumber = 0;
-	std::string												word;
-	TokenType												tokenType;
+		for (const std::string& word : itMap->second) {
 
-
-	for (; itMap != lineNumbLexemes.end();itMap++)
-	{
-		lineNumber = itMap->first;
-		for(std::vector<std::string>::iterator itVector = itMap->second.begin(); itVector !=  itMap->second.end(); itVector++) {
-			word = *itVector;
-			if (_keywords.find(*itVector) != _keywords.end())
-				tokenType = _keywords[*itVector];
-			else
-				tokenType = UNKNOWN;
+			if (_keywords.find(word) != _keywords.end()) {
+				tokenType = _keywords[word];
+			}
+			else {
+				if (prevTokenType == SEMICOLON || prevTokenType == COMMENT) {
+					tokenType = COMMENT;
+				}
+				else
+					tokenType = UNKNOWN;
+			}
 			_tokens.push_back(Token(lineNumber, word, tokenType));
+			prevTokenType = tokenType;
 		}
 	}
 }

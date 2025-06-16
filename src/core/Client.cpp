@@ -69,7 +69,7 @@ std::string	Client::getCgiResponse(Request &request) {
 // 	const vServer&						askedServConfig = _serverManager->findServerConfigByName(subServConfigs, hostHeaderValue);
 // 	const Location&						askedLocationBlock = _serverManager->findLocationBlockByUrl(askedServConfig, request.getUri());
 // 	std::cout << " URI is: " + request.getUri()<< "\n";
-// 	std::cout << " Returnd location is: " + askedLocationBlock._locationPath << "\n";
+// 	std::cout << " Returnd location is: " + askedLocationBlock.getLocationPath()<< "\n";
 
 
 // 	StaticHandler handler;
