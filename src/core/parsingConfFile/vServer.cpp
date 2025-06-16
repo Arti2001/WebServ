@@ -30,80 +30,6 @@ vServer::~vServer() {
 
 
 
-void vServer::validateServerListen(const std::vector<std::string>& addressVector) {
-
-	std::regex ipV4Pattern(R"((\d{1,3}(?:\.\d{1,3}){3}):(\d{1,5}))");
-	std::smatch matches;
-
-	if (addressVector.size() != MAX_ARG) {
-		throw ParseConfig::ConfException("Invalid listen directive: expected exactly one argument in 'IP:Port' format.");
-	}
-
-	const std::string& address = addressVector.at(0);
-
-	if (!std::regex_match(address, matches, ipV4Pattern)) {
-		throw ParseConfig::ConfException("Listen address must match IPv4:Port format (e.g., 127.0.0.1:8080).");
-	}
-
-	std::string ipStr = matches[1];
-	std::string portStr = matches[2];
-
-	int portInt;
-	try {
-		portInt = std::stoi(portStr);
-	} catch (const std::exception& e) {
-		throw ParseConfig::ConfException("Port is not a valid number.");
-	}
-
-	if (portInt < MIN_PORT_NUMB || portInt > MAX_PORT_NUMB) {
-		throw ParseConfig::ConfException("Port number is out of valid range (1–65535).");
-	}
-
-	_vServerIp = ipStr;
-	_vServerPort = portStr;
-	_vServerIpPort = address;
-}
-
-
-void	vServer::validateServerNames(std::vector<std::string>& namesVector) {
-
-	if (namesVector.size() > MAX_SERVER_NAME_NUMB) {
-		throw ParseConfig::ConfException("Invalid server-name directive: max 2 names");
-	}
-
-	std::regex namePattern(R"(^[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+$)");
-	for (std::string& name : namesVector) {
-
-		if (std::regex_match(name, namePattern) || (name == "localhost")) {
-			_vServerNames.clear();
-			_vServerNames.push_back(name);
-		}
-		else
-			throw ParseConfig::ConfException("Input does not match 'example.com' format .\n");
-	}
-}
-
-//void	vServer::setServerRoot(const std::vector<std::string>& pathVec) {
-//	_vServerRoot = onlyOneArgumentCheck(pathVec, "root");
-//}
-
-//void	vServer::setServerIndex(const std::vector<std::string>& indexVec) {
-//	_vServerIndex = onlyOneArgumentCheck(indexVec, "index");
-//}
-
-//void	vServer::setServerAutoIndex(const std::vector<std::string>& flagVec) {
-//	_vServerAutoIndex = validateAutoIndexDirective(flagVec);
-//}
-
-//void	vServer::setServerClientMaxSize(const std::vector<std::string>& sizevec) {
-//	_vServerClientMaxSize = validateClientMaxSizeDirective(sizevec);
-//}
-
-//void	vServer::setServerErrorPages(const std::vector<std::string>& pages) {
-
-//	const std::unordered_map<int, std::string> validated = validateErrorPagesDirective(pages);
-//	_vServerErrorPages.insert(validated.begin(), validated.end());
-//}
 
 
 //setters
@@ -182,6 +108,58 @@ unsigned								vServer::getServerClientMaxSize( void ) const {
 
 //validators
 
+void vServer::validateServerListen(const std::vector<std::string>& addressVector) {
+
+	std::regex ipV4Pattern(R"((\d{1,3}(?:\.\d{1,3}){3}):(\d{1,5}))");
+	std::smatch matches;
+
+	if (addressVector.size() != MAX_ARG) {
+		throw ParseConfig::ConfException("Invalid listen directive: expected exactly one argument in 'IP:Port' format.");
+	}
+
+	const std::string& address = addressVector.at(0);
+
+	if (!std::regex_match(address, matches, ipV4Pattern)) {
+		throw ParseConfig::ConfException("Listen address must match IPv4:Port format (e.g., 127.0.0.1:8080).");
+	}
+
+	std::string ipStr = matches[1];
+	std::string portStr = matches[2];
+
+	int portInt;
+	try {
+		portInt = std::stoi(portStr);
+	} catch (const std::exception& e) {
+		throw ParseConfig::ConfException("Port is not a valid number.");
+	}
+
+	if (portInt < MIN_PORT_NUMB || portInt > MAX_PORT_NUMB) {
+		throw ParseConfig::ConfException("Port number is out of valid range (1–65535).");
+	}
+
+	_vServerIp = ipStr;
+	_vServerPort = portStr;
+	_vServerIpPort = address;
+}
+
+
+void	vServer::validateServerNames(std::vector<std::string>& namesVector) {
+
+	if (namesVector.size() > MAX_SERVER_NAME_NUMB) {
+		throw ParseConfig::ConfException("Invalid server-name directive: max 2 names");
+	}
+
+	std::regex namePattern(R"(^[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+$)");
+	for (std::string& name : namesVector) {
+
+		if (std::regex_match(name, namePattern) || (name == "localhost")) {
+			_vServerNames.clear();
+			_vServerNames.push_back(name);
+		}
+		else
+			throw ParseConfig::ConfException("Input does not match 'example.com' format .\n");
+	}
+}
 const std::string&	vServer::onlyOneArgumentCheck(const std::vector<std::string>& pathVector, std::string directiveName) {
 
 	if (pathVector.size() != MAX_ARG) {
