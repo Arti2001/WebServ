@@ -11,8 +11,6 @@ bool	isComment(const std::string& line) {
 	}
 	return (false);
 }
-
-
 std::string	addSpace(const std::string& str) {
 
 	std::string	new_string;

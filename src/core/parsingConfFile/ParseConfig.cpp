@@ -128,7 +128,6 @@ std::ostream& operator<<(std::ostream& os, const vServer& server) {
 	os << "Root:                         " << server.getServerRoot() << "\n";
 	os << "Index:                        " << server.getServerIndex() << "\n";
 	os << "AutoIndex:                    " << server.getServerAutoIndex() << "\n";
-
 	os << "  Error Pages:\n";
 	const std::unordered_map<int, std::string>& errorPages = server.getServerErrorPages();
 	for (std::unordered_map<int, std::string>::const_iterator it = errorPages.begin(); it != errorPages.end(); ++it)

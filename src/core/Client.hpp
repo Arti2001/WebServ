@@ -1,9 +1,15 @@
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
+#define REQUEST_READ_BUFFER			8192
 
-#include "Server.hpp"
+
+#include "Request/Request.hpp"
 #include "ServerManager.hpp"
+#include "Server.hpp"
 #include "parsingResponse/Response.hpp"
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
 class ServerManager;
 class RequestParser;
@@ -11,22 +17,30 @@ class RequestParser;
 class Client{
 
 	private:
-		RequestParser*			_requestParser;
-		std::string				_requestBuffer;
+		Request					_request;
+		std::string				_startLineAndHeadersBuffer;
+		std::string				_bodyBuffer;
+		bool					_headersParsed;
+		size_t 					_bodyStart;
 		std::string				_clientResponse;
 		size_t					_clientBytesSent;
 		int						_serverFd;
 		ServerManager*			_serverManager;
+		std::time_t				_lastActiveTime;
+		bool					_closed;
 	public:
 		Client(int	serverFd, ServerManager* servManager);
 		~Client();
 
-		Client(const Client&) = delete;
+		// Copy constructor is deleted to prevent copying of Client instances,
+		// as each Client should have a unique server file descriptor and state.
+				Client(const Client&) = delete;
+		// Disable assignment operator to prevent unintended behavior or resource management issues
 		Client& operator=(const Client&) = delete;
 
 		//setter
-		//void	setLastActiveTime(std::time_t timeStamp);
-		//void	setIsClosed(bool flag);
+		void	setLastActiveTime(std::time_t timeStamp);
+		void	setIsClosed(bool flag);
 
 
 		//getters
@@ -35,16 +49,20 @@ class Client{
 		int					getServerFd( void ) const;
 		size_t&				getClientsBytesSent( void );
 		const std::string&	getClientsResponse( void ) const;
+		Request&			getRequest( void ) { return (_request); }
 
 		//methods
 
 
-		void					readRequest( int clientFd );
+		void					handleRequest( int clientFd );
+		void					handleBody(int clientFd, const std::string& incomingData);
+		bool					headersComplete(const std::string& request);
+		bool 					bodyComplete(const std::string& body) const;
 		void					sendResponse( int clientFd );
 		void					addToRequestBuff(char* chunk, size_t bytesread);
 		
-		std::string				getResponse(HTTPRequest request);
-		std::string				getCgiResponse(HTTPRequest request);
+		std::string				getResponse(Request &request);
+		std::string				getCgiResponse(Request &request);
 
 		std::string				getAnyHeader(std::unordered_map<std::string, std::string> headers, std::string headerName);
 

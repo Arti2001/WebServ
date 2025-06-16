@@ -2,7 +2,6 @@
 #define SERVER_HPP
 
 #define QUEUE_LENGTH	10
-#define RECBUFF			8192
 #define IN				1
 #define OUT				2
 

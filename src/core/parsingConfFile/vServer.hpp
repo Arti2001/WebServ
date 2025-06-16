@@ -114,7 +114,6 @@ class vServer {
 	static	std::unordered_map<int, std::string>							validateErrorPagesDirective(const std::vector<std::string>& errorPagesVector);
 	//static	std::vector<std::string>										validateAllowedMethodsDirective(const std::vector<std::string>& allowedMethodsVector);
 	static const	std::string&													onlyOneArgumentCheck(const std::vector<std::string>& pathVector, std::string directiveName);
-	
 
 	//methods
 	static	unsigned				megaBytesToBits(int	mB);

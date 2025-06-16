@@ -30,8 +30,6 @@ vServer::~vServer() {
 
 
 
-
-
 //setters
 
 
@@ -170,7 +168,6 @@ const std::string&	vServer::onlyOneArgumentCheck(const std::vector<std::string>&
 }
 
 
-
 bool	vServer::validateAutoIndexDirective(const std::vector<std::string>& flagVector) {
 
 
@@ -192,8 +189,6 @@ bool	vServer::validateAutoIndexDirective(const std::vector<std::string>& flagVec
 		throw ParseConfig::ConfException("Inncorect option: '" + flag + "' for auto-index field\n");
 	}
 }
-
-
 
 unsigned	vServer::megaBytesToBits( int MB) {
 
@@ -258,7 +253,6 @@ std::unordered_map<int, std::string>	vServer::validateErrorPagesDirective(const 
 	errorPagesMap[errorCode] = errorPagePath;
 	return	errorPagesMap;
 }
-
 
 
 bool	isNumber(std::string number) {

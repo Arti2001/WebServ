@@ -5,7 +5,7 @@ StaticHandler::StaticHandler() {}
 
 StaticHandler::~StaticHandler() {}
 
-Response StaticHandler::serveGet(const HTTPRequest& req, const Location& loc) {
+Response StaticHandler::serveGet(const Request& req, const Location& loc) {
     // 1) Method must be allowed
 
     if (std::find(loc.getLocationAllowedMethods().begin(), loc.getLocationAllowedMethods().end(),
@@ -161,7 +161,7 @@ Response StaticHandler::serveGet(const HTTPRequest& req, const Location& loc) {
     return loadErrorPage(loc, 404);
 }
 
-Response StaticHandler::serve(const HTTPRequest& req, const Location& loc) {
+Response StaticHandler::serve(const Request& req, const Location& loc) {
     // 1. Check if the method is allowed in the location
     const auto& method = req.getMethod();
     bool methodAllowed = false;

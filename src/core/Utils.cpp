@@ -11,3 +11,15 @@ std::string Utils::currentDateString() {
 std::string Utils::serverNameString() {
     return "webserv/1.0";
 }
+
+
+void Utils::trim(std::string& line) {
+	size_t start = line.find_first_not_of(" \t\r\n");
+    if (start == std::string::npos) {
+        line.clear();
+        return;
+    }
+
+    size_t end = line.find_last_not_of(" \t\r\n");
+    line = line.substr(start, end - start + 1);
+}

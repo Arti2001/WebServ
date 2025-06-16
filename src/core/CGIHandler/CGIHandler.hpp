@@ -12,7 +12,7 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include <cstring>
-#include "../parsingRequest/HTTPRequest.hpp"
+#include "../Request/Request.hpp"
 #include "../parsingResponse/Response.hpp"
 
 class CGIHandler {
@@ -20,7 +20,7 @@ class CGIHandler {
         CGIHandler() = default;
         ~CGIHandler() = default;
 
-        Response handle(const HTTPRequest& req);
+        Response handle(const Request& req);
 
         static bool isCGIRequest(const std::string &uri);
 
@@ -33,13 +33,13 @@ class CGIHandler {
     static const int TIMEOUT_SECONDS = 5;
     static const size_t MAX_OUTPUT_SIZE = 10 * 1024 * 1024;
         //Helper methods
-        std::vector<std::string> buildEnvironmentStrings(const HTTPRequest& req, const std::string& scriptPath);
+        std::vector<std::string> buildEnvironmentStrings(const Request& req, const std::string& scriptPath);
         char** buildEnvironmentArray(const std::vector<std::string>& envStrings);
         std::string getInterpreter(const std::string& scriptPath);
         void freeEnvironmentArray(char** envArray);
 
         //execution methods
-        std::vector<char> executeScript(const HTTPRequest& req, const std::string& scriptPath);
+        std::vector<char> executeScript(const Request& req, const std::string& scriptPath);
         Response parseOutput(const std::vector<char>& output);
 
         //path handling
