@@ -6,7 +6,7 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/14 15:42:55 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/06/16 17:24:41 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,10 +17,10 @@ Response::Response() : {}
 Response::Response(Request *request, ServerManager *ServerManager, int clientSocket) : 
     _request(request),
     _serverManager(ServerManager),
-    _clientSocket(clientSocket),
-    _statusCode(200),
-    _statusMessage("OK")
+    _clientSocket(clientSocket)
 {
+    _statusCode = request->getStatusCode();
+    _statusMessage = _statusMessages[_statusCode];
     matchServer();
     matchLocation();
 }
@@ -35,46 +35,40 @@ void Response::setStatusCode(int statusCode) {
     _status_code = statusCode;
 }
 
-const std::string& Response::getReasonPhrase() const {
-    return _reason_phrase;
+const std::string& Response::getStatusMessage() const {
+    return _status_message;
 }
 
-void Response::setReasonPhrase(const std::string& reasonPhrase) {
-    _reason_phrase = reasonPhrase;
+void Response::setStatusMessage(const std::string& statusMessage) {
+    _status_message = statusMessage;
 }
 
 void Response::addHeader(const std::string& key, const std::string& value) {
     _headers[key] = value;
 }
 
-const std::map<std::string, std::string>& Response::getHeaders() const {
+const std::unordered_map<std::string, std::string>& Response::getHeaders() const {
     return _headers;
 }
-
-void Response::setBody(const std::vector<char>& body) {
+void Response::setBody(const std::string &body) {
     _body = body;
 }
-
-void Response::setBody(std::vector<char>&& body) {
-    _body = std::move(body);
-}
-
-const std::vector<char>& Response::getBody() const {
+const std::string Response::getBody() const {
     return _body;
 }
 
-std::vector<char> Response::serialize() const {
-    std::ostringstream resp_line;
-    resp_line << "HTTP/1.1 " << _status_code << " " << _reason_phrase << "\r\n";
-    for (auto& h : _headers) {
-        resp_line << h.first << ": " << h.second << "\r\n";
-    }
-    resp_line << "\r\n";
-    std::string resp_line_str = resp_line.str();
-    std::vector<char> response(resp_line_str.begin(), resp_line_str.end());
-    response.insert(response.end(), _body.begin(), _body.end());
-    return response;
-}
+// std::vector<char> Response::serialize() const {
+//     std::ostringstream resp_line;
+//     resp_line << "HTTP/1.1 " << _status_code << " " << _reason_phrase << "\r\n";
+//     for (auto& h : _headers) {
+//         resp_line << h.first << ": " << h.second << "\r\n";
+//     }
+//     resp_line << "\r\n";
+//     std::string resp_line_str = resp_line.str();
+//     std::vector<char> response(resp_line_str.begin(), resp_line_str.end());
+//     response.insert(response.end(), _body.begin(), _body.end());
+//     return response;
+// }
 
 void matchServer() {
     const std::vector<const vServer*>&	subServConfigs = _serverManager->findServerConfigsByFd(socketClientConnectedTo);
@@ -109,4 +103,214 @@ void matchLocation() {
         _location = defaultLocation;
         std::cerr << "No matching location block found for the request URI. Using default." << std::endl;
     }
+}
+
+const std::string& Response::getRawResponse() const {
+    return _rawResponse;
+}
+
+void Response::generateResponse() {
+    if (_statusCode >= 400 && _statusCode < 600)
+    return generateErrorResponse();
+
+    if (_statusCode >= 300 && _statusCode < 400)
+        return handleRedirectRequest();
+
+    if (_request->getCgiStatus())
+        return handleCGIRequest();
+
+    std::string method = _request->getMethod(); // Assuming this returns uppercase: "GET", "POST", etc.
+
+    if (method == "GET")
+        handleGetRequest();
+    else if (method == "POST")
+        handlePostRequest();
+    else if (method == "DELETE")
+        handleDeleteRequest();
+    else
+    {
+        std::cerr << "Unsupported method: " << method << std::endl;
+        _statusCode = 405; // Method Not Allowed
+        return generateErrorResponse(); // Method Not Allowed
+    }
+    createStartLine();
+    createHeaders();
+    createBody();
+}
+
+void Response::handleGetRequest() {
+    std::string path = _request->getPath(); // e.g., "/images/cat.png"
+
+    // Match location or server config block that applies to this path
+    matchLocation();
+    if (!_locationConfig) {
+        setStatusCode(404);
+        return generateErrorResponse();
+    }
+
+    std::string fullPath = _locationConfig->getRoot() + resolveRelativePath(path, _locationConfig->getPath());
+
+    if (!fileExists(fullPath)) {
+        setStatusCode(404);
+        return generateErrorResponse();
+    }
+
+    if (isLargeFile(fullPath)) {
+        makeChunkedResponse(fullPath);
+    } else {
+        makeRegularResponse(fullPath);
+    }
+}
+
+void Response::generateErrorResponse() {
+    setStatusMessage(_statusMessages[_statusCode]);
+    
+    // Clear existing headers and body
+    _headers.clear();
+    _body.clear();
+    
+    // Set default headers for error responses
+    addHeader("Content-Type", "text/html");
+    
+    // Generate a simple HTML body for the error response
+    _body = "<html><body><h1>" + std::to_string(_statusCode) + " " + _statusMessage + "</h1></body></html>";
+    
+    // Generate the full response
+    createStartLine();
+    createHeaders();
+    createBody();
+}
+
+bool Response::isMethodAllowed(const std::string &method) const {
+    std::unordered_set<std::string> allowedMethods = _locationConfig->getAllowedMethods();
+    auto it = allowedMethods.find(method);
+    return it != allowedMethods.end();
+};
+
+
+bool Response::fileExists(const std::string &path) {
+    // need to confirm if file exists
+    struct stat fileStat;
+    if (stat(path.c_str(), &fileStat) == -1) {
+        return false; // File does not exist or cannot be accessed
+    }
+    return S_ISREG(fileStat.st_mode); // Check if it's a regular file
+};
+
+bool Response::isLargeFile(const std::string &path) {
+    struct stat fileStat;
+
+    // Use stat() to get file information
+    if (stat(path.c_str(), &fileStat) == -1) {
+        perror("stat");  // optional: prints error to stderr
+        return false;    // Could not access file
+    }
+    // Compare file size to buffer size
+    return fileStat.st_size > LARGE_FILE_SIZE_THRESHOLD;
+}
+
+void Response::makeRegularResponse(const std::string &path) {
+    std::ifstream file(path);
+    if (!file.is_open()) {
+        setStatusCode(404);
+        return generateErrorResponse();
+    }
+    std::ostringstream oss;
+    oss << file.rdbuf(); // Read the entire file into a string
+    _body = oss.str(); // Set the body of the response to the file content
+    file.close();
+    setStatusCode(200); // Set status code to 200 OK
+    addHeader("Content-Length", std::to_string(_body.size())); // Add Content-Length header
+    addHeader("Content-Type", getMimeType(path)); // Set content type to binary
+};
+
+std::string Response::getMimeType(const std::string &path) const {
+    // Determine the MIME type based on the file extension
+    std::string extension = path.substr(path.find_last_of('.'));
+    if (extension == ".html" || extension == ".htm") {
+        return "text/html";
+    } else if (extension == ".css") {
+        return "text/css";
+    } else if (extension == ".js") {
+        return "application/javascript";
+    } else if (extension == ".png") {
+        return "image/png";
+    } else if (extension == ".jpg" || extension == ".jpeg") {
+        return "image/jpeg";
+    } else if (extension == ".gif") {
+        return "image/gif";
+    } else if (extension == ".svg") {
+        return "image/svg+xml";
+    } else if (extension == ".txt") {
+        return "text/plain";
+    }
+    // Default to application/octet-stream for unknown types
+    return "application/octet-stream";
+}
+
+void Response::makeChunkedResponse(const std:: string &path) {
+    char buffer[RESPONSE_READ_BUFFER_SIZE];
+    int file = open(path.c_str(), O_RDONLY);
+    ssize_t bytesRead = read(file, buffer, RESPONSE_READ_BUFFER_SIZE);
+    if (bytesRead == -1)
+    {
+        setStatusCode(404);
+        return generateErrorResponse();
+    }
+    else if (bytesRead == 0)
+    {
+        close(file);
+        _response += "0\r\n\r\n"; // End of chunked response
+    }
+    else
+    {
+        std::string chunkSize = std::to_string(bytesRead) + "\r\n";
+        _response += chunkSize; // Add chunk size to the response
+        _response.append(buffer, bytesRead); // Append the read bytes to the response
+        _response += "\r\n"; // End of chunk    
+    }
+    addHeader("Transfer-Encoding", "chunked");
+    addHeader("Content-Type", getMimeType(path)); // Set content type based on file extension
+    setStatusCode(200); // Set status code to 200 OK
+};
+
+void Response::handleCGIRequest() {
+    // Handle CGI request logic here
+    
+}
+
+void Response::handleRedirectRequest() {
+    // Handle redirect request logic here
+    // This is a placeholder for the actual redirect handling logic
+    if (_locationConfig) {
+        auto redirect = _locationConfig->getRedirect();
+        if (redirect.first != 0) {
+            setStatusCode(redirect.first);
+            setStatusMessage(_statusMessages[redirect.first]);
+            addHeader("Location", redirect.second);
+            _body.clear(); // Clear body for redirect responses
+            createStartLine();
+            createHeaders();
+        } else {
+            setStatusCode(404); // If no redirect is set, return 404
+            generateErrorResponse();
+        }
+    } else {
+        setStatusCode(404); // No location config found, return 404
+        generateErrorResponse();
+    }
+}
+
+void Response::createStartLine() {
+    std::string startLine = _request->getHttpVersion() + " " + std::to_string(_statusCode) + " " + _statusMessage + "\r\n";
+    _response += startLine;
+}
+
+
+void Response::createHeaders(){
+    for (const auto &header : _headers) {
+        _response += header.first + ": " + header.second + "\r\n";
+    }
+    _response += "\r\n"; // End of headers
+    // need to add default headers as well as headers depending on request
 }

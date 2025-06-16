@@ -29,7 +29,7 @@ class Client{
 		int						_serverFd;
 		ServerManager*			_serverManager;
 		std::time_t				_lastActiveTime;
-		bool					_closed;
+		bool					_closeAfterResponse;
 
 		bool					headersComplete(const std::string& request);
 		bool 					bodyComplete(const std::string& body) const;

@@ -203,6 +203,8 @@ Response StaticHandler::loadNotFound()
     resp.setReasonPhrase("Not Found");
     resp.addHeader("Content-Type", MimeTypes::detectMimeType(".html"));
     resp.addHeader("Content-Length", std::to_string(0));
+    resp.addHeader("Connection", "close");
+    resp.addHeader("Date", Utils::currentDateString());
 
     return resp;
 }

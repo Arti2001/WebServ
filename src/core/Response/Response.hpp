@@ -6,7 +6,7 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:04:57 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/14 15:36:37 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/06/16 17:10:04 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,14 +16,16 @@
 #include "../Client.hpp"
 #include "../Request/Request.hpp"
 #include "../ServerManager.hpp"
+#include "../parsingConfFile/vServer.hpp"
+#include "../parsingConfFile/Location.hpp"
 
 class Response {
     private:
         Request *_request;
-        ServerManager *_serverManager;
+        ServerManager *_serverManager; // Server manager to access server configurations
+        vServer *_serverConfig; // virtual server configuration for the response
+        Location *_location; // Location configuration for the response
         int _clientSocket;
-        std::map<std::string, std::string> _headers;
-        std::vector<char> _body;
         int _statusCode; // HTTP status code (e.g., 200, 404, 500)
         std::string _rawResponse;
         std::string _statusMessage; // HTTP status message (e.g., "OK", "Not Found", "Internal Server Error")
@@ -80,13 +82,10 @@ class Response {
 
         //Headers
         void addHeader(const std::string& key, const std::string& value);
-        const std::map<std::string, std::string>& getHeaders() const;
+        const std::unordered_map<std::string, std::string>& getHeaders() const;
 
         //Body
-        void setBody(const std::vector<char>& body);
-        void setBody(std::vector<char>&& body);
         void setBody(const std::string &body);
-        const std::vector<char>& getBody() const;
         const std::string &getBody() const;
         const std::string& getRawResponse() const;
 
@@ -95,7 +94,7 @@ class Response {
         std::vector<char> serialize() const;
         void generateResponse(); // Generate the full HTTP response string
         void generateErrorResponse(); // Generate an error response
-        std::vector<char> generateDirectoryListing(const std::string& fsPath, const std::string& urlPath);
+        std::string generateDirectoryListing(const std::string& fsPath, const std::string& urlPath);
 
 
 

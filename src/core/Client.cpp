@@ -3,7 +3,7 @@
 
 
 Client::Client(int serverFd, ServerManager* serverManager) : _headersParsed(false), _clientBytesSent(0),
-	_serverFd(serverFd), _serverManager(serverManager){
+	_serverFd(serverFd), _serverManager(serverManager), _closeAfterResponse(false){
 	}
 
 
@@ -73,6 +73,8 @@ std::string	Client::prepareResponse(Request &request) {
 	int		socketClientConnectedTo = this->getServerFd();
 	Response response(_request, _serverManager, socketClientConnectedTo);
 	response.generateResponse();
+	if (getAnyHeader(response.getHeaders(), "Connection") == "close")
+		_closeAfterResponse = true;
 	return (response.getRawResponse());
 }
 
@@ -167,26 +169,33 @@ void    Client::handleRequest (int clientFd) {
 
 
 void	Client::handleResponse(int clientFd) {
-	
-	// here i first should do the following:
-	// 1. have a function that will use the request to match the server and location block
-	// 2. generate the response based on the request and location block. if it is cgi request
-	// 3. send the response to the client
-	
-	size_t&		totalBytesSent = this->getClientsBytesSent();
-	const char*	servResp = this->getClientsResponse().c_str();
-	size_t		responseSize = this->getClientsResponse.size();
-	ssize_t		bytesSent = send(clientFd, servResp + totalBytesSent, responseSize - totalBytesSent, 0);
-
+	if (_clientResponse.empty()) {
+		std::cout << "Preparing response for client: " << clientFd << std::endl;
+		_clientResponse = this->prepareResponse(_request);
+		if (_clientResponse.empty()) {
+			std::cerr << "Error: Response is empty, closing client connection." << std::endl;
+			_serverManager->closeClientFd(clientFd);
+			return;
+		}
+		_clientBytesSent = 0; // Reset bytes sent for the new response
+		std::cout << "Response prepared successfully." << std::endl;
+	}
+	std::cout << "Response prepared: " << _clientResponse << std::endl;
+	const char*	servResp = _clientResponse.c_str();
+	size_t		responseSize = _clientResponse.size();
+	std::cout << "Response size: " << responseSize << std::endl;
+	ssize_t		bytesSent = send(clientFd, servResp + _clientBytesSent, responseSize - _clientBytesSent, 0);
+	std::cout << "Bytes sent: " << bytesSent << std::endl;
 	if (bytesSent == -1) {
 		_serverManager->setEpollCtl(clientFd, EPOLLOUT, EPOLL_CTL_MOD);
 		return;
 	}
-	totalBytesSent += bytesSent;
-	if (totalBytesSent == responseSize) {
+	_clientBytesSent += bytesSent;
+	if (_clientBytesSent == responseSize) {
 		std::cout << "All data sent" << "\n";
-		_serverManager->closeClientFd(clientFd);
-		totalBytesSent = 0;
+		if (_closeAfterResponse)
+			_serverManager->closeClientFd(clientFd);
+		_clientBytesSent = 0;
 	}
 }
 
