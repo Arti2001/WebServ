@@ -6,7 +6,7 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:04:57 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/16 17:59:50 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/06/17 14:02:13 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include "../ServerManager.hpp"
 #include "../parsingConfFile/vServer.hpp"
 #include "../parsingConfFile/Location.hpp"
+#include <uuid/uuid.h>
 
 class Response {
     private:

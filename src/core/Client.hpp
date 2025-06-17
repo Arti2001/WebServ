@@ -62,7 +62,7 @@ class Client{
 		std::string				getResponse(Request &request);
 		std::string				getCgiResponse(Request &request);
 
-		std::string				getAnyHeader(std::unordered_map<std::string, std::string> headers, std::string headerName);
+		static std::string				getAnyHeader(std::unordered_map<std::string, std::string> headers, std::string headerName);
 
 };
 

@@ -6,7 +6,7 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/16 18:10:35 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/06/17 14:18:10 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -261,6 +261,7 @@ void Response::makeChunkedResponse(const std:: string &path) {
 void Response::handleCGIRequest() {
     // Handle CGI request logic here
     
+    
 }
 
 void Response::handleRedirectRequest() {
@@ -285,19 +286,57 @@ void Response::handleRedirectRequest() {
     }
 }
 
+std::string Response::createUploadFile() {
+    const std::string &body = _request->getBody();
+    if (body.empty()) {
+        setStatusCode(400); // Bad Request
+        return "";
+    }
+    const std::string &uploadDirectory = _locationConfig->getUploadDirectory();
+    if (uploadDirectory.empty()) {
+        setStatusCode(403); // Forbidden
+        return "";
+    }
+    std::string fileName = generateUUID(); // Generate a unique file name
+    std::string filePath;
+    // Ensure the upload directory ends with a slash
+    if (!uploadDirectory.empty() && uploadDirectory.back() != '/')
+        filePath = uploadDirectory + "/" + fileName;
+    else
+        filePath = uploadDirectory + fileName;
+    std::ofstream outFile(filePath, std::ios::binary);
+    if (!outFile) {
+        setStatusCode(500); // Internal Server Error
+        return "";
+    }
+    outFile.write(body.data(), body.size());
+    outFile.close();
+    return fileName; // Return the path of the uploaded file
+}
+
+std::string generateUUID() {
+    uuid_t uuid;
+    char uuidStr[37]; // UUIDs are 36 characters plus the null terminator
+    uuid_generate(uuid);
+    uuid_unparse(uuid, uuidStr);
+    return std::string(uuidStr);
+}
+
 void Response::handlePostRequest() {
     if (!isMethodAllowed("POST")) {
         setStatusCode(405); // Method Not Allowed
         return generateErrorResponse();
     }
-    
-    // Handle POST request logic here
-    // This is a placeholder for the actual POST handling logic
-    // For example, you might want to process form data or upload files
+
+    std::string fileName = createUploadFile();
+    if (fileName.empty()) {
+        return generateErrorResponse();
+    }
     _body = "POST request handled successfully"; // Example response body
+    _body += "\nFile ID: " + fileName; // Append the file ID to the response body
     setStatusCode(200); // Set status code to 200 OK
-    addHeader("Content-Type", "text/plain");
     addHeader("Content-Length", std::to_string(_body.size()));
+    addHeader("Content-Type", "text/plain"); // Set content type to text/plain
 }
 
 void Response::handleDeleteRequest() {
@@ -305,7 +344,7 @@ void Response::handleDeleteRequest() {
         setStatusCode(405); // Method Not Allowed
         return generateErrorResponse();
     }
-    
+    if(!)
     // Handle DELETE request logic here
     // This is a placeholder for the actual DELETE handling logic
     // For example, you might want to delete a resource identified by the request path
