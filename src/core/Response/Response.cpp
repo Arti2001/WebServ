@@ -6,7 +6,7 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/17 14:38:22 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/06/17 16:18:09 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,11 +103,11 @@ void Response::generateResponse() {
     if (_statusCode >= 300 && _statusCode < 400)
         return handleRedirectRequest();
 
-    if (_request->getCgiStatus())
+    if (_isCgiRequest())
         return handleCGIRequest();
 
     std::string method = _request->getMethod(); // Assuming this returns uppercase: "GET", "POST", etc.
-
+    std::transform(method.begin(), method.end(), method.begin(), ::toupper); // Ensure method is uppercase
     if (method == "GET")
         handleGetRequest();
     else if (method == "POST")
@@ -123,6 +123,18 @@ void Response::generateResponse() {
     createStartLine();
     createHeaders();
     createBody();
+}
+
+bool Response::isCgiRequest() const {
+    std::string path = _request->getPath(); // e.g., "/cgi-bin/script.cgi"
+    if (path.find(DEFAULT_CGI_DIRECTORY) != std::string::npos) {
+        for (const auto & ext : _locationConfig->getCgiExtensions()) {
+            if (path.find(ext) != std::string::npos) {
+                return true; // The request is a CGI request
+            }
+        }
+    }
+    return false; // The request is not a CGI request
 }
 
 void Response::handleGetRequest() {
@@ -261,14 +273,13 @@ void Response::makeChunkedResponse(const std:: string &path) {
 void Response::handleCGIRequest() {
     // Handle CGI request logic here
     
-    
 }
 
 void Response::handleRedirectRequest() {
     // Handle redirect request logic here
     // This is a placeholder for the actual redirect handling logic
     if (_locationConfig) {
-        auto redirect = _locationConfig->getRedirect();
+        std::pair<int, std::string> redirect = _locationConfig->getRedirect();
         if (redirect.first != 0) {
             setStatusCode(redirect.first);
             setStatusMessage(_statusMessages[redirect.first]);
@@ -314,7 +325,7 @@ std::string Response::createUploadFile() {
     return fileName; // Return the path of the uploaded file
 }
 
-std::string generateUUID() {
+std::string Response::generateUUID() {
     uuid_t uuid;
     char uuidStr[37]; // UUIDs are 36 characters plus the null terminator
     uuid_generate(uuid);

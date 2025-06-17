@@ -6,7 +6,7 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:04:57 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/17 14:02:13 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/06/17 16:13:37 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,8 @@
 #include "../parsingConfFile/vServer.hpp"
 #include "../parsingConfFile/Location.hpp"
 #include <uuid/uuid.h>
+
+#define DEFAULT_CGI_DIRECTORY "/cgi-bin/"
 
 class Response {
     private:
@@ -67,7 +69,7 @@ class Response {
         bool fileExists(const std::string &path); // Check if the file exists
         bool isLargeFile(const std::string &path); // Check if the file is larger than a certain threshold
         std::string generateDirectoryListing(const std::string& fsPath, const std::string& urlPath);
-
+        bool isCgiRequest() const; // Check if the request is a CGI request
 
     public:
         Response();
