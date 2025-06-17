@@ -15,10 +15,11 @@ ParseConfig::ParseConfig() : depth(0), currToken(0) {
 	_keywords["server"] = SERVER_BLOCK;
 	_keywords["location"] = LOCATION_BLOCK;
 	_keywords["autoindex"] = AUTO_INDEX_DIR; // by convention, autoindex is a directive
+	_keywords["upload_path"] = UPLOAD_PATH;
 	_keywords["server_name"] = SERVER_NAME_DIR; // by convention, server_name is a directive
 	_keywords["error_pages"] = ERROR_PAGE_DIR; // by convention, error_pages is a directive
-	_keywords["client_max_body_size"] = BODY_MAX_SIZE; // by convention, client_max_body_size is a directive
 	_keywords["allowed_methods"] = ALLOWED_METHODS;
+	_keywords["client_max_body_size"] = BODY_MAX_SIZE; // by convention, client_max_body_size is a directive
 	// need to add keywords for upload path, cgi in the location block
 }
 
@@ -56,7 +57,7 @@ bool	ParseConfig::isTokenDirective(TokenType type) const {
 			type == INDEX_DIR || type == SERVER_NAME_DIR || 
 			type == ERROR_PAGE_DIR || type == AUTO_INDEX_DIR ||
 			type == BODY_MAX_SIZE || type == ALLOWED_METHODS ||
-			type == RETURN_DIR);
+			type == RETURN_DIR || type == UPLOAD_PATH);
 }
 
 
@@ -142,6 +143,7 @@ std::ostream& operator<<(std::ostream& os, const vServer& server) {
 		os << "  Root:           " << loc.getLocationRoot() << "\n";
 		os << "  Index:          " << loc.getLocationIndex() << "\n";
 		os << "  AutoIndex:      " << loc.getLocationAutoIndex() << "\n";
+		os << "  UploadPath:     " << loc.getLocationUploadPath() << "\n";
 		os << "  Max Body Size:  " << loc.getLocationClientMaxSize() << "\n";
 		os << "  Allowed Methods:";
 		for (size_t j = 0; j < loc.getLocationAllowedMethods().size(); ++j)
@@ -173,7 +175,7 @@ void	ParseConfig::	parsevServerBlock( vServer& serv) {
 			depth -= LEVEL;
 		}
 		else{
-			std::cout<< _tokens[currToken].lexem << " = " << _tokens[currToken].type <<"\n";
+			std::cout<< "Trash: " +_tokens[currToken].lexem<< "\n";
 			if (_tokens[currToken].type != COMMENT) 
 				throw ConfException("Alien object is detected at the line: " + std::to_string(_tokens[currToken].line_number));
 		}
@@ -215,7 +217,11 @@ for (; _tokens[currToken].type != CLOSED_BRACE; currToken++) {
 		case INDEX_DIR:
 			loc.setLocationIndex(vServer::onlyOneArgumentCheck(pair.second, "index"));
 		break;
-			
+		
+		case UPLOAD_PATH:
+			loc.setLocationUploadPath(vServer::onlyOneArgumentCheck(pair.second, "upload_path"));
+		break;
+
 		case AUTO_INDEX_DIR:
 			loc.setLocationAutoIndex(vServer::validateAutoIndexDirective(pair.second));
 		break;
@@ -286,30 +292,29 @@ switch (pair.first.type) {
 std::pair< Token, std::vector<std::string>>	ParseConfig::makeKeyValuePair() {
 
 	Token										key = _tokens[currToken];
+	ssize_t										tokenLevel = _tokens[currToken].line_number;
 	std::vector<std::string>					values;
 	std::pair< Token, std::vector<std::string>>	pair;
 
+	if (key.type == SEMICOLON) {
+		throw ConfException(std::to_string(_tokens[currToken].line_number) + " :: This filed has no directive name.");
+	}
 	currToken ++; //sitch to the next token, potential value
-
-	if ( _tokens[currToken].type == SEMICOLON) {
-		throw ConfException(std::to_string(_tokens[currToken].line_number) + " :: Field can not be empty.");
+	if (_tokens[currToken].type == SEMICOLON) {
+		throw ConfException(std::to_string(_tokens[currToken].line_number) + " :: This filed has no arguments.");
 	}
 	while (_tokens[currToken].type != SEMICOLON) {
 
-
-		if (isTokenDirective(_tokens[currToken].type)) {
-			throw ConfException(std::to_string(_tokens[currToken].line_number) + " :: No semicolon at the end of the line.");
-		}
-		else if (_tokens[currToken].type == UNKNOWN) {
+		if (_tokens[currToken].line_number == tokenLevel)
 			values.push_back(_tokens[currToken].lexem);
-		}
-		else {
-			std::cout<< _tokens[currToken].type<< "\n";
-			throw ConfException("Unexpected token type inside key-value pairing.");
-		}
+		else
+			throw ConfException(std::to_string(_tokens[currToken].line_number - 1) + " :: No semicolon at the end of the line.");
+			
 		currToken++;
 	}
+	if (_tokens[currToken].type == SEMICOLON && _tokens[currToken].line_number != tokenLevel) {
+			throw ConfException(std::to_string(_tokens[currToken].line_number - 1 ) + " :: No semicolon at the end of the line.");
+	}
 	pair = {key, values};
-
 	return (pair);
 }

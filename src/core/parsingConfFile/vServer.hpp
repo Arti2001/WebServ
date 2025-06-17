@@ -112,8 +112,9 @@ class vServer {
 	static	bool															validateAutoIndexDirective(const std::vector<std::string>& flagVector);
 	static	size_t															validateClientMaxSizeDirective(const std::vector<std::string>& sizeVector);
 	static	std::unordered_map<int, std::string>							validateErrorPagesDirective(const std::vector<std::string>& errorPagesVector);
-	//static	std::vector<std::string>										validateAllowedMethodsDirective(const std::vector<std::string>& allowedMethodsVector);
-	static const	std::string&													onlyOneArgumentCheck(const std::vector<std::string>& pathVector, std::string directiveName);
+	\
+	//static	std::vector<std::string>									validateAllowedMethodsDirective(const std::vector<std::string>& allowedMethodsVector);
+	static const	std::string&											onlyOneArgumentCheck(const std::vector<std::string>& pathVector, std::string directiveName);
 
 	//methods
 	static	unsigned				megaBytesToBits(int	mB);

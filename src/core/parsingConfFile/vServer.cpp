@@ -167,7 +167,7 @@ const std::string&	vServer::onlyOneArgumentCheck(const std::vector<std::string>&
 
 	if (pathVector.size() != MAX_ARG) {
 
-		throw ParseConfig::ConfException("Invalid " + directiveName + "directive: only one argument for this field");
+		throw ParseConfig::ConfException("Invalid " + directiveName + " directive: only one argument expected for this field");
 	}
 	return (pathVector.at(0));
 }
