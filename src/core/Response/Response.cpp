@@ -6,7 +6,7 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/17 14:18:10 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/06/17 14:38:22 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -344,10 +344,28 @@ void Response::handleDeleteRequest() {
         setStatusCode(405); // Method Not Allowed
         return generateErrorResponse();
     }
-    if(!)
-    // Handle DELETE request logic here
-    // This is a placeholder for the actual DELETE handling logic
-    // For example, you might want to delete a resource identified by the request path
+    std::string path = _request->getPath(); // e.g., "/files/cat.png"
+    // Prevent directory traversal
+    if (path.find("..") != std::string::npos) {
+        setStatusCode(400); // Bad Request
+        return generateErrorResponse();
+    }
+    if (!path.empty() && path[0] == '/') // remove leading slash
+        path = path.substr(1);
+    std::string fullPath;
+    if (_locationConfig->getUploadDirectory().back() != '/')
+        fullPath = _locationConfig->getUploadDirectory() + "/" + path;
+    else
+        fullPath = _locationConfig->getUploadDirectory() + path;
+    if (!fileExists(fullPath)) {
+        setStatusCode(404); // Not Found
+        return generateErrorResponse();
+    }
+    
+    if (remove(fullPath.c_str()) != 0) {
+        setStatusCode(500); // Internal Server Error
+        return generateErrorResponse();
+    }
     _body = "DELETE request handled successfully"; // Example response body
     setStatusCode(200); // Set status code to 200 OK
     addHeader("Content-Type", "text/plain");
