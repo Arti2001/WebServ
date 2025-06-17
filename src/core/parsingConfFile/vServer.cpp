@@ -45,7 +45,7 @@ void	vServer::setServerAutoIndex(const int mode) {
 	_vServerAutoIndex = mode;
 }
 
-void	vServer::setServerClientMaxSize(const unsigned size) {
+void	vServer::setServerClientMaxSize(const uint64_t size) {
 	_vServerClientMaxSize = size;
 }
 
@@ -96,7 +96,7 @@ std::vector<std::string>				vServer::getServerNames( void ) const {
 	return (_vServerNames);
 }
 
-unsigned								vServer::getServerClientMaxSize( void ) const {
+uint64_t								vServer::getServerClientMaxSize( void ) const {
 	return(_vServerClientMaxSize);
 }
 
@@ -200,64 +200,67 @@ unsigned	vServer::megaBytesToBits( int MB) {
 	return (MB * 1024 *1024);
 }
 
-size_t	vServer::validateClientMaxSizeDirective(const std::vector<std::string>& sizeVector) {
+uint64_t	vServer::validateClientMaxSizeDirective(const std::vector<std::string>& sizeVector) {
 
-	size_t	clientBodySizeMB;
-
+	
 	if (sizeVector.size() != MAX_ARG) {
-
-		throw ParseConfig::ConfException("Invalid client-max-size directive: expected single value in M ");
+		throw ParseConfig::ConfException("Invalid client_max_body_size directive: expected one argument.");
 	}
-
-	const std::string&	clientBodySizeStr = sizeVector.at(0);
+	std::string suffix = "";
+	
+	for (size_t i = 0; i < sizeVector[0].size(); ++i) {
+		if (!isdigit(sizeVector[0][i])) 
+		{
+			if ((sizeVector[0][i] == 'k' || sizeVector[0][i] == 'K' || sizeVector[0][i] == 'm' || sizeVector[0][i] == 'M' || sizeVector[0][i] == 'g' || sizeVector[0][i] == 'G') && suffix.empty()) {
+				suffix = sizeVector[0].substr(i);
+				break;
+			}
+			else {
+				throw ParseConfig::ConfException("Invalid size format.");
+			}
+		}
+	}
+	uint64_t number;
 	try {
-
-		clientBodySizeMB = std::stoi(clientBodySizeStr, nullptr, 10);
+		number = std::stoull(sizeVector[0]);
 	}
 	catch (const std::exception& e) {
-
-		throw ParseConfig::ConfException("Invalid body size: must be a number");
+		throw ParseConfig::ConfException("Invalid number in size: " + std::string(e.what()));
 	}
 
-	if ( MIN_CLIENT_BODY_SIZE < clientBodySizeMB && clientBodySizeMB <= MAX_CLIENT_BODY_SIZE)
-		return (vServer::megaBytesToBits(clientBodySizeMB));
-	else
-		throw ParseConfig::ConfException("Client-max-size: out of range: Range 1Mb <=> 20 MB");
+	uint64_t mult = 1;
+	if (suffix == "k" || suffix == "K") {
+		mult = 1024ULL;
+	} else if (suffix == "m" || suffix == "M") {
+		mult = 1024ULL * 1024;
+	} else if (suffix == "g" || suffix == "G") {
+		mult = 1024ULL * 1024 * 1024;
+	} else if (!suffix.empty()) {
+		throw ParseConfig::ConfException("Invalid size suffix: " + suffix);
+	}
 
+	const uint64_t limit = static_cast<uint64_t>(MAX_CLIENT_BODY_SIZE) * 1024 * 1024 * 1024;
+
+	if (number > UINT64_MAX / mult) {
+		throw ParseConfig::ConfException("Size value too large, would overflow.");
+	}
+
+	uint64_t final_size = number * mult;
+
+	if (final_size > limit) {
+		throw ParseConfig::ConfException("client_max_body_size directive: Exceeded the limit of " + std::to_string(MAX_CLIENT_BODY_SIZE) + "G");
+	}
+
+	if (final_size == 0) {
+		return ULLONG_MAX; // Special case: unlimited
+	}
+	return final_size;
 }
 
 
 
-//std::unordered_map<int, std::string>	vServer::validateErrorPagesDirective(const std::vector<std::string>& errorPagesVector) {
 
-//	std::set<int>							errorCodesSet {404, 403, 409, 500, 301, 406}; // instead do the range between 400 and 599 as these cover the error codes
-//	int										errorCode;
-//	std::unordered_map<int, std::string>	errorPagesMap;
 
-//	if (errorPagesVector.size() != MAX_ARG_ERROR_PAGE) {
-
-//		throw ParseConfig::ConfException("Invalid error_pages directive: expected error code and path");
-//	}
-
-//	try {
-//		errorCode =  stoi(errorPagesVector.at(0), nullptr, 10);
-//	}
-//	catch (const std::exception& e) {
-//		throw ParseConfig::ConfException("Invalid error code: must be a number");
-//	}
-	
-//	if (!errorCodesSet .count(errorCode)) {
-//		throw ParseConfig::ConfException("Unsupported error code: " + std::to_string(errorCode));
-//	}
-//	const	std::string& errorPagePath = errorPagesVector.at(1);
-//	if (errorPagePath.empty()) {
-
-//		throw ParseConfig::ConfException("Invalid error page path: must start with '/'");
-//	}
-
-//	errorPagesMap[errorCode] = errorPagePath;
-//	return	errorPagesMap;
-//}
 
 
 std::unordered_map<int, std::string>	vServer::validateErrorPagesDirective(const std::vector<std::string>& errorPagesVector) {
