@@ -406,45 +406,42 @@ const vServer& ServerManager::findServerConfigByName(const std::vector<const vSe
 	return(*defaultServConfig);
 }
 
-const Location*	ServerManager::findDefaultLocationBlock(const std::vector<Location>& locations) {
+const Location*	ServerManager::findDefaultLocationBlock(const std::map<std::string,Location>& locations) {
 
-	for(const Location& loc : locations) {
-		if (loc.getLocationPath() == "/") {
-			return (&loc);
-		}
+	if (locations.find("/") != locations.end()) {
+		return(&locations.at("/"));
 	}
 	return(nullptr);
 
 }
 
-const Location	ServerManager::findLocationBlockByUrl(const vServer& serverConfig, const std::string& uri) {
-
-	const std::vector<Location>& locations = serverConfig.getServerLocations();
+const Location ServerManager::findLocationBlockByUrl(const vServer& serverConfig, const std::string& uri) {
+	const std::map<std::string, Location>& locations = serverConfig.getServerLocations();
 	size_t longestMatchLen = 0;
-	const Location*	bestMatchLocation = nullptr;
+	const Location* bestMatchLocation = nullptr;
 
-	for (const Location& loc : locations) {
-		
-		const std::string& locationPath = loc.getLocationPath();
-		
-		if (uri.find(locationPath) == 0 && locationPath.length() > longestMatchLen ) {
-			bestMatchLocation = &loc;
+	for (std::map<std::string, Location>::const_iterator it = locations.begin(); it != locations.end(); ++it) {
+		const std::string& locationPath = it->first;
+
+		if (uri.find(locationPath) == 0 && locationPath.length() > longestMatchLen) {
+			bestMatchLocation = &(it->second);
 			longestMatchLen = locationPath.length();
 		}
 	}
+
 	if (bestMatchLocation) {
-		return (*bestMatchLocation);
+		return *bestMatchLocation;
 	}
 
-		const Location* defaultLocation = findDefaultLocationBlock(locations);
-		if (!defaultLocation) {
-			std::cout<< "No location block found, no  default location block found " << "\n";
-			Location newLocation(serverConfig);
-			return(newLocation);
-		}
-		
-		std::cout<< "No  location block found, fell back to default location block " << "\n";
-	return (*defaultLocation);
+	const Location* defaultLocation = findDefaultLocationBlock(locations);
+	if (!defaultLocation) {
+		std::cout << "No location block found, no default location block found\n";
+		Location newLocation(serverConfig);
+		return newLocation;
+	}
+
+	std::cout << "No location block found, fell back to default location block\n";
+	return *defaultLocation;
 }
 
 

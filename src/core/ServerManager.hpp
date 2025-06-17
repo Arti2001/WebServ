@@ -55,6 +55,9 @@ class ServerManager {
 		void					setEpollCtl( int targetFd, int eventFlag, int operation);
 		bool					setNonBlocking(int fd);
 
+
+
+
 		//methods
 		void								parsConfigFile(std::vector<vServer>& _vServers);
 		void								runServers( void );
@@ -62,23 +65,23 @@ class ServerManager {
 		void								groupServers(const std::vector<vServer>& _vServers);
 		void								manageListenSocketEvent(const struct epoll_event& epollEvents);
 		void								manageEpollEvent(const struct epoll_event& epollEvents);
-		bool								isDefaultLocationExist(const std::vector<Location>& locations);
-
-
+		
+		
 		void								addClientToMap(int clientFd, int serverFd);
 		
 		bool								isListeningSocket(int fd);
 		bool								isClientSocket(int fd);
+		bool								isDefaultLocationExist(const std::vector<Location>& locations);
 
 		//void								closeIdleConnections();
 		void								closeClientFd(int clientfFd);
-		void								closeAllSockets(); 
+		void								closeAllSockets();
 
-
+		//checkers
 		const	vServer&							findServerConfigByName(const std::vector<const vServer*>& subConfigs, std::string serverName);
 		const	std::vector<const vServer*>&		findServerCofigsByFd(int serverFd);
 		const	Location							findLocationBlockByUrl(const vServer& serverConfig, const std::string& url);
-		const	Location*							findDefaultLocationBlock(const std::vector<Location>& locations);
+		const	Location*							findDefaultLocationBlock(const std::map<std::string,Location>& locations);
 
 
 

@@ -49,7 +49,6 @@ class ParseConfig {
 	private:
 		std::vector<Token>											_tokens;
 		std::unordered_map<std::string, TokenType>					_keywords;
-		//std::vector<vServer>										_vServers;
 
 	public:
 		int			depth;

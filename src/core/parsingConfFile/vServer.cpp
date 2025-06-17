@@ -80,11 +80,11 @@ std::string								vServer::getServerIndex( void ) const {
 	return (_vServerIndex);
 }
 
-std::vector<Location>&					vServer::getServerLocations() {
+std::map<std::string, Location>&		vServer::getServerLocations() {
 	return _vServerLocations;
 }
 
-const std::vector<Location>&			vServer::getServerLocations() const {
+const std::map<std::string, Location>&	vServer::getServerLocations() const {
 	return _vServerLocations;
 }
 

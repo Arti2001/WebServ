@@ -28,7 +28,7 @@ class vServer {
 		std::string								_vServerPort;
 		std::string								_vServerIpPort;
 		std::vector<std::string>				_vServerNames;
-		std::vector<Location>					_vServerLocations;
+		std::map<std::string, Location>			_vServerLocations;
 		std::string								_vServerRoot;
 		std::string								_vServerIndex;
 		bool									_vServerAutoIndex;
@@ -50,8 +50,8 @@ class vServer {
 	std::string									getServerIndex( void ) const;
 	
 	// don't use same names for getters that have different return types, it is confusing
-	std::vector<Location>&						getServerLocations(); // allows writing
-	const std::vector<Location>&				getServerLocations() const; // allows reading
+	std::map<std::string, Location>	&						getServerLocations(); // allows writing
+	const std::map<std::string, Location>&				getServerLocations() const; // allows reading
 	// allowed methods should be a location scope directive
 	std::unordered_map<int, std::string>		getServerErrorPages( void ) const;
 

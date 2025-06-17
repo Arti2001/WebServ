@@ -117,7 +117,6 @@ std::ostream& operator<<(std::ostream& os, const std::vector<vServer>& servers) 
 
 
 std::ostream& operator<<(std::ostream& os, const vServer& server) {
-
 	os << "Server IP:                    " << server.getServerIp() << "\n";
 	os << "Server Port:                  " << server.getServerPort() << "\n";
 
@@ -129,17 +128,21 @@ std::ostream& operator<<(std::ostream& os, const vServer& server) {
 	os << "Root:                         " << server.getServerRoot() << "\n";
 	os << "Index:                        " << server.getServerIndex() << "\n";
 	os << "AutoIndex:                    " << server.getServerAutoIndex() << "\n";
+
 	os << "  Error Pages:\n";
 	const std::unordered_map<int, std::string>& errorPages = server.getServerErrorPages();
 	for (std::unordered_map<int, std::string>::const_iterator it = errorPages.begin(); it != errorPages.end(); ++it)
 		os << "    " << it->first << ": " << it->second << "\n";
-	
+
 	os << "------------------ Locations ------------------\n";
-	const std::vector<Location>& locs = server.getServerLocations();
-	for (size_t i = 0; i < locs.size(); ++i) {
-		const Location& loc = locs[i];
+	const std::map<std::string, Location>& locs = server.getServerLocations();
+	size_t i = 0;
+	for (std::map<std::string, Location>::const_iterator it = locs.begin(); it != locs.end(); ++it, ++i) {
+		const std::string& path = it->first;
+		const Location& loc = it->second;
+
 		os << "Location [" << i << "]\n";
-		os << "  Path:           " << loc.getLocationPath() << "\n";
+		os << "  Path:           " << path << "\n";
 		os << "  Root:           " << loc.getLocationRoot() << "\n";
 		os << "  Index:          " << loc.getLocationIndex() << "\n";
 		os << "  AutoIndex:      " << loc.getLocationAutoIndex() << "\n";
@@ -149,7 +152,6 @@ std::ostream& operator<<(std::ostream& os, const vServer& server) {
 		for (size_t j = 0; j < loc.getLocationAllowedMethods().size(); ++j)
 			os << " " << loc.getLocationAllowedMethods()[j];
 		os << "\n";
-
 	}
 
 	os << "=======================================================\n";
@@ -198,9 +200,9 @@ std::string	ParseConfig::findLocationPath() {
 }
 
 
-void	ParseConfig::validateLocationBlockDirectives(vServer& server) {
+void	ParseConfig::validateLocationBlockDirectives(vServer& vServer) {
 	
-Location	loc(server);
+Location	loc(vServer);
 
 std::string locationPath = findLocationPath();
 loc.setLocationPath(locationPath);
@@ -246,7 +248,11 @@ for (; _tokens[currToken].type != CLOSED_BRACE; currToken++) {
 			throw ConfException("Invalid directive name: " + pair.first.lexem + " not found!");
 		}
 	}
-	server.getServerLocations().push_back(loc);
+
+	if (vServer.getServerLocations().find(locationPath) == vServer.getServerLocations().end())
+		vServer.getServerLocations().emplace(locationPath, loc);
+	else
+		throw ConfException("Double location block detected.");
 }
 
 // it is better to have validation inside of the vServer class
@@ -318,3 +324,4 @@ std::pair< Token, std::vector<std::string>>	ParseConfig::makeKeyValuePair() {
 	pair = {key, values};
 	return (pair);
 }
+
