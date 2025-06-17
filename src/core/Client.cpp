@@ -3,7 +3,7 @@
 
 
 Client::Client(int serverFd, ServerManager* serverManager) : _headersParsed(false), _clientBytesSent(0),
-	_serverFd(serverFd), _serverManager(serverManager){
+	_serverFd(serverFd), _serverManager(serverManager), _closeAfterResponse(false){
 	}
 
 
@@ -60,35 +60,27 @@ std::string	Client::getCgiResponse(Request &request) {
 	return(respStr);
 }
 
-
-// std::string	Client::getResponse(Request &request) {
-
-// 	int									socketClientConnectedTo = this->getServerFd();
-// 	const std::vector<const vServer*>&	subServConfigs = _serverManager->findServerCofigsByFd(socketClientConnectedTo);
-// 	std::string							hostHeaderValue = getAnyHeader(request.getHeaders(), "Host");
-// 	const vServer&						askedServConfig = _serverManager->findServerConfigByName(subServConfigs, hostHeaderValue);
-// 	const Location&						askedLocationBlock = _serverManager->findLocationBlockByUrl(askedServConfig, request.getUri());
-// 	std::cout << " URI is: " + request.getUri()<< "\n";
-// 	std::cout << " Returnd location is: " + askedLocationBlock.getLocationPath()<< "\n";
+bool Client::isErrorCode(int statusCode)
+{
+	if (statusCode >= 400 && statusCode <= 599)
+		return true;
+	return false;
+}
 
 
-// 	StaticHandler handler;
-// 	Response response= handler.serve(request, askedLocationBlock);
+std::string	Client::prepareResponse(Request &request) {
 
-// 	std::vector<char> respVector = response.serialize();
-// 	std::string respStr(respVector.begin(), respVector.end());
-// 	return (respStr);
-// }
+	int		socketClientConnectedTo = this->getServerFd();
+	Response response(_request, _serverManager, socketClientConnectedTo);
+	response.generateResponse();
+	if (getAnyHeader(response.getHeaders(), "Connection") == "close")
+		_closeAfterResponse = true;
+	return (response.getRawResponse());
+}
 
 
 
 //curl -v -H "Host: server3.com" http://127.0.0.1:8055/
-
-// the logic should be following:
-// 1. Read the request from the client, save the raw request as a string in Request class
-// 2. Parse the request to extract the URI (path and query), headers and body, including chunked transfer encoding if applicable
-// 3. Determine and save the target server and location block based on the "host" header
-// 
 
 bool Client::headersComplete(const std::string& request) {
 	// Check if the request ends with a double CRLF, indicating the end of headers
@@ -176,26 +168,36 @@ void    Client::handleRequest (int clientFd) {
 }
 
 
-void	Client::sendResponse(int clientFd) {
-	
-	size_t&		totalBytesSent = this->getClientsBytesSent();
-	const char*	servResp = this->getClientsResponse().c_str();
-	size_t		responseSize = strlen(servResp);
-	ssize_t		bytesSent = send(clientFd, servResp + totalBytesSent, responseSize - totalBytesSent, 0);
-
+void	Client::handleResponse(int clientFd) {
+	if (_clientResponse.empty()) {
+		std::cout << "Preparing response for client: " << clientFd << std::endl;
+		_clientResponse = this->prepareResponse(_request);
+		if (_clientResponse.empty()) {
+			std::cerr << "Error: Response is empty, closing client connection." << std::endl;
+			_serverManager->closeClientFd(clientFd);
+			return;
+		}
+		_clientBytesSent = 0; // Reset bytes sent for the new response
+		std::cout << "Response prepared successfully." << std::endl;
+	}
+	std::cout << "Response prepared: " << _clientResponse << std::endl;
+	const char*	servResp = _clientResponse.c_str();
+	size_t		responseSize = _clientResponse.size();
+	std::cout << "Response size: " << responseSize << std::endl;
+	ssize_t		bytesSent = send(clientFd, servResp + _clientBytesSent, responseSize - _clientBytesSent, 0);
+	std::cout << "Bytes sent: " << bytesSent << std::endl;
 	if (bytesSent == -1) {
 		_serverManager->setEpollCtl(clientFd, EPOLLOUT, EPOLL_CTL_MOD);
 		return;
 	}
-	totalBytesSent += bytesSent;
-	if (totalBytesSent == strlen(servResp)) {
+	_clientBytesSent += bytesSent;
+	if (_clientBytesSent == responseSize) {
 		std::cout << "All data sent" << "\n";
-		_serverManager->closeClientFd(clientFd);
-		totalBytesSent = 0;
+		if (_closeAfterResponse)
+			_serverManager->closeClientFd(clientFd);
+		_clientBytesSent = 0;
 	}
 }
-
-
 
 std::string Client::getAnyHeader(std::unordered_map<std::string, std::string> headers, std::string headerName) {
 
