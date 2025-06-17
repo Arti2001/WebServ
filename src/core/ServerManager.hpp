@@ -30,7 +30,7 @@ class ServerManager {
 		std::ifstream										_configFileFd;
 		int													_epollFd;
 		std::vector<vServer>								_vServers;
-		std::map<std::string, std::vector<const vServer*>>	_hostSetMap;
+		std::map<std::string, std::vector<const vServer*>>	_hostVserverMap;
 		std::vector<Server>									_servers;
 		std::map<int, Client>								_fdClientMap;
 	

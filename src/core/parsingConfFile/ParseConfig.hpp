@@ -2,7 +2,7 @@
 #define PARSECONFIG_HPP
 
 class vServer;
-struct Location;
+class Location;
 
 
 #include <unordered_map>
@@ -29,6 +29,7 @@ enum TokenType {
 	RETURN_DIR,
 	SERVER_BLOCK,
 	LOCATION_BLOCK,
+	COMMENT,
 	UNKNOWN
 };
 
@@ -64,7 +65,7 @@ class ParseConfig {
 		void											validateServerBlockDirectives(vServer& serv);
 		void											validateLocationBlockDirectives(vServer& serv);
 		void											validateLocationBlockStructure();
-		Location										createLocationInstance(const vServer& server);
+		std::string										findLocationPath();
 		std::pair< Token, std::vector<std::string>>		makeKeyValuePair();
 		
 		

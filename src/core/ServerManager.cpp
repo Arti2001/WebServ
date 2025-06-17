@@ -102,7 +102,7 @@ void	ServerManager::groupServers(const std::vector<vServer>& _vServers) {
 
 	for (const vServer& vServer : _vServers) {
 		const std::string& hostPort = vServer.getServerIpPort();
-		_hostSetMap[hostPort].push_back(&vServer);
+		_hostVserverMap[hostPort].push_back(&vServer);
 	}
 }
 
@@ -113,9 +113,9 @@ void	ServerManager::groupServers(const std::vector<vServer>& _vServers) {
 
 void	ServerManager::setServers() {
 	
-	std::map<std::string, std::vector<const vServer*>>::iterator	it = _hostSetMap.begin();
+	std::map<std::string, std::vector<const vServer*>>::iterator	it = _hostVserverMap.begin();
 
-	for (;it != _hostSetMap.end(); it++) {
+	for (;it != _hostVserverMap.end(); it++) {
 
 		const std::string& host = it->second.at(0)->getServerIp();
 		const std::string& port = it->second.at(0)->getServerPort();
@@ -409,7 +409,7 @@ const vServer& ServerManager::findServerConfigByName(const std::vector<const vSe
 const Location*	ServerManager::findDefaultLocationBlock(const std::vector<Location>& locations) {
 
 	for(const Location& loc : locations) {
-		if (loc._locationPath == "/") {
+		if (loc.getLocationPath() == "/") {
 			return (&loc);
 		}
 	}
@@ -425,7 +425,7 @@ const Location	ServerManager::findLocationBlockByUri(const vServer& serverConfig
 
 	for (const Location& loc : locations) {
 		
-		const std::string& locationPath = loc._locationPath;
+		const std::string& locationPath = loc.getLocationPath();
 		
 		if (uri.find(locationPath) == 0 && locationPath.length() > longestMatchLen ) {
 			bestMatchLocation = &loc;

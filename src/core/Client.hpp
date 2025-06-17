@@ -37,7 +37,10 @@ class Client{
 		Client(int	serverFd, ServerManager* servManager);
 		~Client();
 
-		Client(const Client&) = delete;
+		// Copy constructor is deleted to prevent copying of Client instances,
+		// as each Client should have a unique server file descriptor and state.
+				Client(const Client&) = delete;
+		// Disable assignment operator to prevent unintended behavior or resource management issues
 		Client& operator=(const Client&) = delete;
 
 		//setter
