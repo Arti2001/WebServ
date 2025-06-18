@@ -54,7 +54,6 @@ class Client{
 		int					getServerFd( void ) const;
 		size_t&				getClientsBytesSent( void );
 		Request&			getRequest( void ) { return (_request); }
-		Response&			getResponse(void) {return (_response);}
 
 		//methods
 
@@ -62,7 +61,7 @@ class Client{
 		void					handleRequest( int clientFd );
 		void					handleResponse( int clientFd );
 		
-		std::string				prepareResponse(Request &request);
+		std::string				prepareResponse();
 		std::string				getCgiResponse(Request &request);
 
 		static std::string				getAnyHeader(std::unordered_map<std::string, std::string> headers, std::string headerName);

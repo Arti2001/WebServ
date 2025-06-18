@@ -1,9 +1,8 @@
 #include "core/Server.hpp"
 #include "core/Request/Request.hpp"
 #include "core/Request/RequestParser.hpp"
-#include "core/parsingResponse/Response.hpp"
-#include "core/parsingResponse/StaticHandler.hpp"
-#include "core/parsingResponse/MimeTypes.hpp"
+#include "core/Response/Response.hpp"
+#include "core/Response/MimeTypes.hpp"
 #include "core/Utils.hpp"
 #include "core/ServerManager.hpp"
 

@@ -29,10 +29,10 @@ class Location {
 	const std::string&							getLocationIndex(void) const;
 	const int&									getLocationAutoIndex(void) const;
 	const unsigned&								getLocationClientMaxSize(void) const;
-	const std::vector<std::string>&				getLocationAllowedMethods(void) const;
+	const std::vector<std::string>&				getLocationAllowedMethods(void) const; // better to use set, as it won't allow duplicate methods
 	const std::pair<int, std::string>&			getLocationReturnPages(void) const;
 	const std::unordered_map<int, std::string>&	getLocationErrorPages(void) const;
-
+	// need to add cgi support here
 	//Setters
 	void									setLocationPath(const std::string&path);
 	void									setLocationUploadPath(const std::string& path);

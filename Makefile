@@ -3,6 +3,8 @@ NAME = webserv
 CXX = c++
 CXXFLAGS = -std=c++17 -Wall -Wextra -Werror -g
 
+LDFLAGS = -luuid
+
 SRC_DIR = src
 OBJ_DIR = obj
 
@@ -13,7 +15,7 @@ OBJS = $(SRCS:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 all: $(NAME)
 
 $(NAME): $(OBJS)
-	$(CXX) $(CXXFLAGS) $^ -o $@
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(@D)

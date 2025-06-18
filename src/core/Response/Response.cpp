@@ -6,13 +6,13 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/17 16:18:09 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/06/18 18:54:55 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Response.hpp"
 
-Response::Response() : {}
+Response::Response() {}
 
 Response::Response(Request *request, ServerManager *ServerManager, int clientSocket) : 
     _request(request),
@@ -28,19 +28,19 @@ Response::Response(Request *request, ServerManager *ServerManager, int clientSoc
 Response::~Response() {}
 
 int Response::getStatusCode() const {
-    return _status_code;
+    return _statusCode;
 }
 
 void Response::setStatusCode(int statusCode) {
-    _status_code = statusCode;
+    _statusCode = statusCode;
 }
 
 const std::string& Response::getStatusMessage() const {
-    return _status_message;
+    return _statusMessage;
 }
 
 void Response::setStatusMessage(const std::string& statusMessage) {
-    _status_message = statusMessage;
+    _statusMessage = statusMessage;
 }
 
 void Response::addHeader(const std::string& key, const std::string& value) {
@@ -53,41 +53,41 @@ const std::unordered_map<std::string, std::string>& Response::getHeaders() const
 void Response::setBody(const std::string &body) {
     _body = body;
 }
-const std::string Response::getBody() const {
+const std::string& Response::getBody() const {
     return _body;
 }
 
-void matchServer() {
-    const std::vector<const vServer*>&	subServConfigs = _serverManager->findServerConfigsByFd(socketClientConnectedTo);
+void Response::matchServer() {
+    const std::vector<const vServer*>&	subServConfigs = _serverManager->findServerConfigsByFd(_clientSocket);
 	if (subServConfigs.empty()) {
 		std::cerr << "No server configurations found for the connected socket." << std::endl;
 		// Handle the error, e.g., return a 500 Internal Server Error response
-		_response.setStatusCode(500);
+		setStatusCode(500);
         return ;
 	}
     std::string hostHeaderValue = _request->getHeaders().at("Host");
     if (hostHeaderValue.empty()) {
-        _response.setStatusCode(400);
+        setStatusCode(400);
         return ;
     }
     _serverConfig = _serverManager->findServerConfigByName(subServConfigs, hostHeaderValue);
     if (!_serverConfig) {
-        _response.setStatusCode(404);
+        setStatusCode(404);
         return ;
     }
 }
 
-void matchLocation() {
-    const Location* defaultLocation = _serverManager->findDefaultLocationBlock(_serverConfig.getServerLocations());
+void Response::matchLocation() {
+    const Location* defaultLocation = _serverManager->findDefaultLocationBlock(_serverConfig->getServerLocations());
     if (!defaultLocation) {
         std::cerr << "No default location block found for the server." << std::endl;
         // Handle the error, e.g., return a 500 Internal Server Error response
-        _response.setStatusCode(500);
+        setStatusCode(500);
         return ;
     }
-    _location = _serverManager->findLocationBlockByUri(_serverConfig, _request->getUri());
-    if (!_location) {
-        _location = defaultLocation;
+    _locationConfig = _serverManager->findLocationBlockByUri(*_serverConfig, _request->getUri());
+    if (!_locationConfig) {
+        _locationConfig = defaultLocation;
         std::cerr << "No matching location block found for the request URI. Using default." << std::endl;
     }
 }
@@ -103,7 +103,7 @@ void Response::generateResponse() {
     if (_statusCode >= 300 && _statusCode < 400)
         return handleRedirectRequest();
 
-    if (_isCgiRequest())
+    if (isCgiRequest())
         return handleCGIRequest();
 
     std::string method = _request->getMethod(); // Assuming this returns uppercase: "GET", "POST", etc.
@@ -126,15 +126,23 @@ void Response::generateResponse() {
 }
 
 bool Response::isCgiRequest() const {
-    std::string path = _request->getPath(); // e.g., "/cgi-bin/script.cgi"
-    if (path.find(DEFAULT_CGI_DIRECTORY) != std::string::npos) {
-        for (const auto & ext : _locationConfig->getCgiExtensions()) {
-            if (path.find(ext) != std::string::npos) {
-                return true; // The request is a CGI request
-            }
-        }
-    }
+    // std::string path = _request->getPath(); // e.g., "/cgi-bin/script.cgi"
+    // if (path.find(DEFAULT_CGI_DIRECTORY) != std::string::npos) {
+    //     for (const auto & ext : _locationConfig->getCgiExtensions()) {
+    //         if (path.find(ext) != std::string::npos) {
+    //             return true; // The request is a CGI request
+    //         }
+    //     }
+    // }
     return false; // The request is not a CGI request
+}
+
+std::string Response::resolveRelativePath(const std::string &path, const std::string &locationPath) const {
+    // Resolve relative path based on location path
+    if (path.empty() || path[0] == '/') {
+        return path; // Absolute path, return as is
+    }
+    return locationPath + "/" + path; // Relative path, prepend location path
 }
 
 void Response::handleGetRequest() {
@@ -143,7 +151,7 @@ void Response::handleGetRequest() {
         return generateErrorResponse();
     }
     std::string path = _request->getPath(); // e.g., "/images/cat.png"
-    std::string fullPath = _locationConfig->getRoot() + resolveRelativePath(path, _locationConfig->getPath());
+    std::string fullPath = _locationConfig->getLocationRoot() + resolveRelativePath(path, _locationConfig->getLocationPath());
 
     if (!fileExists(fullPath)) {
         setStatusCode(404);
@@ -179,9 +187,8 @@ void Response::generateErrorResponse() {
 }
 
 bool Response::isMethodAllowed(const std::string &method) const {
-    std::unordered_set<std::string> allowedMethods = _locationConfig->getAllowedMethods();
-    auto it = allowedMethods.find(method);
-    return it != allowedMethods.end();
+    std::vector<std::string> allowedMethods = _locationConfig->getLocationAllowedMethods();
+    return std::find(allowedMethods.begin(), allowedMethods.end(), method) != allowedMethods.end();
 };
 
 
@@ -256,14 +263,14 @@ void Response::makeChunkedResponse(const std:: string &path) {
     else if (bytesRead == 0)
     {
         close(file);
-        _response += "0\r\n\r\n"; // End of chunked response
+        _rawResponse += "0\r\n\r\n"; // End of chunked response
     }
     else
     {
         std::string chunkSize = std::to_string(bytesRead) + "\r\n";
-        _response += chunkSize; // Add chunk size to the response
-        _response.append(buffer, bytesRead); // Append the read bytes to the response
-        _response += "\r\n"; // End of chunk    
+        _rawResponse += chunkSize; // Add chunk size to the response
+        _rawResponse.append(buffer, bytesRead); // Append the read bytes to the response
+        _rawResponse += "\r\n"; // End of chunk    
     }
     addHeader("Transfer-Encoding", "chunked");
     addHeader("Content-Type", getMimeType(path)); // Set content type based on file extension
@@ -279,7 +286,7 @@ void Response::handleRedirectRequest() {
     // Handle redirect request logic here
     // This is a placeholder for the actual redirect handling logic
     if (_locationConfig) {
-        std::pair<int, std::string> redirect = _locationConfig->getRedirect();
+        std::pair<int, std::string> redirect = _locationConfig->getLocationReturnPages();
         if (redirect.first != 0) {
             setStatusCode(redirect.first);
             setStatusMessage(_statusMessages[redirect.first]);
@@ -303,7 +310,7 @@ std::string Response::createUploadFile() {
         setStatusCode(400); // Bad Request
         return "";
     }
-    const std::string &uploadDirectory = _locationConfig->getUploadDirectory();
+    const std::string &uploadDirectory = _locationConfig->getLocationUploadPath();
     if (uploadDirectory.empty()) {
         setStatusCode(403); // Forbidden
         return "";
@@ -364,10 +371,10 @@ void Response::handleDeleteRequest() {
     if (!path.empty() && path[0] == '/') // remove leading slash
         path = path.substr(1);
     std::string fullPath;
-    if (_locationConfig->getUploadDirectory().back() != '/')
-        fullPath = _locationConfig->getUploadDirectory() + "/" + path;
+    if (_locationConfig->getLocationUploadPath().back() != '/')
+        fullPath = _locationConfig->getLocationUploadPath() + "/" + path;
     else
-        fullPath = _locationConfig->getUploadDirectory() + path;
+        fullPath = _locationConfig->getLocationUploadPath() + path;
     if (!fileExists(fullPath)) {
         setStatusCode(404); // Not Found
         return generateErrorResponse();
@@ -384,19 +391,19 @@ void Response::handleDeleteRequest() {
 }
 
 void Response::createStartLine() {
-    if (_statusMessages.find(_statusCode) = = _statusMessages.end()) 
+    if (_statusMessages.find(_statusCode) == _statusMessages.end()) 
         _statusCode = 418; // Default to "I'm a teapot" if status code is not recognized 
     _statusMessage = _statusMessages[_statusCode];
     std::string startLine = _request->getHttpVersion() + " " + std::to_string(_statusCode) + " " + _statusMessage + "\r\n";
-    _response += startLine;
+    _rawResponse += startLine;
 }
 
 
 void Response::createHeaders(){
     for (const auto &header : _headers) {
-        _response += header.first + ": " + header.second + "\r\n";
+        _rawResponse += header.first + ": " + header.second + "\r\n";
     }
-    _response += "\r\n"; // End of headers
+    _rawResponse += "\r\n"; // End of headers
     // need to add default headers as well as headers depending on request
 }
 
@@ -408,7 +415,7 @@ std::string Response::generateDirectoryListing(const std::string& fsPath, const 
     DIR* dir = opendir(fsPath.c_str());
     if (!dir) {
         setStatusCode(500); // Internal Server Error
-        return generateErrorResponse();
+        return "";
     }
 
     struct dirent* entry;
@@ -426,4 +433,24 @@ std::string Response::generateDirectoryListing(const std::string& fsPath, const 
 
     html << "</ul></body></html>";
     return html.str();
+}
+
+std::string Response::urlEncode(const std::string& value) {
+    std::ostringstream encoded;
+    for (char c : value) {
+        if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') {
+            encoded << c; // Keep alphanumeric and some special characters
+        } else {
+            encoded << '%' << std::uppercase << std::hex << static_cast<int>(c);
+        }
+    }
+    return encoded.str();
+}
+
+void Response::createBody() {
+    if (_body.empty()) {
+        _rawResponse += "\r\n"; // No body, just end the response
+    } else {
+        _rawResponse += _body + "\r\n"; // Add body to the response
+    }
 }
