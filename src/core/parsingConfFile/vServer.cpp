@@ -106,28 +106,46 @@ uint64_t								vServer::getServerClientMaxSize( void ) const {
 
 //validators
 
-void vServer::validateServerListen(const std::vector<std::string>& addressVector) {
 
-	std::regex ipV4Pattern(R"((\d{1,3}(?:\.\d{1,3}){3}):(\d{1,5}))");
+
+void vServer::validateServerListen(const std::vector<std::string>& addressVector) {
+	if (addressVector.size() != 1) {
+		throw ParseConfig::ConfException("Invalid listen directive: expected one argument (e.g., IP:Port, Port, or IP).");
+	}
+
+	const std::string& input = addressVector.at(0);
 	std::smatch matches;
 
-	if (addressVector.size() != MAX_ARG) {
-		throw ParseConfig::ConfException("Invalid listen directive: expected only one argument, following 'IP:Port' format.");
+	// Patterns
+	std::regex ipv4WithPort(R"(^(\d{1,3}(?:\.\d{1,3}){3}):(\d{1,5})$)");
+	std::regex portOnly(R"(^(\d{1,5})$)");
+	std::regex ipv4Only(R"(^(\d{1,3}(?:\.\d{1,3}){3})$)");
+	std::regex ipv6WithPort(R"(^\[(.+)\]:(\d{1,5})$)");
+	std::regex ipv6Only(R"(^\[(.+)\]$)");
+
+	std::string ipStr = "0.0.0.0";
+	std::string portStr = "8080";
+
+	if (std::regex_match(input, matches, ipv4WithPort)) {
+		ipStr = matches[1];
+		portStr = matches[2];
+	} else if (std::regex_match(input, matches, ipv4Only)) {
+		ipStr = matches[1];
+	} else if (std::regex_match(input, matches, portOnly)) {
+		portStr = matches[1];
+	} else if (std::regex_match(input, matches, ipv6WithPort)) {
+		ipStr = matches[1];
+		portStr = matches[2];
+	} else if (std::regex_match(input, matches, ipv6Only)) {
+		ipStr = matches[1];
+	} else {
+		throw ParseConfig::ConfException("Listen directive format is invalid. Acceptable formats: IP:Port, IP, Port, [IPv6]:Port, [IPv6]");
 	}
-
-	const std::string& address = addressVector.at(0);
-
-	if (!std::regex_match(address, matches, ipV4Pattern)) {
-		throw ParseConfig::ConfException("Listen address must match IPv4:Port format (e.g., 127.0.0.1:8080).");
-	}
-
-	std::string ipStr = matches[1];
-	std::string portStr = matches[2];
 
 	int portInt;
 	try {
 		portInt = std::stoi(portStr);
-	} catch (const std::exception& e) {
+	} catch (...) {
 		throw ParseConfig::ConfException("Port is not a valid number.");
 	}
 
@@ -137,8 +155,17 @@ void vServer::validateServerListen(const std::vector<std::string>& addressVector
 
 	_vServerIp = ipStr;
 	_vServerPort = portStr;
-	_vServerIpPort = address;
+
+	std::string ipFormatted;
+
+	if (ipStr.find(':') != std::string::npos) {
+		ipFormatted = "[" + ipStr + "]";
+	} else {
+		ipFormatted = ipStr;
+	}
+	_vServerIpPort = ipFormatted + ":" + portStr;
 }
+
 
 
 
