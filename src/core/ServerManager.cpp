@@ -262,7 +262,7 @@ void	ServerManager::closeClientFd(int clientFd){
 //	for(std::map<int, Client>::iterator it = _fdClientMap.begin(); it != _fdClientMap.end(); it++) {
 //		if ((currTime - it->second.getLastActiveTime()) > SERVER_TIMEOUT_MS) {
 //			std::cout<< "Found an idle connection"<< "\n";
-//			const std::vector<const vServer*>& fromThisServer = findServerCofigsByFd(it->second.getServerFd());
+//			const std::vector<const vServer*>& fromThisServer = findServerConfigsByFd(it->second.getServerFd());
 //			std::cerr<< "Time out: Closing the client hosted at the host: " + fromThisServer.at(0)->getServerIpPort()<< "\n";
 //			closeClientFd(it->first);
 //		}
@@ -371,14 +371,14 @@ void	ServerManager::manageEpollEvent(const struct epoll_event& currEvent) {
 		_fdClientMap.at(fd).handleRequest(fd);
 	}
 	else if ((currEvent.events & EPOLLOUT) && isClientSocket(fd)) {
-		_fdClientMap.at(fd).sendResponse(fd);
+		_fdClientMap.at(fd).handleResponse(fd);
 	}
 	
 }
 
 
 
-const std::vector<const vServer*>& ServerManager::findServerCofigsByFd(int fd) {
+const std::vector<const vServer*>& ServerManager::findServerConfigsByFd(int fd) {
 
 	std::cout<<"here"<<"\n";
 	for( const Server& server : _servers) {
@@ -386,7 +386,7 @@ const std::vector<const vServer*>& ServerManager::findServerCofigsByFd(int fd) {
 		if (server.getSocketFd() == fd) 
 			return (server.getServConfigs());
 	}
-	throw ServerManagerException("Failed to find server configuratons by a file descriptor");
+	return (std::vector<const vServer*>());
 }
 
 
@@ -415,8 +415,10 @@ const Location*	ServerManager::findDefaultLocationBlock(const std::map<std::stri
 
 }
 
+
 const Location ServerManager::findLocationBlockByUrl(const vServer& serverConfig, const std::string& uri) {
 	const std::map<std::string, Location>& locations = serverConfig.getServerLocations();
+
 	size_t longestMatchLen = 0;
 	const Location* bestMatchLocation = nullptr;
 

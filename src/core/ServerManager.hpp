@@ -85,6 +85,7 @@ class ServerManager {
 
 
 
+
 		class ServerManagerException : public std::exception {
 			private:
 				std::string	_message;
