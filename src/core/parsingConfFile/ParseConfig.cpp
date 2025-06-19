@@ -243,7 +243,8 @@ for (; _tokens[currToken].type != CLOSED_BRACE; currToken++) {
 
 		case ALLOWED_CGI:
 			loc.validateAllowedCgiDirective(pair.second);
-			
+		break;
+		
 		case ERROR_PAGE_DIR:
 			loc.setLocationErrorPages(vServer::validateErrorPagesDirective(pair.second));
 		break;
