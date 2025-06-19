@@ -12,6 +12,7 @@ class Location {
 		int										_locationAutoIndex;
 		unsigned								_locationClientMaxSize;
 		std::vector<std::string>				_locationAllowedMethods;
+		std::map<std::string, std::string>		_locationAllowedCgi;
 		std::pair<int, std::string>				_locationReturnPages;
 		std::unordered_map<int, std::string>	_locationErrorPages;
 	public:
@@ -30,6 +31,7 @@ class Location {
 	const int&									getLocationAutoIndex(void) const;
 	const unsigned&								getLocationClientMaxSize(void) const;
 	const std::vector<std::string>&				getLocationAllowedMethods(void) const; // better to use set, as it won't allow duplicate methods
+	const std::map<std::string, std::string>&	getLocationAllowedCgi(void) const;
 	const std::pair<int, std::string>&			getLocationReturnPages(void) const;
 	const std::unordered_map<int, std::string>&	getLocationErrorPages(void) const;
 	// need to add cgi support here
@@ -49,7 +51,7 @@ class Location {
 	// using same logic as in vServer class
 	//validators
 	void								validateAllowedMethodsDirective(const std::vector<std::string>& allowedMethodsVector);
-
+	void								validateAllowedCgiDirective(const std::vector<std::string>& allowedCgiVector);
 };
 
 #endif

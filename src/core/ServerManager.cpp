@@ -409,11 +409,10 @@ const vServer* ServerManager::findServerConfigByName(const std::vector<const vSe
 	return(defaultServConfig); // fallback
 }
 
-const Location*	ServerManager::findDefaultLocationBlock(const std::map<std::string,Location>& locations) {
+const Location*	ServerManager::findDefaultLocationBlock(const std::map<std::string,Location>& locations) const {
 
-	if (locations.find("/") != locations.end()) {
+	if(locations.find("/") != locations.end())
 		return(&locations.at("/"));
-	}
 	return(nullptr);
 
 }
@@ -438,8 +437,7 @@ const Location*	ServerManager::findLocationBlockByUri(const vServer& serverConfi
 		return (bestMatchLocation);
 	}
 
-		const Location* defaultLocation = findDefaultLocationBlock(locations);
-		if (!defaultLocation) {
+
 			std::cout<< "No location block found, no  default location block found " << "\n";
 			// const Location* newLocation(serverConfig);
 			// return(newLocation);
