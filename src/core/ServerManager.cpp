@@ -378,7 +378,7 @@ void	ServerManager::manageEpollEvent(const struct epoll_event& currEvent) {
 
 
 
-const std::vector<const vServer*>& ServerManager::findServerConfigsByFd(int fd) {
+const std::vector<const vServer*> ServerManager::findServerConfigsByFd(int fd) const{
 
 	std::cout<<"here"<<"\n";
 	for( const Server& server : _servers) {
@@ -391,19 +391,22 @@ const std::vector<const vServer*>& ServerManager::findServerConfigsByFd(int fd) 
 
 
 
-const vServer& ServerManager::findServerConfigByName(const std::vector<const vServer*>& subConfigs, std::string serverName) {
-
-	const vServer* defaultServConfig = subConfigs.at(0);
+const vServer* ServerManager::findServerConfigByName(const std::vector<const vServer*>& subConfigs, std::string serverName) const
+{
+	if (subConfigs.empty()) {
+		return nullptr;
+	}
+	const vServer* defaultServConfig = subConfigs[0];
 	for (const vServer* config : subConfigs) {
 
 		for(const std::string& name : config->getServerNames()) {
 
 			if (name == serverName) {
-				return(*config);
+				return(config);
 			}
 		}
 	}
-	return(*defaultServConfig);
+	return(defaultServConfig); // fallback
 }
 
 const Location*	ServerManager::findDefaultLocationBlock(const std::map<std::string,Location>& locations) {
@@ -416,7 +419,7 @@ const Location*	ServerManager::findDefaultLocationBlock(const std::map<std::stri
 }
 
 
-const Location ServerManager::findLocationBlockByUrl(const vServer& serverConfig, const std::string& uri) {
+const Location*	ServerManager::findLocationBlockByUri(const vServer& serverConfig, const std::string& uri) const {
 	const std::map<std::string, Location>& locations = serverConfig.getServerLocations();
 
 	size_t longestMatchLen = 0;
@@ -432,18 +435,19 @@ const Location ServerManager::findLocationBlockByUrl(const vServer& serverConfig
 	}
 
 	if (bestMatchLocation) {
-		return *bestMatchLocation;
+		return (bestMatchLocation);
 	}
 
-	const Location* defaultLocation = findDefaultLocationBlock(locations);
-	if (!defaultLocation) {
-		std::cout << "No location block found, no default location block found\n";
-		Location newLocation(serverConfig);
-		return newLocation;
-	}
-
-	std::cout << "No location block found, fell back to default location block\n";
-	return *defaultLocation;
+		const Location* defaultLocation = findDefaultLocationBlock(locations);
+		if (!defaultLocation) {
+			std::cout<< "No location block found, no  default location block found " << "\n";
+			// const Location* newLocation(serverConfig);
+			// return(newLocation);
+			return (nullptr); // better to return nullptr if no default location is found as it inicates that something went wrogn with creation of default location
+		}
+		
+		std::cout<< "No  location block found, fell back to default location block " << "\n";
+	return (defaultLocation);
 }
 
 

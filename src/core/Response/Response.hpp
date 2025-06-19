@@ -6,7 +6,7 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:04:57 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/17 16:13:37 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/06/18 18:37:43 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,17 +17,23 @@
 #include "../Request/Request.hpp"
 #include "../ServerManager.hpp"
 #include "../parsingConfFile/vServer.hpp"
-#include "../parsingConfFile/Location.hpp"
+#include "../parsingConfFile/LocationConfig.hpp"
 #include <uuid/uuid.h>
+#include <sys/stat.h>
+#include <dirent.h>
 
 #define DEFAULT_CGI_DIRECTORY "/cgi-bin/"
+#define LARGE_FILE_SIZE_THRESHOLD 1048576 // 1 MB
+#define RESPONSE_READ_BUFFER_SIZE 8192 // Buffer size for reading response data
+
+class ServerManager;
 
 class Response {
     private:
-        Request *_request;
-        ServerManager *_serverManager; // Server manager to access server configurations
-        vServer *_serverConfig; // virtual server configuration for the response
-        Location *_locationConfig; // Location configuration for the response
+        const Request *_request;
+        const ServerManager *_serverManager; // Server manager to access server configurations
+        const vServer *_serverConfig; // virtual server configuration for the response
+        const Location *_locationConfig; // Location configuration for the response
         int _clientSocket;
         int _statusCode; // HTTP status code (e.g., 200, 404, 500)
         std::string _rawResponse;
@@ -70,7 +76,11 @@ class Response {
         bool isLargeFile(const std::string &path); // Check if the file is larger than a certain threshold
         std::string generateDirectoryListing(const std::string& fsPath, const std::string& urlPath);
         bool isCgiRequest() const; // Check if the request is a CGI request
-
+        std::string resolveRelativePath(const std::string &path, const std::string &locationPath) const; // Resolve relative path based on location path
+        std::string getMimeType(const std::string &path) const; // Get the MIME type based on the file extension
+        std::string createUploadFile();
+        std::string generateUUID();
+        
     public:
         Response();
         Response(Request *request, ServerManager *serverManager, int clientSocket);
@@ -92,6 +102,7 @@ class Response {
         void setBody(const std::string &body);
         const std::string &getBody() const;
         const std::string& getRawResponse() const;
+        std::string urlEncode(const std::string& value);
 
         void generateResponse(); // Generate the full HTTP response string
 };

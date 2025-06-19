@@ -16,9 +16,9 @@ void	Client::setLastActiveTime( std::time_t timeStamp) {
 	this->_lastActiveTime = timeStamp;
 }
 
-void Client::setIsClosed(bool flag) {
-	this->_closed = flag;
-}
+// void Client::setIsClosed(bool flag) {
+// 	this->_closed = flag;
+// }
 
 
 
@@ -38,9 +38,9 @@ size_t& Client::getClientsBytesSent(void) {
 	return(_clientBytesSent);
 }
 
-const std::string&	Client::getClientsResponse(void) const {
-	return(_clientResponse);
-}
+// const std::string&	Client::getClientsResponse(void) const {
+// 	return(_clientResponse);
+// }
 
 //bool&	Client::getIsClosed(void) {
 //	return(_closed);
@@ -49,29 +49,23 @@ const std::string&	Client::getClientsResponse(void) const {
 
 
 
-std::string	Client::getCgiResponse(Request &request) {
+// std::string	Client::getCgiResponse(Request &request) {
 
-	CGIHandler	cgiHandler;
-	std::cout << "we call CGI" << std::endl;
-	Response cgiResponse = cgiHandler.handle(request);
-	std::vector<char> respVector = cgiResponse.serialize();
-	std::string respStr(respVector.begin(), respVector.end());
+// 	CGIHandler	cgiHandler;
+// 	std::cout << "we call CGI" << std::endl;
+// 	Response cgiResponse = cgiHandler.handle(request);
+// 	// std::vector<char> respVector = cgiResponse.serialize();
+// 	std::string respStr(respVector.begin(), respVector.end());
 
-	return(respStr);
-}
-
-bool Client::isErrorCode(int statusCode)
-{
-	if (statusCode >= 400 && statusCode <= 599)
-		return true;
-	return false;
-}
+// 	return(respStr);
+// }
 
 
-std::string	Client::prepareResponse(Request &request) {
+
+std::string	Client::prepareResponse() {
 
 	int		socketClientConnectedTo = this->getServerFd();
-	Response response(_request, _serverManager, socketClientConnectedTo);
+	Response response(&_request, _serverManager, socketClientConnectedTo);
 	response.generateResponse();
 	if (getAnyHeader(response.getHeaders(), "Connection") == "close")
 		_closeAfterResponse = true;
@@ -171,7 +165,7 @@ void    Client::handleRequest (int clientFd) {
 void	Client::handleResponse(int clientFd) {
 	if (_clientResponse.empty()) {
 		std::cout << "Preparing response for client: " << clientFd << std::endl;
-		_clientResponse = this->prepareResponse(_request);
+		_clientResponse = this->prepareResponse();
 		if (_clientResponse.empty()) {
 			std::cerr << "Error: Response is empty, closing client connection." << std::endl;
 			_serverManager->closeClientFd(clientFd);

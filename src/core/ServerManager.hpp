@@ -13,7 +13,6 @@
 #include "parsingConfFile/vServer.hpp"
 #include <fstream>
 #include "Request/Request.hpp"
-#include "parsingResponse/StaticHandler.hpp"
 #include "Client.hpp"
 #include "CGIHandler/CGIHandler.hpp"
 
@@ -77,12 +76,10 @@ class ServerManager {
 		void								closeClientFd(int clientfFd);
 		void								closeAllSockets();
 
-		//checkers
-		const	vServer&							findServerConfigByName(const std::vector<const vServer*>& subConfigs, std::string serverName);
-		const	std::vector<const vServer*>&		findServerCofigsByFd(int serverFd);
-		const	Location							findLocationBlockByUrl(const vServer& serverConfig, const std::string& url);
-		const	Location*							findDefaultLocationBlock(const std::map<std::string,Location>& locations);
-
+		const	vServer*							findServerConfigByName(const std::vector<const vServer*>& subConfigs, std::string serverName) const;
+		const	std::vector<const vServer*>			findServerConfigsByFd(int serverFd) const;
+		const	Location*							findLocationBlockByUri(const vServer& serverConfig, const std::string& url) const;
+		const	Location*							findDefaultLocationBlock(const std::vector<Location>& locations) const;
 
 
 
