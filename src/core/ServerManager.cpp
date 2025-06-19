@@ -8,12 +8,18 @@ ServerManager::ServerManager(std::string& fileName, int epollSize) {
 	if (fileName.empty()){
 		fileName = DEFAULT_CONFIG_FILE_PATH;
 	}
-	_configFileFd.open(fileName);
-	if (!_configFileFd) {
-		throw (ServerManagerException("Failed to open " + fileName));
-	}
-	else{
-		std::cout << "File: '" << fileName << "' is opend." << "\n";
+	struct stat s;
+
+	if (stat(fileName.c_str(), &s) == 0 && S_ISDIR(s.st_mode)) 
+		throw ServerManagerException(fileName + " not a file.");
+	else {
+		_configFileFd.open(fileName);
+		if (!_configFileFd) {
+			throw (ServerManagerException("Failed to open " + fileName));
+		}
+		else{
+			std::cout << "File: '" << fileName << "' is opend." << "\n";
+		}
 	}
 
 	_epollFd = epoll_create(epollSize);
