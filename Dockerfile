@@ -3,7 +3,7 @@ FROM ubuntu:22.04
 
 # Install build tools
 RUN apt-get update && \
-    apt-get install -y g++ make curl
+    apt-get install -y g++ make curl uuid-dev
 
 # Create app directory
 WORKDIR /app
@@ -15,4 +15,4 @@ COPY . .
 RUN make re
 
 # Command to run your server by default
-CMD ["./webserv config-files/working/w.conf"]
+CMD ["./webserv" "/config-files/working/w.conf"]
