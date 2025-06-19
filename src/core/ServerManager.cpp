@@ -411,9 +411,8 @@ const vServer* ServerManager::findServerConfigByName(const std::vector<const vSe
 
 const Location*	ServerManager::findDefaultLocationBlock(const std::map<std::string,Location>& locations) const {
 
-	if (locations.find("/") != locations.end()) {
+	if(locations.find("/") != locations.end())
 		return(&locations.at("/"));
-	}
 	return(nullptr);
 }
 

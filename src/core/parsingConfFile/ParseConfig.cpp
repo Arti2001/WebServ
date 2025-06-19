@@ -14,6 +14,7 @@ ParseConfig::ParseConfig() : depth(0), currToken(0) {
 	_keywords["return"] = RETURN_DIR;
 	_keywords["server"] = SERVER_BLOCK;
 	_keywords["location"] = LOCATION_BLOCK;
+	_keywords["allowed_cgi"] = ALLOWED_CGI;
 	_keywords["autoindex"] = AUTO_INDEX_DIR; // by convention, autoindex is a directive
 	_keywords["upload_path"] = UPLOAD_PATH;
 	_keywords["server_name"] = SERVER_NAME_DIR; // by convention, server_name is a directive
@@ -239,6 +240,9 @@ for (; _tokens[currToken].type != CLOSED_BRACE; currToken++) {
 		case ALLOWED_METHODS:
 			loc.validateAllowedMethodsDirective(pair.second);
 		break;
+
+		case ALLOWED_CGI:
+			loc.validateAllowedCgiDirective(pair.second);
 			
 		case ERROR_PAGE_DIR:
 			loc.setLocationErrorPages(vServer::validateErrorPagesDirective(pair.second));

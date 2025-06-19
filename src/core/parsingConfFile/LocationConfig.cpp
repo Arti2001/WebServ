@@ -65,6 +65,10 @@ const std::vector<std::string>& Location::getLocationAllowedMethods() const {
 	return _locationAllowedMethods;
 }
 
+const std::map<std::string, std::string>& Location::getLocationAllowedCgi() const {
+	return _locationAllowedCgi;
+}
+
 const std::pair<int, std::string>& Location::getLocationReturnPages() const {
 	return _locationReturnPages;
 }
@@ -163,11 +167,26 @@ void	Location::validateAllowedMethodsDirective(const std::vector<std::string>& m
 	std::set<std::string>			allowedMethodsSet = {"POST", "GET", "DELETE"};
 
 	for (const std::string&	method : methodsVector) {
-	
-		if (allowedMethodsSet.count(method)){
+
+		if (allowedMethodsSet.count(method))
 			_locationAllowedMethods.push_back(method);
-		}
 		else
-			std::cout<< "NOT ALLOWED: " + method <<"\n";
-		}
+			throw ParseConfig::ConfException("Invalid method: " + method);
+	}
+}
+
+void Location::validateAllowedCgiDirective(const std::vector<std::string>& cgiVector) {
+
+	if (cgiVector.size() > MAX_ARG_ERROR_PAGE) {
+		throw ParseConfig::ConfException("Invalid allowed_cgi directive: too many arguments!");
+	}
+
+	const std::string& ext = cgiVector.at(0);
+	const std::string& path = cgiVector.at(0);
+
+	if (_locationAllowedCgi.find(ext) == _locationAllowedCgi.end())
+		_locationAllowedCgi[ext] = path;
+	else
+		throw ParseConfig::ConfException("Duplicated " + ext + " extension.");
+
 }
