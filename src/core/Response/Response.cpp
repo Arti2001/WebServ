@@ -6,7 +6,7 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/18 18:54:55 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/06/19 17:23:39 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,17 +78,10 @@ void Response::matchServer() {
 }
 
 void Response::matchLocation() {
-    const Location* defaultLocation = _serverManager->findDefaultLocationBlock(_serverConfig->getServerLocations());
-    if (!defaultLocation) {
-        std::cerr << "No default location block found for the server." << std::endl;
-        // Handle the error, e.g., return a 500 Internal Server Error response
-        setStatusCode(500);
-        return ;
-    }
     _locationConfig = _serverManager->findLocationBlockByUri(*_serverConfig, _request->getUri());
     if (!_locationConfig) {
-        _locationConfig = defaultLocation;
         std::cerr << "No matching location block found for the request URI. Using default." << std::endl;
+        setStatusCode(404);
     }
 }
 
