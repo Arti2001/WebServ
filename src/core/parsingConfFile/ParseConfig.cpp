@@ -18,7 +18,7 @@ ParseConfig::ParseConfig() : depth(0), currToken(0) {
 	_keywords["autoindex"] = AUTO_INDEX_DIR; // by convention, autoindex is a directive
 	_keywords["upload_path"] = UPLOAD_PATH;
 	_keywords["server_name"] = SERVER_NAME_DIR; // by convention, server_name is a directive
-	_keywords["error_pages"] = ERROR_PAGE_DIR; // by convention, error_pages is a directive
+	_keywords["error_page"] = ERROR_PAGE_DIR; // by convention, error_pages is a directive
 	_keywords["allowed_methods"] = ALLOWED_METHODS;
 	_keywords["client_max_body_size"] = BODY_MAX_SIZE; // by convention, client_max_body_size is a directive
 	// need to add keywords for upload path, cgi in the location block
@@ -244,7 +244,7 @@ for (; _tokens[currToken].type != CLOSED_BRACE; currToken++) {
 		case ALLOWED_CGI:
 			loc.validateAllowedCgiDirective(pair.second);
 		break;
-		
+
 		case ERROR_PAGE_DIR:
 			loc.setLocationErrorPages(vServer::validateErrorPagesDirective(pair.second));
 		break;
