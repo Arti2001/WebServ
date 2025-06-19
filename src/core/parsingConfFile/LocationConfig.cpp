@@ -177,8 +177,8 @@ void	Location::validateAllowedMethodsDirective(const std::vector<std::string>& m
 
 void Location::validateAllowedCgiDirective(const std::vector<std::string>& cgiVector) {
 
-	if (cgiVector.size() > MAX_ARG_ERROR_PAGE) {
-		throw ParseConfig::ConfException("Invalid allowed_cgi directive: too many arguments!");
+	if (cgiVector.size() != MAX_ARG_ERROR_PAGE) {
+		throw ParseConfig::ConfException("Invalid allowed_cgi directive: Invalid amount of arguments.");
 	}
 
 	const std::string& ext = cgiVector.at(0);
