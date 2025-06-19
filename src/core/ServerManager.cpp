@@ -409,32 +409,31 @@ const vServer* ServerManager::findServerConfigByName(const std::vector<const vSe
 	return(defaultServConfig); // fallback
 }
 
-const Location*	ServerManager::findDefaultLocationBlock(const std::vector<Location>& locations) const {
+const Location*	ServerManager::findDefaultLocationBlock(const std::map<std::string,Location>& locations) {
 
-	for(const Location& loc : locations) {
-		if (loc.getLocationPath() == "/") {
-			return (&loc);
-		}
+	if (locations.find("/") != locations.end()) {
+		return(&locations.at("/"));
 	}
 	return(nullptr);
 
 }
 
+
 const Location*	ServerManager::findLocationBlockByUri(const vServer& serverConfig, const std::string& uri) const {
+	const std::map<std::string, Location>& locations = serverConfig.getServerLocations();
 
-	const std::vector<Location>& locations = serverConfig.getServerLocations();
 	size_t longestMatchLen = 0;
-	const Location*	bestMatchLocation = nullptr;
+	const Location* bestMatchLocation = nullptr;
 
-	for (const Location& loc : locations) {
-		
-		const std::string& locationPath = loc.getLocationPath();
-		
-		if (uri.find(locationPath) == 0 && locationPath.length() > longestMatchLen ) {
-			bestMatchLocation = &loc;
+	for (std::map<std::string, Location>::const_iterator it = locations.begin(); it != locations.end(); ++it) {
+		const std::string& locationPath = it->first;
+
+		if (uri.find(locationPath) == 0 && locationPath.length() > longestMatchLen) {
+			bestMatchLocation = &(it->second);
 			longestMatchLen = locationPath.length();
 		}
 	}
+
 	if (bestMatchLocation) {
 		return (bestMatchLocation);
 	}

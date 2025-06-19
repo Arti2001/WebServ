@@ -19,6 +19,7 @@ enum TokenType {
 	OPENED_BRACE,
 	CLOSED_BRACE,
 	LISTEN_DIR,
+	UPLOAD_PATH,
 	ROOT_DIR,
 	INDEX_DIR,
 	SERVER_NAME_DIR,
@@ -48,7 +49,6 @@ class ParseConfig {
 	private:
 		std::vector<Token>											_tokens;
 		std::unordered_map<std::string, TokenType>					_keywords;
-		//std::vector<vServer>										_vServers;
 
 	public:
 		int			depth;

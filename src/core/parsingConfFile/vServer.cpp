@@ -45,7 +45,7 @@ void	vServer::setServerAutoIndex(const int mode) {
 	_vServerAutoIndex = mode;
 }
 
-void	vServer::setServerClientMaxSize(const unsigned size) {
+void	vServer::setServerClientMaxSize(const uint64_t size) {
 	_vServerClientMaxSize = size;
 }
 
@@ -80,11 +80,11 @@ std::string								vServer::getServerIndex( void ) const {
 	return (_vServerIndex);
 }
 
-std::vector<Location>&					vServer::getServerLocations() {
+std::map<std::string, Location>&		vServer::getServerLocations() {
 	return _vServerLocations;
 }
 
-const std::vector<Location>&			vServer::getServerLocations() const {
+const std::map<std::string, Location>&	vServer::getServerLocations() const {
 	return _vServerLocations;
 }
 
@@ -96,7 +96,7 @@ std::vector<std::string>				vServer::getServerNames( void ) const {
 	return (_vServerNames);
 }
 
-unsigned								vServer::getServerClientMaxSize( void ) const {
+uint64_t								vServer::getServerClientMaxSize( void ) const {
 	return(_vServerClientMaxSize);
 }
 
@@ -106,28 +106,46 @@ unsigned								vServer::getServerClientMaxSize( void ) const {
 
 //validators
 
-void vServer::validateServerListen(const std::vector<std::string>& addressVector) {
 
-	std::regex ipV4Pattern(R"((\d{1,3}(?:\.\d{1,3}){3}):(\d{1,5}))");
+
+void vServer::validateServerListen(const std::vector<std::string>& addressVector) {
+	if (addressVector.size() != 1) {
+		throw ParseConfig::ConfException("Invalid listen directive: expected one argument (e.g., IP:Port, Port, or IP).");
+	}
+
+	const std::string& input = addressVector.at(0);
 	std::smatch matches;
 
-	if (addressVector.size() != MAX_ARG) {
-		throw ParseConfig::ConfException("Invalid listen directive: expected exactly one argument in 'IP:Port' format.");
+	// Patterns
+	std::regex ipv4WithPort(R"(^(\d{1,3}(?:\.\d{1,3}){3}):(\d{1,5})$)");
+	std::regex portOnly(R"(^(\d{1,5})$)");
+	std::regex ipv4Only(R"(^(\d{1,3}(?:\.\d{1,3}){3})$)");
+	std::regex ipv6WithPort(R"(^\[(.+)\]:(\d{1,5})$)");
+	std::regex ipv6Only(R"(^\[(.+)\]$)");
+
+	std::string ipStr = "0.0.0.0";
+	std::string portStr = "8080";
+
+	if (std::regex_match(input, matches, ipv4WithPort)) {
+		ipStr = matches[1];
+		portStr = matches[2];
+	} else if (std::regex_match(input, matches, ipv4Only)) {
+		ipStr = matches[1];
+	} else if (std::regex_match(input, matches, portOnly)) {
+		portStr = matches[1];
+	} else if (std::regex_match(input, matches, ipv6WithPort)) {
+		ipStr = matches[1];
+		portStr = matches[2];
+	} else if (std::regex_match(input, matches, ipv6Only)) {
+		ipStr = matches[1];
+	} else {
+		throw ParseConfig::ConfException("Listen directive format is invalid. Acceptable formats: IP:Port, IP, Port, [IPv6]:Port, [IPv6]");
 	}
-
-	const std::string& address = addressVector.at(0);
-
-	if (!std::regex_match(address, matches, ipV4Pattern)) {
-		throw ParseConfig::ConfException("Listen address must match IPv4:Port format (e.g., 127.0.0.1:8080).");
-	}
-
-	std::string ipStr = matches[1];
-	std::string portStr = matches[2];
 
 	int portInt;
 	try {
 		portInt = std::stoi(portStr);
-	} catch (const std::exception& e) {
+	} catch (...) {
 		throw ParseConfig::ConfException("Port is not a valid number.");
 	}
 
@@ -137,8 +155,20 @@ void vServer::validateServerListen(const std::vector<std::string>& addressVector
 
 	_vServerIp = ipStr;
 	_vServerPort = portStr;
-	_vServerIpPort = address;
+
+	std::string ipFormatted;
+
+	if (ipStr.find(':') != std::string::npos) {
+		ipFormatted = "[" + ipStr + "]";
+	} else {
+		ipFormatted = ipStr;
+	}
+	_vServerIpPort = ipFormatted + ":" + portStr;
 }
+
+
+
+
 
 
 void	vServer::validateServerNames(std::vector<std::string>& namesVector) {
@@ -158,11 +188,13 @@ void	vServer::validateServerNames(std::vector<std::string>& namesVector) {
 			throw ParseConfig::ConfException("Input does not match 'example.com' format .\n");
 	}
 }
+
+
 const std::string&	vServer::onlyOneArgumentCheck(const std::vector<std::string>& pathVector, std::string directiveName) {
 
 	if (pathVector.size() != MAX_ARG) {
 
-		throw ParseConfig::ConfException("Invalid " + directiveName + "directive: only one argument for this field");
+		throw ParseConfig::ConfException("Invalid " + directiveName + " directive: only one argument expected for this field");
 	}
 	return (pathVector.at(0));
 }
@@ -195,37 +227,71 @@ unsigned	vServer::megaBytesToBits( int MB) {
 	return (MB * 1024 *1024);
 }
 
-size_t	vServer::validateClientMaxSizeDirective(const std::vector<std::string>& sizeVector) {
+uint64_t	vServer::validateClientMaxSizeDirective(const std::vector<std::string>& sizeVector) {
 
-	size_t	clientBodySizeMB;
-
+	
 	if (sizeVector.size() != MAX_ARG) {
-
-		throw ParseConfig::ConfException("Invalid client-max-size directive: expected single value in M ");
+		throw ParseConfig::ConfException("Invalid client_max_body_size directive: expected one argument.");
 	}
-
-	const std::string&	clientBodySizeStr = sizeVector.at(0);
+	std::string suffix = "";
+	
+	for (size_t i = 0; i < sizeVector[0].size(); ++i) {
+		if (!isdigit(sizeVector[0][i])) 
+		{
+			if ((sizeVector[0][i] == 'k' || sizeVector[0][i] == 'K' || sizeVector[0][i] == 'm' || sizeVector[0][i] == 'M' || sizeVector[0][i] == 'g' || sizeVector[0][i] == 'G') && suffix.empty()) {
+				suffix = sizeVector[0].substr(i);
+				break;
+			}
+			else {
+				throw ParseConfig::ConfException("Invalid size format.");
+			}
+		}
+	}
+	uint64_t number;
 	try {
-
-		clientBodySizeMB = std::stoi(clientBodySizeStr, nullptr, 10);
+		number = std::stoull(sizeVector[0]);
 	}
 	catch (const std::exception& e) {
-
-		throw ParseConfig::ConfException("Invalid body size: must be a number");
+		throw ParseConfig::ConfException("Invalid number in size: " + std::string(e.what()));
 	}
 
-	if ( MIN_CLIENT_BODY_SIZE < clientBodySizeMB && clientBodySizeMB <= MAX_CLIENT_BODY_SIZE)
-		return (vServer::megaBytesToBits(clientBodySizeMB));
-	else
-		throw ParseConfig::ConfException("Client-max-size: out of range: Range 1Mb <=> 20 MB");
+	uint64_t mult = 1;
+	if (suffix == "k" || suffix == "K") {
+		mult = 1024ULL;
+	} else if (suffix == "m" || suffix == "M") {
+		mult = 1024ULL * 1024;
+	} else if (suffix == "g" || suffix == "G") {
+		mult = 1024ULL * 1024 * 1024;
+	} else if (!suffix.empty()) {
+		throw ParseConfig::ConfException("Invalid size suffix: " + suffix);
+	}
 
+	const uint64_t limit = static_cast<uint64_t>(MAX_CLIENT_BODY_SIZE) * 1024 * 1024 * 1024;
+
+	if (number > UINT64_MAX / mult) {
+		throw ParseConfig::ConfException("Size value too large, would overflow.");
+	}
+
+	uint64_t final_size = number * mult;
+
+	if (final_size > limit) {
+		throw ParseConfig::ConfException("client_max_body_size directive: Exceeded the limit of " + std::to_string(MAX_CLIENT_BODY_SIZE) + "G");
+	}
+
+	if (final_size == 0) {
+		return ULLONG_MAX; // Special case: unlimited
+	}
+	return final_size;
 }
+
+
+
+
 
 
 
 std::unordered_map<int, std::string>	vServer::validateErrorPagesDirective(const std::vector<std::string>& errorPagesVector) {
 
-	std::set<int>							errorCodesSet {404, 403, 409, 500, 301, 406}; // instead do the range between 400 and 599 as these cover the error codes
 	int										errorCode;
 	std::unordered_map<int, std::string>	errorPagesMap;
 
@@ -240,10 +306,9 @@ std::unordered_map<int, std::string>	vServer::validateErrorPagesDirective(const 
 	catch (const std::exception& e) {
 		throw ParseConfig::ConfException("Invalid error code: must be a number");
 	}
-	
-	if (!errorCodesSet .count(errorCode)) {
-		throw ParseConfig::ConfException("Unsupported error code: " + std::to_string(errorCode));
-	}
+	if (errorCode < 400 || errorCode > 599)
+		throw ParseConfig::ConfException("Invalid error code: " + std::to_string(errorCode));
+		
 	const	std::string& errorPagePath = errorPagesVector.at(1);
 	if (errorPagePath.empty()) {
 
