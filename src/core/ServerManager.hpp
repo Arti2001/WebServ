@@ -79,7 +79,7 @@ class ServerManager {
 		const	vServer*							findServerConfigByName(const std::vector<const vServer*>& subConfigs, std::string serverName) const;
 		const	std::vector<const vServer*>			findServerConfigsByFd(int serverFd) const;
 		const	Location*							findLocationBlockByUri(const vServer& serverConfig, const std::string& url) const;
-		const	Location*							findDefaultLocationBlock(const std::vector<Location>& locations) const;
+		const	Location*							findDefaultLocationBlock(const std::map<std::string, Location>& locations) const;
 
 
 
