@@ -141,13 +141,14 @@ void    Client::handleRequest (int clientFd) {
 			std::cout << "Request body expected, processing body..." << std::endl;
 			if (_bodyBuffer.empty()) {
 				// Capture the initial body segment from the combined header+body buffer
-				_bodyBuffer = _startLineAndHeadersBuffer.substr(_bodyStart) + incomingData;
+				_bodyBuffer = _startLineAndHeadersBuffer.substr(_bodyStart);
 			} else {
 				// Append subsequent chunks directly
 				_bodyBuffer += incomingData;
 			}
 			if (bodyComplete(_bodyBuffer)) {
 				_request.setBody(_bodyBuffer);
+				std::cout << "Body is complete, parsing body..." <<  _request.getBody() << std::endl;
 				_request.parseBody();
 				_bodyBuffer.clear(); // Clear the body buffer after parsing
 			}
