@@ -153,18 +153,6 @@ void    Client::handleRequest (int clientFd) {
 			}
 		}
 		std::cout << "Request parsed successfully." << std::endl;
-		if (_clientResponse.empty()) {
-			std::cout << "Preparing response for client: " << clientFd << std::endl;
-			_clientResponse = this->prepareResponse();
-			if (_clientResponse.empty()) {
-				std::cerr << "Error: Response is empty, closing client connection." << std::endl;
-				_serverManager->closeClientFd(clientFd);
-				return;
-			}
-			_clientBytesSent = 0; // Reset bytes sent for the new response
-			std::cout << "Response prepared successfully." << std::endl;
-			// Set the epoll event to EPOLLOUT to send the response		
-			}
 		_serverManager->setEpollCtl(clientFd, EPOLLOUT, EPOLL_CTL_MOD);
         return ;
     }
@@ -181,6 +169,18 @@ void    Client::handleRequest (int clientFd) {
 
 
 void	Client::handleResponse(int clientFd) {
+	if (_clientResponse.empty()) {
+		std::cout << "Preparing response for client: " << clientFd << std::endl;
+		_clientResponse = this->prepareResponse();
+		if (_clientResponse.empty()) {
+			std::cerr << "Error: Response is empty, closing client connection." << std::endl;
+			_serverManager->closeClientFd(clientFd);
+			return;
+		}
+		_clientBytesSent = 0; // Reset bytes sent for the new response
+		std::cout << "Response prepared successfully." << std::endl;
+		// Set the epoll event to EPOLLOUT to send the response		
+		}
 	std::cout << "Response prepared: " << _clientResponse << std::endl;
 	const char*	servResp = _clientResponse.c_str();
 	size_t		responseSize = _clientResponse.size();
@@ -194,8 +194,7 @@ void	Client::handleResponse(int clientFd) {
 	_clientBytesSent += bytesSent;
 	if (_clientBytesSent == responseSize) {
 		std::cout << "All data sent" << "\n";
-		if (_closeAfterResponse)
-			_serverManager->closeClientFd(clientFd);
+		_serverManager->closeClientFd(clientFd);
 		_clientBytesSent = 0;
 	}
 }
