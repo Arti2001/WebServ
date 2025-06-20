@@ -6,7 +6,7 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/19 17:23:39 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/06/20 10:50:16 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,10 @@ Response::Response() {}
 Response::Response(Request *request, ServerManager *ServerManager, int clientSocket) : 
     _request(request),
     _serverManager(ServerManager),
-    _clientSocket(clientSocket)
+    _serverConfig(nullptr),
+    _locationConfig(nullptr),
+    _clientSocket(clientSocket),
+    _rawResponse("")
 {
     _statusCode = request->getStatusCode();
     _statusMessage = _statusMessages[_statusCode];
@@ -65,12 +68,16 @@ void Response::matchServer() {
 		setStatusCode(500);
         return ;
 	}
-    std::string hostHeaderValue = _request->getHeaders().at("Host");
+    std::cout << "About to check host" << std::endl;
+    std::string hostHeaderValue = Client::getAnyHeader(_request->getHeaders(), "Host");
     if (hostHeaderValue.empty()) {
         setStatusCode(400);
         return ;
     }
+    std::cout << "Host found:" << hostHeaderValue << std::endl;
+    
     _serverConfig = _serverManager->findServerConfigByName(subServConfigs, hostHeaderValue);
+    std::cout << "Server config found: " << (_serverConfig ? "Yes" : "No") << std::endl;
     if (!_serverConfig) {
         setStatusCode(404);
         return ;
@@ -78,9 +85,15 @@ void Response::matchServer() {
 }
 
 void Response::matchLocation() {
+    if (!_serverConfig)
+    {
+        std::cerr << "No server config found" << std::endl;
+        setStatusCode(400);
+        return;
+    }
     _locationConfig = _serverManager->findLocationBlockByUri(*_serverConfig, _request->getUri());
     if (!_locationConfig) {
-        std::cerr << "No matching location block found for the request URI. Using default." << std::endl;
+        std::cerr << "No matching location block found for the request URI. No default." << std::endl;
         setStatusCode(404);
     }
 }
@@ -161,6 +174,7 @@ void Response::handleGetRequest() {
 }
 
 void Response::generateErrorResponse() {
+    std::cout << "Generating error response for status code: " << _statusCode << std::endl;
     setStatusMessage(_statusMessages[_statusCode]);
     
     // Clear existing headers and body
@@ -169,6 +183,7 @@ void Response::generateErrorResponse() {
     
     // Set default headers for error responses
     addHeader("Content-Type", "text/html");
+    addHeader("Connection", "close");
     
     // Generate a simple HTML body for the error response
     _body = "<html><body><h1>" + std::to_string(_statusCode) + " " + _statusMessage + "</h1></body></html>";

@@ -32,8 +32,10 @@ int main(int argc, char *argv[])
 		ServerManager serverManager(fileName, EPOLL_CAPACITY);
 		signal(SIGINT, signalHandler);
 		serverManager.parsConfigFile(serverManager.getVirtualServers());
+		std::cout << "Configuration file parsed successfully." << "\n";
 		serverManager.groupServers(serverManager.getVirtualServers());
 		serverManager.setServers();
+	
 		serverManager.runServers();
 		serverManager.closeAllSockets();
 		
@@ -43,16 +45,6 @@ int main(int argc, char *argv[])
 		std::cerr << "ServerManager::Error: " << ex.what()<< "\n";
 		return (1);
 	}
-
-
-	
-	
-	
-
-	
-
-	
-	
 	//signal(SIGINT, signalHandler);
 	//signal(SIGTERM, signalHandler);
 	//signal(SIGQUIT, signalHandler);

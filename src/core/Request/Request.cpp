@@ -13,8 +13,6 @@ Request::Request(const std::string &rawRequest) : _currentPosition(0), _timeout(
         this->setStatusCode(400); // Bad Request
         return;
     }
-    parseRequest();
-
 }
 
 void Request::registerSupportedMethods(void){
@@ -66,6 +64,8 @@ void Request::parseRequest() {
 
 bool Request::checkBodyRelatedHeaders() {
     auto it = _headers.find("Content-Length");
+    if (it == _headers.end())
+        return false;
     if (it != _headers.end() && !it->second.empty() && std::stoi(it->second) > _bodySize) {
         std::cerr << "Request body size exceeds the limit." << std::endl;
         this->setStatusCode(413); // Payload Too Large
@@ -166,6 +166,7 @@ void Request::parseHeaders() {
                 std::cerr << "Invalid header: " << line << std::endl;
                 return this->setStatusCode(400); // Bad Request, invalid header
             }
+            std::cout << "Parsed header:" << headerName << ": " << headerValue << std::endl;
             _headers[headerName] = headerValue;
         } else {
             std::cerr << "Invalid header format: " << line << std::endl;
@@ -273,6 +274,7 @@ void Request::setCgi(bool isCgi) {
 
 bool Request::checkError() const {
     // Check if there is an error in the request
+    std::cout << "Checking for errors in the request..." << _statusCode << std::endl;
     if (_statusCode >= 400 && _statusCode < 600) {
         return true; // Error status code
     }

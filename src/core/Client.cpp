@@ -63,7 +63,7 @@ size_t& Client::getClientsBytesSent(void) {
 
 
 std::string	Client::prepareResponse() {
-
+	std::cout << "Preparing response for client: " << this->getServerFd() << std::endl;
 	int		socketClientConnectedTo = this->getServerFd();
 	Response response(&_request, _serverManager, socketClientConnectedTo);
 	response.generateResponse();
@@ -121,20 +121,24 @@ void    Client::handleRequest (int clientFd) {
 				return;
 			}
 			_request = Request(_startLineAndHeadersBuffer);
+			std::cout << "Trying to parse request for " << clientFd << std::endl;
 			try {
-				_request.parseRequest();
+				if (!_headersParsed)
+					_request.parseRequest();
 			} catch(const std::exception& e) {
 				std::cerr << "Failed to parse request: "<< e.what() << '\n';
 				_serverManager->closeClientFd(clientFd);
 				return;
 			}
 			_headersParsed = true;
-			_startLineAndHeadersBuffer.clear(); // Clear the buffer after parsing headers
+			// _startLineAndHeadersBuffer.clear(); // Clear the buffer after parsing headers
 		}
 		// If headers are parsed, we can now check for the body. It is optional depending on request type, 
 		// so it is separated from the headers parsing logic.
+		std::cout << "Is body expected? " << (_request.getBodyExpected() ? "Yes" : "No") << std::endl;
 		if (_headersParsed && _request.getBodyExpected())
 		{
+			std::cout << "Request body expected, processing body..." << std::endl;
 			if (_bodyBuffer.empty()) {
 				// Capture the initial body segment from the combined header+body buffer
 				_bodyBuffer = _startLineAndHeadersBuffer.substr(_bodyStart) + incomingData;
@@ -148,6 +152,20 @@ void    Client::handleRequest (int clientFd) {
 				_bodyBuffer.clear(); // Clear the body buffer after parsing
 			}
 		}
+		std::cout << "Request parsed successfully." << std::endl;
+		if (_clientResponse.empty()) {
+			std::cout << "Preparing response for client: " << clientFd << std::endl;
+			_clientResponse = this->prepareResponse();
+			if (_clientResponse.empty()) {
+				std::cerr << "Error: Response is empty, closing client connection." << std::endl;
+				_serverManager->closeClientFd(clientFd);
+				return;
+			}
+			_clientBytesSent = 0; // Reset bytes sent for the new response
+			std::cout << "Response prepared successfully." << std::endl;
+			// Set the epoll event to EPOLLOUT to send the response		
+			}
+		_serverManager->setEpollCtl(clientFd, EPOLLOUT, EPOLL_CTL_MOD);
         return ;
     }
     else if (bytesRead == 0){
@@ -163,17 +181,6 @@ void    Client::handleRequest (int clientFd) {
 
 
 void	Client::handleResponse(int clientFd) {
-	if (_clientResponse.empty()) {
-		std::cout << "Preparing response for client: " << clientFd << std::endl;
-		_clientResponse = this->prepareResponse();
-		if (_clientResponse.empty()) {
-			std::cerr << "Error: Response is empty, closing client connection." << std::endl;
-			_serverManager->closeClientFd(clientFd);
-			return;
-		}
-		_clientBytesSent = 0; // Reset bytes sent for the new response
-		std::cout << "Response prepared successfully." << std::endl;
-	}
 	std::cout << "Response prepared: " << _clientResponse << std::endl;
 	const char*	servResp = _clientResponse.c_str();
 	size_t		responseSize = _clientResponse.size();
