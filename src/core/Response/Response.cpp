@@ -6,7 +6,7 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/20 10:50:16 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/06/20 21:18:50 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,6 +92,7 @@ void Response::matchLocation() {
         return;
     }
     _locationConfig = _serverManager->findLocationBlockByUri(*_serverConfig, _request->getUri());
+    std::cout << "Location block found: " << (_locationConfig ? "Yes" : "No") << std::endl;
     if (!_locationConfig) {
         std::cerr << "No matching location block found for the request URI. No default." << std::endl;
         setStatusCode(404);
@@ -104,7 +105,10 @@ const std::string& Response::getRawResponse() const {
 
 void Response::generateResponse() {
     if (_statusCode >= 400 && _statusCode < 600)
-    return generateErrorResponse();
+    {
+        std::cout << "Error response with " << _statusCode << "after parsing." << std::endl;
+        return generateErrorResponse();
+    }
 
     if (_statusCode >= 300 && _statusCode < 400)
         return handleRedirectRequest();
@@ -123,7 +127,7 @@ void Response::generateResponse() {
     else
     {
         std::cerr << "Unsupported method: " << method << std::endl;
-        _statusCode = 405; // Method Not Allowed
+        setStatusCode(405); // Method Not Allowed
         return generateErrorResponse(); // Method Not Allowed
     }
     createStartLine();
@@ -152,14 +156,16 @@ std::string Response::resolveRelativePath(const std::string &path, const std::st
 }
 
 void Response::handleGetRequest() {
+    std::cout << "Handling get request" << std::endl;
     if (!isMethodAllowed("GET")) {
         setStatusCode(405); // Method Not Allowed
         return generateErrorResponse();
     }
     std::string path = _request->getPath(); // e.g., "/images/cat.png"
     std::string fullPath = _locationConfig->getLocationRoot() + resolveRelativePath(path, _locationConfig->getLocationPath());
-
+    
     if (!fileExists(fullPath)) {
+        std::cout << "File not found" << std::endl;
         setStatusCode(404);
         return generateErrorResponse();
     }
@@ -349,6 +355,7 @@ std::string Response::generateUUID() {
 }
 
 void Response::handlePostRequest() {
+    std::cout << "Handling POST request" << std::endl;
     if (!isMethodAllowed("POST")) {
         setStatusCode(405); // Method Not Allowed
         return generateErrorResponse();
@@ -356,6 +363,7 @@ void Response::handlePostRequest() {
 
     std::string fileName = createUploadFile();
     if (fileName.empty()) {
+        std::cout << "Error creating upload file" << std::endl;
         return generateErrorResponse();
     }
     _body = "POST request handled successfully"; // Example response body
@@ -366,6 +374,7 @@ void Response::handlePostRequest() {
 }
 
 void Response::handleDeleteRequest() {
+    std::cout << "Handling DELETE request" << std::endl;
     if (!isMethodAllowed("DELETE")) {
         setStatusCode(405); // Method Not Allowed
         return generateErrorResponse();
@@ -379,11 +388,16 @@ void Response::handleDeleteRequest() {
     if (!path.empty() && path[0] == '/') // remove leading slash
         path = path.substr(1);
     std::string fullPath;
-    if (_locationConfig->getLocationUploadPath().back() != '/')
-        fullPath = _locationConfig->getLocationUploadPath() + "/" + path;
+    if (_locationConfig->getLocationUploadPath().empty()) {
+        fullPath = _locationConfig->getLocationRoot(); // for testing purposes temporarily use root. but we should have a default upload path configured
+    }
+    if (fullPath.back() != '/')
+        fullPath += "/" + path;
     else
-        fullPath = _locationConfig->getLocationUploadPath() + path;
+        fullPath += path;
+    std::cout << "Full path to delete: " << fullPath << std::endl;
     if (!fileExists(fullPath)) {
+        std::cout << "File to delete not found" << std::endl;
         setStatusCode(404); // Not Found
         return generateErrorResponse();
     }
@@ -400,7 +414,7 @@ void Response::handleDeleteRequest() {
 
 void Response::createStartLine() {
     if (_statusMessages.find(_statusCode) == _statusMessages.end()) 
-        _statusCode = 418; // Default to "I'm a teapot" if status code is not recognized 
+        setStatusCode(418); // Default to "I'm a teapot" if status code is not recognized 
     _statusMessage = _statusMessages[_statusCode];
     std::string startLine = _request->getHttpVersion() + " " + std::to_string(_statusCode) + " " + _statusMessage + "\r\n";
     _rawResponse += startLine;
