@@ -58,7 +58,7 @@ bool	ParseConfig::isTokenDirective(TokenType type) const {
 			type == INDEX_DIR || type == SERVER_NAME_DIR || 
 			type == ERROR_PAGE_DIR || type == AUTO_INDEX_DIR ||
 			type == BODY_MAX_SIZE || type == ALLOWED_METHODS ||
-			type == RETURN_DIR || type == UPLOAD_PATH);
+			type == RETURN_DIR || type == UPLOAD_PATH || type == ALLOWED_CGI);
 }
 
 
@@ -143,16 +143,33 @@ std::ostream& operator<<(std::ostream& os, const vServer& server) {
 		const Location& loc = it->second;
 
 		os << "Location [" << i << "]\n";
+
 		os << "  Path:           " << path << "\n";
 		os << "  Root:           " << loc.getLocationRoot() << "\n";
 		os << "  Index:          " << loc.getLocationIndex() << "\n";
 		os << "  AutoIndex:      " << loc.getLocationAutoIndex() << "\n";
 		os << "  UploadPath:     " << loc.getLocationUploadPath() << "\n";
 		os << "  Max Body Size:  " << loc.getLocationClientMaxSize() << "\n";
+		os << "  Return:         ";
+		const std::pair<int, std::string>& returnPages = loc.getLocationReturnPages();
+		os<< returnPages.first << "   " << returnPages.second << "\n";
 		os << "  Allowed Methods:";
-		for (size_t j = 0; j < loc.getLocationAllowedMethods().size(); ++j)
-			os << " " << loc.getLocationAllowedMethods()[j];
+		for (auto itSet = loc.getLocationAllowedMethods().begin(); itSet != loc.getLocationAllowedMethods().end(); ++itSet)
+			os << " " << *itSet;
+		//for (size_t j = 0; j < loc.getLocationAllowedMethods().size(); ++j)
+		//	os << " " << loc.getLocationAllowedMethods().begin();
 		os << "\n";
+		os << "  Error Pages:";
+		const std::unordered_map<int, std::string>& errorPages = loc.getLocationErrorPages();
+		for (std::unordered_map<int, std::string>::const_iterator it = errorPages.begin(); it != errorPages.end(); ++it)
+			os << "    " << it->first << ": " << it->second << "\n";
+
+		os << "  Allowed CGI:\n";
+		const std::map<std::string, std::string>& allowedCgi = loc.getLocationAllowedCgi();
+		for (std::map<std::string, std::string>::const_iterator it = allowedCgi.begin(); it != allowedCgi.end(); ++it)
+			os << "    " << it->first << ": " << it->second << "\n" << "\n";
+
+
 	}
 
 	os << "=======================================================\n";
@@ -253,7 +270,7 @@ for (; _tokens[currToken].type != CLOSED_BRACE; currToken++) {
 			throw ConfException("Invalid directive name: " + pair.first.lexem + " not found!");
 		}
 	}
-
+	//std::cout << &vServer.getServerLocations() << std::endl;
 	if (vServer.getServerLocations().find(locationPath) == vServer.getServerLocations().end())
 		vServer.getServerLocations().emplace(locationPath, loc);
 	else

@@ -222,10 +222,6 @@ bool	vServer::validateAutoIndexDirective(const std::vector<std::string>& flagVec
 	}
 }
 
-unsigned	vServer::megaBytesToBits( int MB) {
-
-	return (MB * 1024 *1024);
-}
 
 uint64_t	vServer::validateClientMaxSizeDirective(const std::vector<std::string>& sizeVector) {
 
@@ -283,9 +279,6 @@ uint64_t	vServer::validateClientMaxSizeDirective(const std::vector<std::string>&
 	}
 	return final_size;
 }
-
-
-
 
 
 

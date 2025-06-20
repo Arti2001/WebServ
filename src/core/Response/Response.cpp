@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   Response.cpp                                       :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/19 17:23:39 by vovashko      ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   Response.cpp                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/04/18 16:05:00 by pminialg          #+#    #+#             */
+/*   Updated: 2025/06/20 17:39:08 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -179,10 +179,15 @@ void Response::generateErrorResponse() {
     createBody();
 }
 
+//bool Response::isMethodAllowed(const std::string &method) const {
+//    std::vector<std::string> allowedMethods = _locationConfig->getLocationAllowedMethods();
+//    return std::find(allowedMethods.begin(), allowedMethods.end(), method) != allowedMethods.end();
+//};
+
 bool Response::isMethodAllowed(const std::string &method) const {
-    std::vector<std::string> allowedMethods = _locationConfig->getLocationAllowedMethods();
-    return std::find(allowedMethods.begin(), allowedMethods.end(), method) != allowedMethods.end();
-};
+    const std::unordered_set<std::string>& allowedMethods = _locationConfig->getLocationAllowedMethods();
+    return (allowedMethods.count(method));
+}
 
 
 bool Response::fileExists(const std::string &path) {

@@ -11,9 +11,8 @@ Location::Location(const vServer& serv) {
 	_locationIndex = serv.getServerIndex();
 	_locationAutoIndex = serv.getServerAutoIndex();
 	_locationClientMaxSize = serv.getServerClientMaxSize();
-	_locationAllowedMethods =  {"GET"};
+	_locationAllowedMethods = {"GET"};
 	_locationErrorPages = serv.getServerErrorPages();
-	
 }
 
 Location::Location(const Location& other) {
@@ -31,6 +30,7 @@ const Location&	Location::operator=(const Location& other) {
 		this->_locationAllowedMethods = other._locationAllowedMethods;
 		this->_locationReturnPages = other._locationReturnPages;
 		this->_locationErrorPages = other._locationErrorPages;
+		this->_locationAllowedCgi = other._locationAllowedCgi;
 	}
 	return (*this);
 }
@@ -61,7 +61,7 @@ const unsigned& Location::getLocationClientMaxSize() const {
 	return _locationClientMaxSize;
 }
 
-const std::vector<std::string>& Location::getLocationAllowedMethods() const {
+const std::unordered_set<std::string>& Location::getLocationAllowedMethods() const {
 	return _locationAllowedMethods;
 }
 
@@ -103,7 +103,7 @@ void Location::setLocationClientMaxSize(const unsigned maxSize) {
 	_locationClientMaxSize = maxSize;
 }
 
-void Location::setLocationAllowedMethods(const std::vector<std::string>& methods) {
+void Location::setLocationAllowedMethods(const std::unordered_set<std::string>& methods) {
 	_locationAllowedMethods = methods;
 }
 
@@ -164,12 +164,18 @@ std::pair<int, std::string> Location::setLocationReturnPages(std::vector<std::st
 
 void	Location::validateAllowedMethodsDirective(const std::vector<std::string>& methodsVector) {
 
-	std::set<std::string>			allowedMethodsSet = {"POST", "GET", "DELETE"};
+	_locationAllowedMethods.clear();
+	const std::set<std::string>	allowedMethodsSet = {"POST", "GET", "DELETE"};
 
-	for (const std::string&	method : methodsVector) {
-
-		if (allowedMethodsSet.count(method))
-			_locationAllowedMethods.push_back(method);
+	for (const std::string& method : methodsVector) {
+		
+		if (allowedMethodsSet.count(method)) {
+			
+			if (!_locationAllowedMethods.count(method))
+				_locationAllowedMethods.insert(method);
+			else
+				throw ParseConfig::ConfException("Duplicated method: " + method);
+		}
 		else
 			throw ParseConfig::ConfException("Invalid method: " + method);
 	}
@@ -180,13 +186,14 @@ void Location::validateAllowedCgiDirective(const std::vector<std::string>& cgiVe
 	if (cgiVector.size() != MAX_ARG_ERROR_PAGE) {
 		throw ParseConfig::ConfException("Invalid allowed_cgi directive: Invalid amount of arguments.");
 	}
-
 	const std::string& ext = cgiVector.at(0);
-	const std::string& path = cgiVector.at(0);
+	const std::string& path = cgiVector.at(1);
 
-	if (_locationAllowedCgi.find(ext) == _locationAllowedCgi.end())
+
+	if (_locationAllowedCgi.find(ext) == _locationAllowedCgi.end()) 
+	{
 		_locationAllowedCgi[ext] = path;
+	}
 	else
 		throw ParseConfig::ConfException("Duplicated " + ext + " extension.");
-
 }
