@@ -6,7 +6,7 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/22 14:10:14 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/06/22 14:56:27 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,7 @@ Response::Response(Request *request, ServerManager *ServerManager, int clientSoc
 {
     _statusCode = request->getStatusCode();
     _statusMessage = _statusMessages[_statusCode];
+    _validPath = false; // Initially set to false, will be updated later
     matchServer();
     matchLocation();
 }
@@ -164,10 +165,28 @@ void Response::handleGetRequest() {
     std::string path = _request->getPath(); // e.g., "/images/cat.png"
     std::string fullPath = _locationConfig->getLocationRoot() + resolveRelativePath(path, _locationConfig->getLocationPath());
     
-    if (!fileExists(fullPath)) {
+    if (!fileExists(fullPath) && !_validPath) {
         std::cout << "File not found" << std::endl;
         setStatusCode(404);
         return generateErrorResponse();
+    }
+    else if (_validPath && !fileExists(fullPath)) // path to directory need to append index file to serve
+    {
+        // for (const std::string &indexFile : _locationConfig->getLocationIndex()) { // implementation for multiple index files
+        //     std::string indexPath = fullPath + "/" + indexFile;
+        //     if (fileExists(indexPath)) {
+        //         fullPath = indexPath; // Use the index file if it exists
+        //         break;
+        //     }
+        // }
+        std::string indexPath = fullPath + "/" + _locationConfig->getLocationIndex();
+        if (fileExists(indexPath)) {
+            fullPath = indexPath; // Use the index file if it exists
+        } else {
+            std::cout << "Directory not found" << std::endl;
+            setStatusCode(404);
+            return generateErrorResponse();
+        }
     }
 
     if (isLargeFile(fullPath) && _statusCode < 400) {
@@ -200,11 +219,6 @@ void Response::generateErrorResponse() {
     createBody();
 }
 
-//bool Response::isMethodAllowed(const std::string &method) const {
-//    std::vector<std::string> allowedMethods = _locationConfig->getLocationAllowedMethods();
-//    return std::find(allowedMethods.begin(), allowedMethods.end(), method) != allowedMethods.end();
-//};
-
 bool Response::isMethodAllowed(const std::string &method) const {
     const std::unordered_set<std::string>& allowedMethods = _locationConfig->getLocationAllowedMethods();
     return (allowedMethods.count(method));
@@ -217,6 +231,7 @@ bool Response::fileExists(const std::string &path) {
     if (stat(path.c_str(), &fileStat) == -1) {
         return false; // File does not exist or cannot be accessed
     }
+    _validPath = true;
     return S_ISREG(fileStat.st_mode); // Check if it's a regular file
 };
 

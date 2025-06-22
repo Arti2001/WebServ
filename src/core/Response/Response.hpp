@@ -6,7 +6,7 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:04:57 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/20 12:23:02 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/06/22 14:51:17 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,7 @@ class Response {
         const Location *_locationConfig; // Location configuration for the response
         int _clientSocket;
         int _statusCode; // HTTP status code (e.g., 200, 404, 500)
+        bool _validPath; // Flag to indicate if the path is valid
         std::string _rawResponse;
         std::string _statusMessage; // HTTP status message (e.g., "OK", "Not Found", "Internal Server Error")
         std::unordered_map<std::string, std::string> _headers; // HTTP headers for the response
