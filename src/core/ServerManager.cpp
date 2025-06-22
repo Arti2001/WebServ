@@ -110,6 +110,7 @@ void	ServerManager::groupServers(const std::vector<vServer>& _vServers) {
 		const std::string& hostPort = vServer.getServerIpPort();
 		_hostVserverMap[hostPort].push_back(&vServer);
 	}
+	std::cout << "Grouped servers by host and port." << "\n";
 }
 
 
@@ -129,6 +130,7 @@ void	ServerManager::setServers() {
 		_servers.emplace_back(socketFd, it->second);
 
 	}
+	std::cout << "Servers are set up and ready to run." << _servers.size() << "that many servers" << "\n";
 }
 
 
@@ -248,6 +250,7 @@ void	ServerManager::setSocketsToEpollIn(void) {
 	for (size_t i = 0; i < _servers.size(); i++)
 	{
 		setEpollCtl(_servers[i].getSocketFd(), EPOLLIN, EPOLL_CTL_ADD);
+		std::cout << "Set listening socket fd: " << _servers[i].getSocketFd() << " to EPOLLIN event." << "\n";
 	}
 }
 
@@ -307,11 +310,12 @@ bool	ServerManager::isClientSocket(int fd) {
 void	ServerManager::runServers(void) {
 
 	struct epoll_event	epollEvents[EPOLL_CAPACITY];
-
+	std::cout << "Running servers..." << "\n";
 	setSocketsToEpollIn();//all listening fds are set to IN event now
 	while (running) {
 		int timeout = 1000;
 		int readyFds = epoll_wait(_epollFd, epollEvents, EPOLL_CAPACITY, timeout);
+		std::cout << "Epoll wait returned with " << readyFds << " ready file descriptors.\n";
 		//if (readyFds == 0)
 		//{
 		//	closeIdleConnections();
@@ -321,6 +325,7 @@ void	ServerManager::runServers(void) {
 			throw ServerManagerException("epoll_wait() failed");
 		}
 		for (int i = 0; i < readyFds; i++) {
+			std::cout << "Epoll event on fd: " << epollEvents[i].data.fd << " with events: " << epollEvents[i].events << "\n";
 			manageEpollEvent(epollEvents[i]);
 		}
 	}
@@ -369,7 +374,7 @@ void ServerManager::addClientToMap(int clientFd, int serverFd) {
 void	ServerManager::manageEpollEvent(const struct epoll_event& currEvent) {
 
 	int	fd = currEvent.data.fd;
-
+	std::cout << "Epoll event on fd: " << fd << " with events: " << currEvent.events << "\n";
 	if (isListeningSocket(fd)) {
 		manageListenSocketEvent(currEvent);
 	}
@@ -379,19 +384,22 @@ void	ServerManager::manageEpollEvent(const struct epoll_event& currEvent) {
 	else if ((currEvent.events & EPOLLOUT) && isClientSocket(fd)) {
 		_fdClientMap.at(fd).handleResponse(fd);
 	}
-	
 }
 
 
 
 const std::vector<const vServer*> ServerManager::findServerConfigsByFd(int fd) const{
 
-	std::cout<<"here"<<"\n";
+	std::cout<<"Looking for server config by fd"<<"\n";
 	for( const Server& server : _servers) {
 
 		if (server.getSocketFd() == fd) 
+		{
+			std::cout << "Config for " << fd << " found." << "\n";
 			return (server.getServConfigs());
+		}
 	}
+	std::cout << "No config found for fd: " << fd << "\n";
 	return (std::vector<const vServer*>());
 }
 
@@ -408,10 +416,12 @@ const vServer* ServerManager::findServerConfigByName(const std::vector<const vSe
 		for(const std::string& name : config->getServerNames()) {
 
 			if (name == serverName) {
+				std::cout << "Found server config for name: " << serverName << "\n";
 				return(config);
 			}
 		}
 	}
+	std::cout << "No server config found for name: " << serverName << ", falling back to default config." << "\n";
 	return(defaultServConfig); // fallback
 }
 

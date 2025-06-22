@@ -6,6 +6,7 @@ Location::Location() {
 Location::Location(const vServer& serv) {
 
 	_locationPath = "/";
+	_locationUploadPath = serv.getServerRoot() + "uploads/";
 	_locationReturnPages = {0, ""};
 	_locationRoot= serv.getServerRoot();
 	_locationIndex = serv.getServerIndex();

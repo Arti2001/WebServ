@@ -6,7 +6,7 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/19 17:23:39 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/06/22 14:10:14 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,10 @@ Response::Response() {}
 Response::Response(Request *request, ServerManager *ServerManager, int clientSocket) : 
     _request(request),
     _serverManager(ServerManager),
-    _clientSocket(clientSocket)
+    _serverConfig(nullptr),
+    _locationConfig(nullptr),
+    _clientSocket(clientSocket),
+    _rawResponse("")
 {
     _statusCode = request->getStatusCode();
     _statusMessage = _statusMessages[_statusCode];
@@ -65,12 +68,16 @@ void Response::matchServer() {
 		setStatusCode(500);
         return ;
 	}
-    std::string hostHeaderValue = _request->getHeaders().at("Host");
+    std::cout << "About to check host" << std::endl;
+    std::string hostHeaderValue = Client::getAnyHeader(_request->getHeaders(), "Host");
     if (hostHeaderValue.empty()) {
         setStatusCode(400);
         return ;
     }
+    std::cout << "Host found:" << hostHeaderValue << std::endl;
+    
     _serverConfig = _serverManager->findServerConfigByName(subServConfigs, hostHeaderValue);
+    std::cout << "Server config found: " << (_serverConfig ? "Yes" : "No") << std::endl;
     if (!_serverConfig) {
         setStatusCode(404);
         return ;
@@ -78,9 +85,16 @@ void Response::matchServer() {
 }
 
 void Response::matchLocation() {
+    if (!_serverConfig)
+    {
+        std::cerr << "No server config found" << std::endl;
+        setStatusCode(400);
+        return;
+    }
     _locationConfig = _serverManager->findLocationBlockByUri(*_serverConfig, _request->getUri());
+    std::cout << "Location block found: " << (_locationConfig ? "Yes" : "No") << std::endl;
     if (!_locationConfig) {
-        std::cerr << "No matching location block found for the request URI. Using default." << std::endl;
+        std::cerr << "No matching location block found for the request URI. No default." << std::endl;
         setStatusCode(404);
     }
 }
@@ -91,7 +105,10 @@ const std::string& Response::getRawResponse() const {
 
 void Response::generateResponse() {
     if (_statusCode >= 400 && _statusCode < 600)
-    return generateErrorResponse();
+    {
+        std::cout << "Error response with " << _statusCode << "after parsing." << std::endl;
+        return generateErrorResponse();
+    }
 
     if (_statusCode >= 300 && _statusCode < 400)
         return handleRedirectRequest();
@@ -110,7 +127,7 @@ void Response::generateResponse() {
     else
     {
         std::cerr << "Unsupported method: " << method << std::endl;
-        _statusCode = 405; // Method Not Allowed
+        setStatusCode(405); // Method Not Allowed
         return generateErrorResponse(); // Method Not Allowed
     }
     createStartLine();
@@ -139,14 +156,16 @@ std::string Response::resolveRelativePath(const std::string &path, const std::st
 }
 
 void Response::handleGetRequest() {
+    std::cout << "Handling get request" << std::endl;
     if (!isMethodAllowed("GET")) {
         setStatusCode(405); // Method Not Allowed
         return generateErrorResponse();
     }
     std::string path = _request->getPath(); // e.g., "/images/cat.png"
     std::string fullPath = _locationConfig->getLocationRoot() + resolveRelativePath(path, _locationConfig->getLocationPath());
-
+    
     if (!fileExists(fullPath)) {
+        std::cout << "File not found" << std::endl;
         setStatusCode(404);
         return generateErrorResponse();
     }
@@ -161,6 +180,7 @@ void Response::handleGetRequest() {
 }
 
 void Response::generateErrorResponse() {
+    std::cout << "Generating error response for status code: " << _statusCode << std::endl;
     setStatusMessage(_statusMessages[_statusCode]);
     
     // Clear existing headers and body
@@ -169,6 +189,7 @@ void Response::generateErrorResponse() {
     
     // Set default headers for error responses
     addHeader("Content-Type", "text/html");
+    addHeader("Connection", "close");
     
     // Generate a simple HTML body for the error response
     _body = "<html><body><h1>" + std::to_string(_statusCode) + " " + _statusMessage + "</h1></body></html>";
@@ -322,6 +343,7 @@ std::string Response::createUploadFile() {
     }
     outFile.write(body.data(), body.size());
     outFile.close();
+    std::cout << "File created. Path is " << filePath << std::endl;
     return fileName; // Return the path of the uploaded file
 }
 
@@ -334,6 +356,7 @@ std::string Response::generateUUID() {
 }
 
 void Response::handlePostRequest() {
+    std::cout << "Handling POST request" << std::endl;
     if (!isMethodAllowed("POST")) {
         setStatusCode(405); // Method Not Allowed
         return generateErrorResponse();
@@ -341,6 +364,7 @@ void Response::handlePostRequest() {
 
     std::string fileName = createUploadFile();
     if (fileName.empty()) {
+        std::cout << "Error creating upload file" << std::endl;
         return generateErrorResponse();
     }
     _body = "POST request handled successfully"; // Example response body
@@ -351,6 +375,7 @@ void Response::handlePostRequest() {
 }
 
 void Response::handleDeleteRequest() {
+    std::cout << "Handling DELETE request" << std::endl;
     if (!isMethodAllowed("DELETE")) {
         setStatusCode(405); // Method Not Allowed
         return generateErrorResponse();
@@ -368,7 +393,9 @@ void Response::handleDeleteRequest() {
         fullPath = _locationConfig->getLocationUploadPath() + "/" + path;
     else
         fullPath = _locationConfig->getLocationUploadPath() + path;
+    std::cout << "Full path to delete: " << fullPath << std::endl;
     if (!fileExists(fullPath)) {
+        std::cout << "File to delete not found" << std::endl;
         setStatusCode(404); // Not Found
         return generateErrorResponse();
     }
@@ -385,7 +412,7 @@ void Response::handleDeleteRequest() {
 
 void Response::createStartLine() {
     if (_statusMessages.find(_statusCode) == _statusMessages.end()) 
-        _statusCode = 418; // Default to "I'm a teapot" if status code is not recognized 
+        setStatusCode(418); // Default to "I'm a teapot" if status code is not recognized 
     _statusMessage = _statusMessages[_statusCode];
     std::string startLine = _request->getHttpVersion() + " " + std::to_string(_statusCode) + " " + _statusMessage + "\r\n";
     _rawResponse += startLine;
