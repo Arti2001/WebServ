@@ -11,7 +11,7 @@ class Location {
 		std::string								_locationIndex;
 		int										_locationAutoIndex;
 		unsigned								_locationClientMaxSize;
-		std::vector<std::string>				_locationAllowedMethods;
+		std::unordered_set<std::string>			_locationAllowedMethods;
 		std::map<std::string, std::string>		_locationAllowedCgi;
 		std::pair<int, std::string>				_locationReturnPages;
 		std::unordered_map<int, std::string>	_locationErrorPages;
@@ -30,7 +30,7 @@ class Location {
 	const std::string&							getLocationIndex(void) const;
 	const int&									getLocationAutoIndex(void) const;
 	const unsigned&								getLocationClientMaxSize(void) const;
-	const std::vector<std::string>&				getLocationAllowedMethods(void) const; // better to use set, as it won't allow duplicate methods
+	const std::unordered_set<std::string>&		getLocationAllowedMethods(void) const; // better to use set, as it won't allow duplicate methods
 	const std::map<std::string, std::string>&	getLocationAllowedCgi(void) const;
 	const std::pair<int, std::string>&			getLocationReturnPages(void) const;
 	const std::unordered_map<int, std::string>&	getLocationErrorPages(void) const;
@@ -42,7 +42,7 @@ class Location {
 	void									setLocationIndex(const std::string& index);
 	void									setLocationAutoIndex(const int autoIndex);
 	void									setLocationClientMaxSize(const unsigned maxSize);
-	void									setLocationAllowedMethods(const std::vector<std::string>& methods);
+	void									setLocationAllowedMethods(const std::unordered_set<std::string>& methods);
 	void									setLocationReturnPages(const std::pair<int, std::string>& returnPages);
 	void									setLocationErrorPages(const std::unordered_map<int, std::string>& errorPages);
 

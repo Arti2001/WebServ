@@ -200,10 +200,15 @@ void Response::generateErrorResponse() {
     createBody();
 }
 
+//bool Response::isMethodAllowed(const std::string &method) const {
+//    std::vector<std::string> allowedMethods = _locationConfig->getLocationAllowedMethods();
+//    return std::find(allowedMethods.begin(), allowedMethods.end(), method) != allowedMethods.end();
+//};
+
 bool Response::isMethodAllowed(const std::string &method) const {
-    std::vector<std::string> allowedMethods = _locationConfig->getLocationAllowedMethods();
-    return std::find(allowedMethods.begin(), allowedMethods.end(), method) != allowedMethods.end();
-};
+    const std::unordered_set<std::string>& allowedMethods = _locationConfig->getLocationAllowedMethods();
+    return (allowedMethods.count(method));
+}
 
 
 bool Response::fileExists(const std::string &path) {

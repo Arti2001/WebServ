@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <unordered_set>
 #include <iostream>
 #include <regex>
 #include <set>
@@ -49,10 +50,9 @@ class vServer {
 	std::vector<std::string>					getServerNames( void ) const;
 	std::string									getServerIndex( void ) const;
 	
-	// don't use same names for getters that have different return types, it is confusing
-	std::map<std::string, Location>	&						getServerLocations(); // allows writing
-	const std::map<std::string, Location>&				getServerLocations() const; // allows reading
-	// allowed methods should be a location scope directive
+
+	std::map<std::string, Location>	&			getServerLocations(); // allows writing
+	const std::map<std::string, Location>&		getServerLocations() const; // allows reading
 	std::unordered_map<int, std::string>		getServerErrorPages( void ) const;
 
 
@@ -74,14 +74,9 @@ class vServer {
 
 	//common validators for vServer and Location calss	
 	static	bool															validateAutoIndexDirective(const std::vector<std::string>& flagVector);
-	static	uint64_t															validateClientMaxSizeDirective(const std::vector<std::string>& sizeVector);
+	static	uint64_t														validateClientMaxSizeDirective(const std::vector<std::string>& sizeVector);
 	static	std::unordered_map<int, std::string>							validateErrorPagesDirective(const std::vector<std::string>& errorPagesVector);
-	\
-	//static	std::vector<std::string>									validateAllowedMethodsDirective(const std::vector<std::string>& allowedMethodsVector);
 	static const	std::string&											onlyOneArgumentCheck(const std::vector<std::string>& pathVector, std::string directiveName);
-
-	//methods
-	static	unsigned				megaBytesToBits(int	mB);
 };
 
 bool	isNumber(std::string number);
