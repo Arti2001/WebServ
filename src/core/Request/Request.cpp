@@ -13,8 +13,6 @@ Request::Request(const std::string &rawRequest) : _currentPosition(0), _timeout(
         this->setStatusCode(400); // Bad Request
         return;
     }
-    parseRequest();
-
 }
 
 void Request::registerSupportedMethods(void){
@@ -66,12 +64,14 @@ void Request::parseRequest() {
 
 bool Request::checkBodyRelatedHeaders() {
     auto it = _headers.find("Content-Length");
+    auto it2 = _headers.find("Transfer-Encoding");
+    if (it == _headers.end() && it2 == _headers.end())
+        return false;
     if (it != _headers.end() && !it->second.empty() && std::stoi(it->second) > _bodySize) {
         std::cerr << "Request body size exceeds the limit." << std::endl;
         this->setStatusCode(413); // Payload Too Large
         return false;
     }
-    auto it2 = _headers.find("Transfer-Encoding");
     if (it != _headers.end() && it2 != _headers.end() && it2->second != "chunked") {
         std::cerr << "Invalid Transfer-Encoding header: " << it2->second << std::endl;
         this->setStatusCode(400); // Bad Request
@@ -166,6 +166,7 @@ void Request::parseHeaders() {
                 std::cerr << "Invalid header: " << line << std::endl;
                 return this->setStatusCode(400); // Bad Request, invalid header
             }
+            std::cout << "Parsed header:" << headerName << ": " << headerValue << std::endl;
             _headers[headerName] = headerValue;
         } else {
             std::cerr << "Invalid header format: " << line << std::endl;
@@ -182,8 +183,8 @@ void Request::parseBody() {
         _body = ""; // Set body to empty if no body is present
         return; // No body to parse
     }
-    if (_body.size() > static_cast<unsigned long>(_bodySize) || (_headers.find("Content-Length") != _headers.end() && static_cast<unsigned long>(std::stoi(_headers["Content-Length"])) > _body.size())) {
-        std::cerr << "Request body size exceeds the limit." << std::endl;
+    if (_body.size() > static_cast<unsigned long>(_bodySize)) {
+        std::cerr << "Request body size exceeds the limit imposed by header." << std::endl;
         this->setStatusCode(413); // Payload Too Large
         return; // Exit if body size exceeds the limit
     }
@@ -201,7 +202,7 @@ void Request::parseChunkedBody() {
         if (chunk.empty()) {
             continue; // Skip empty lines
         }
-        size_t pos = chunk.find("\r");
+        size_t pos = chunk.find("\r\n");
         if (pos != std::string::npos) {
             chunk = chunk.substr(0, pos); // Remove the trailing CRLF
         }        
@@ -219,6 +220,43 @@ void Request::parseChunkedBody() {
         _body += ss.str().substr(ss.tellg(), chunkSize); // Append the chunk to the body
         ss.seekg(chunkSize + 2, std::ios::cur); // Move past the chunk and CRLF
     }
+    // std::string chunked_data = _body;
+    // std::string decoded_data;
+    // size_t pos = 0;
+
+    // while (pos < chunked_data.length()) {
+    //     size_t line_end = chunked_data.find("\r\n", pos);
+    //     if (line_end == std::string::npos) {
+    //         // incomplete chunk
+    //         break;
+    //     }
+
+    //     //extract and convert the chunk size
+    //     std::string chunk_size_hex = chunked_data.substr(pos, line_end - pos);
+    //     size_t chunk_size = 0;
+    //     std::istringstream(chunk_size_hex) >> std::hex >> chunk_size;
+
+    //     // if chunk size == 0, we've reached the end of the body
+    //     if (chunk_size == 0) {
+    //         _body = decoded_data;
+    //         return ;
+    //     }
+
+    //     // position after the CRLF
+    //     pos = line_end + 2;
+
+    //     // check if we have enough data for this chunk
+    //     if (pos + chunk_size + 2 > chunked_data.length()) {
+    //         // not enough data
+    //         break;
+    //     }
+
+    //     decoded_data.append(chunked_data.substr(pos, chunk_size));
+
+    //     //move position past this chunk
+    //     pos += chunk_size + 2;
+    // }
+    // throw std::runtime_error("400 Bad Request: Incomplete chunked transfer encoding");
 }
 
 void Request::setTimeout(time_t timeout) {
@@ -273,6 +311,7 @@ void Request::setCgi(bool isCgi) {
 
 bool Request::checkError() const {
     // Check if there is an error in the request
+    std::cout << "Checking for errors in the request..." << _statusCode << std::endl;
     if (_statusCode >= 400 && _statusCode < 600) {
         return true; // Error status code
     }

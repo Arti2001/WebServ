@@ -6,7 +6,7 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:04:57 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/18 18:37:43 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/06/20 12:23:02 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,7 @@ class Response {
             {404, "Not Found"},
             {405, "Method Not Allowed"},
             {408, "Request Timeout"},
+            {413, "Payload Too Large"},
             {418, "I'm a teapot"},
             {429, "Too Many Requests"},
             {500, "Internal Server Error"},
