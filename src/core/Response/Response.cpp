@@ -6,7 +6,7 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/22 13:29:12 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/06/22 14:10:14 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -324,7 +324,7 @@ std::string Response::createUploadFile() {
         setStatusCode(400); // Bad Request
         return "";
     }
-    const std::string &uploadDirectory = _locationConfig->getLocationRoot() + "/uploads";
+    const std::string &uploadDirectory = _locationConfig->getLocationUploadPath();
     if (uploadDirectory.empty()) {
         setStatusCode(403); // Forbidden
         return "";
@@ -389,13 +389,10 @@ void Response::handleDeleteRequest() {
     if (!path.empty() && path[0] == '/') // remove leading slash
         path = path.substr(1);
     std::string fullPath;
-    if (_locationConfig->getLocationUploadPath().empty()) {
-        fullPath = _locationConfig->getLocationRoot(); // for testing purposes temporarily use root. but we should have a default upload path configured
-    }
-    if (fullPath.back() != '/')
-        fullPath += "/" + path;
+    if (_locationConfig->getLocationUploadPath().back() != '/')
+        fullPath = _locationConfig->getLocationUploadPath() + "/" + path;
     else
-        fullPath += path;
+        fullPath = _locationConfig->getLocationUploadPath() + path;
     std::cout << "Full path to delete: " << fullPath << std::endl;
     if (!fileExists(fullPath)) {
         std::cout << "File to delete not found" << std::endl;
