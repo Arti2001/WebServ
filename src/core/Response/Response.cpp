@@ -6,7 +6,7 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/20 21:18:50 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/06/22 13:29:12 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -324,7 +324,7 @@ std::string Response::createUploadFile() {
         setStatusCode(400); // Bad Request
         return "";
     }
-    const std::string &uploadDirectory = _locationConfig->getLocationUploadPath();
+    const std::string &uploadDirectory = _locationConfig->getLocationRoot() + "/uploads";
     if (uploadDirectory.empty()) {
         setStatusCode(403); // Forbidden
         return "";
@@ -343,6 +343,7 @@ std::string Response::createUploadFile() {
     }
     outFile.write(body.data(), body.size());
     outFile.close();
+    std::cout << "File created. Path is " << filePath << std::endl;
     return fileName; // Return the path of the uploaded file
 }
 
