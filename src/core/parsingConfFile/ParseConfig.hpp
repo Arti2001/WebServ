@@ -48,12 +48,13 @@ struct Token {
 
 class ParseConfig {
 	private:
-		std::vector<Token>											_tokens;
-		std::unordered_map<std::string, TokenType>					_keywords;
-
+		std::vector<Token>							_tokens;
+		std::unordered_map<std::string, TokenType>	_keywords;
+		
 	public:
-		int			depth;
-		size_t		currToken;
+		int								depth;
+		size_t							currToken;
+		std::unordered_set<TokenType>	seenDirectives;
 
 		ParseConfig();
 		~ParseConfig();
@@ -68,6 +69,8 @@ class ParseConfig {
 		void											validateLocationBlockStructure();
 		std::string										findLocationPath();
 		std::pair< Token, std::vector<std::string>>		makeKeyValuePair();
+		void											isSeenDirective(Token directive);
+		bool											noRepeatDirective(TokenType type) const;
 		
 		
 		//helper

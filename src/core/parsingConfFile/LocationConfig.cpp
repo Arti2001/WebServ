@@ -50,7 +50,11 @@ const std::string& Location::getLocationRoot() const {
 	return _locationRoot;
 }
 
-const std::string& Location::getLocationIndex() const {
+//const std::string& Location::getLocationIndex() const {
+//	return _locationIndex;
+//}
+
+const std::vector<std::string>& Location::getLocationIndex() const {
 	return _locationIndex;
 }
 
@@ -92,7 +96,11 @@ void Location::setLocationRoot(const std::string& root) {
 	_locationRoot = root;
 }
 
-void Location::setLocationIndex(const std::string& index) {
+//void Location::setLocationIndex(const std::string& index) {
+//	_locationIndex = index;
+//}
+
+void Location::setLocationIndex(const std::vector<std::string>& index) {
 	_locationIndex = index;
 }
 

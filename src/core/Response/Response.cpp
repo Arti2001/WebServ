@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   Response.cpp                                       :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/23 10:59:23 by vovashko      ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   Response.cpp                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/04/18 16:05:00 by pminialg          #+#    #+#             */
+/*   Updated: 2025/06/23 17:14:24 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -181,15 +181,30 @@ void Response::handleGetRequest() {
         //         break;
         //     }
         // }
-        std::string indexPath = fullPath + "/" + _locationConfig->getLocationIndex();
-        if (fileExists(indexPath)) {
-            fullPath = indexPath; // Use the index file if it exists
-        } else {
-            std::cout << "Directory not found" << std::endl;
-            setStatusCode(404);
-            return generateErrorResponse();
-        }
-    }
+        //std::string indexPath = fullPath + "/" + _locationConfig->getLocationIndex();
+        //if (fileExists(indexPath)) {
+        //    fullPath = indexPath; // Use the index file if it exists
+        //} else {
+        //    std::cout << "Directory not found" << std::endl;
+        //    setStatusCode(404);
+        //    return generateErrorResponse();
+        //}
+
+		std::string indexPath;
+
+		for (const std::string& locIndex : _locationConfig->getLocationIndex()) {
+			indexPath = fullPath + "/" + locIndex;
+			if (!fileExists(indexPath))
+				continue;
+			else
+				fullPath = indexPath;
+		}
+		if (_validPath != true) {
+			std::cout << "Directory not found" << std::endl;
+			setStatusCode(404);
+			return generateErrorResponse();
+		}
+	}
 
     if (isLargeFile(fullPath) && _statusCode < 400) {
         makeChunkedResponse(fullPath);
