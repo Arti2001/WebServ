@@ -14,5 +14,6 @@ COPY . .
 # Compile the code when building the container
 RUN make re
 
+EXPOSE 8071
 # Command to run your server by default
-CMD ["./webserv" "/config-files/working/w.conf"]
+CMD ["./webserv", "config-files/working/webserv.conf"]

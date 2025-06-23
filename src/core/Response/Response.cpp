@@ -6,7 +6,7 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/22 14:56:27 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/06/23 10:59:23 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,6 +98,8 @@ void Response::matchLocation() {
         std::cerr << "No matching location block found for the request URI. No default." << std::endl;
         setStatusCode(404);
     }
+    if (_locationConfig->getLocationReturnPages().first)
+        setStatusCode(_locationConfig->getLocationReturnPages().first);
 }
 
 const std::string& Response::getRawResponse() const {
