@@ -1,7 +1,7 @@
 #ifndef SERVERMANAGER_HPP
 #define SERVERMANAGER_HPP
 #define EPOLL_CAPACITY				20
-#define DEFAULT_CONFIG_FILE_PATH	"/webserv.conf"
+#define DEFAULT_CONFIG_FILE_PATH	"./webserv.conf"
 //#define SERVER_TIMEOUT				10
 //constexpr long	SERVER_TIMEOUT_MS = SERVER_TIMEOUT * 1000;
 #define ENABLE						1
