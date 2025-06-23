@@ -127,7 +127,10 @@ std::ostream& operator<<(std::ostream& os, const vServer& server) {
 
 	os << "Client Max Body Size:         " << server.getServerClientMaxSize() << "\n";
 	os << "Root:                         " << server.getServerRoot() << "\n";
-	os << "Index:                        " << server.getServerIndex() << "\n";
+	os << "Index:                        ";
+	for (const std::string& index : server.getServerIndex())
+		os<< index << " ";
+	os<< "\n";
 	os << "AutoIndex:                    " << server.getServerAutoIndex() << "\n";
 
 	os << "  Error Pages:\n";
@@ -146,7 +149,10 @@ std::ostream& operator<<(std::ostream& os, const vServer& server) {
 
 		os << "  Path:           " << path << "\n";
 		os << "  Root:           " << loc.getLocationRoot() << "\n";
-		os << "  Index:          " << loc.getLocationIndex() << "\n";
+		os << "  Index:          ";
+		for (const std::string& index : loc.getLocationIndex())
+			os<< index << " ";
+		os<< "\n";
 		os << "  AutoIndex:      " << loc.getLocationAutoIndex() << "\n";
 		os << "  UploadPath:     " << loc.getLocationUploadPath() << "\n";
 		os << "  Max Body Size:  " << loc.getLocationClientMaxSize() << "\n";
@@ -217,6 +223,22 @@ std::string	ParseConfig::findLocationPath() {
 	return (path);
 }
 
+bool ParseConfig::noRepeatDirective(TokenType type) const {
+	return (type == LISTEN_DIR || type == SERVER_NAME_DIR);
+}
+
+void	ParseConfig::isSeenDirective(Token directive) {
+
+	TokenType type = directive.type;
+
+	if (noRepeatDirective(type)) {
+		if (!seenDirectives.count(type)) 
+			seenDirectives.insert(type);
+		else
+			throw ConfException("Duplicated " + directive.lexem + " directive");
+	}
+}
+
 
 void	ParseConfig::validateLocationBlockDirectives(vServer& vServer) {
 	
@@ -235,7 +257,7 @@ for (; _tokens[currToken].type != CLOSED_BRACE; currToken++) {
 		break;
 		
 		case INDEX_DIR:
-			loc.setLocationIndex(vServer::onlyOneArgumentCheck(pair.second, "index"));
+			loc.setLocationIndex(pair.second);
 		break;
 		
 		case UPLOAD_PATH:
@@ -279,41 +301,42 @@ for (; _tokens[currToken].type != CLOSED_BRACE; currToken++) {
 
 // it is better to have validation inside of the vServer class
 void	ParseConfig::validateServerBlockDirectives(vServer& serv) {
-		
-std::pair< Token, std::vector<std::string>> pair = makeKeyValuePair();
 
-switch (pair.first.type) {
-	case LISTEN_DIR:
-		serv.validateServerListen(pair.second);
-	break;
-	
-	case SERVER_NAME_DIR:
-		serv.validateServerNames(pair.second);
-	break;
-	
-	case ROOT_DIR:
-		serv.setServerRoot(vServer::onlyOneArgumentCheck(pair.second, "root"));
-	break;
-	
-	case INDEX_DIR:
-		serv.setServerIndex(vServer::onlyOneArgumentCheck(pair.second, "index"));
-	break;
-	
-	case AUTO_INDEX_DIR:
-		serv.setServerAutoIndex(vServer::validateAutoIndexDirective(pair.second));
-	break;
-	
-	case BODY_MAX_SIZE:
-		serv.setServerClientMaxSize(vServer::validateClientMaxSizeDirective(pair.second));
-	break;
-	
-	case ERROR_PAGE_DIR:
-		serv.setServerErrorPages(vServer::validateErrorPagesDirective(pair.second));
-	break;
-	
-	default:
-		throw ConfException("Invalid directive name: " + pair.first.lexem + " not found!");
-}
+	std::pair< Token, std::vector<std::string>> pair = makeKeyValuePair();
+	isSeenDirective(pair.first);
+	switch (pair.first.type) {
+
+		case LISTEN_DIR:
+			serv.validateServerListen(pair.second);
+		break;
+		
+		case SERVER_NAME_DIR:
+			serv.validateServerNames(pair.second);
+		break;
+		
+		case ROOT_DIR:
+			serv.setServerRoot(vServer::onlyOneArgumentCheck(pair.second, "root"));
+		break;
+		
+		case INDEX_DIR:
+			serv.setServerIndex(pair.second);
+		break;
+		
+		case AUTO_INDEX_DIR:
+			serv.setServerAutoIndex(vServer::validateAutoIndexDirective(pair.second));
+		break;
+		
+		case BODY_MAX_SIZE:
+			serv.setServerClientMaxSize(vServer::validateClientMaxSizeDirective(pair.second));
+		break;
+		
+		case ERROR_PAGE_DIR:
+			serv.setServerErrorPages(vServer::validateErrorPagesDirective(pair.second));
+		break;
+		
+		default:
+			throw ConfException("Invalid directive name: " + pair.first.lexem + " not found!");
+	}
 }
 
 

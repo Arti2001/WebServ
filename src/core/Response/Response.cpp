@@ -3,10 +3,10 @@
 /*                                                        ::::::::            */
 /*   Response.cpp                                       :+:    :+:            */
 /*                                                     +:+                    */
-/*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
+/*   By: amysiv <amysiv@student.42.fr>                +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/23 10:59:23 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/06/23 17:57:35 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -174,22 +174,23 @@ void Response::handleGetRequest() {
     }
     else if (_validPath && !fileExists(fullPath)) // path to directory need to append index file to serve
     {
-        // for (const std::string &indexFile : _locationConfig->getLocationIndex()) { // implementation for multiple index files
-        //     std::string indexPath = fullPath + "/" + indexFile;
-        //     if (fileExists(indexPath)) {
-        //         fullPath = indexPath; // Use the index file if it exists
-        //         break;
-        //     }
-        // }
-        std::string indexPath = fullPath + "/" + _locationConfig->getLocationIndex();
-        if (fileExists(indexPath)) {
-            fullPath = indexPath; // Use the index file if it exists
-        } else {
-            std::cout << "Directory not found" << std::endl;
-            setStatusCode(404);
-            return generateErrorResponse();
-        }
-    }
+		std::string indexPath;
+        bool foundIndex = false;
+		for (const std::string& locIndex : _locationConfig->getLocationIndex()) {
+			indexPath = fullPath + "/" + locIndex;
+			if (fileExists(indexPath))
+			{
+				fullPath = indexPath;
+                foundIndex = true;
+                break;
+            }
+		}
+		if (!foundIndex) {
+			std::cout << "Index file not found" << std::endl;
+			setStatusCode(404);
+			return generateErrorResponse();
+		}
+	}
 
     if (isLargeFile(fullPath) && _statusCode < 400) {
         makeChunkedResponse(fullPath);

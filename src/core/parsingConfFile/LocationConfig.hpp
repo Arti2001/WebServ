@@ -8,7 +8,8 @@ class Location {
 		std::string								_locationPath;
 		std::string								_locationUploadPath;
 		std::string								_locationRoot;
-		std::string								_locationIndex;
+		//std::string							_locationIndex;
+		std::vector<std::string>				_locationIndex;
 		int										_locationAutoIndex;
 		unsigned								_locationClientMaxSize;
 		std::unordered_set<std::string>			_locationAllowedMethods;
@@ -27,7 +28,8 @@ class Location {
 	const std::string&							getLocationPath(void) const;
 	const std::string&							getLocationUploadPath(void) const;
 	const std::string&							getLocationRoot(void) const;
-	const std::string&							getLocationIndex(void) const;
+	//const std::string&						getLocationIndex(void) const;
+	const std::vector<std::string>&				getLocationIndex(void) const;
 	const int&									getLocationAutoIndex(void) const;
 	const unsigned&								getLocationClientMaxSize(void) const;
 	const std::unordered_set<std::string>&		getLocationAllowedMethods(void) const; // better to use set, as it won't allow duplicate methods
@@ -39,7 +41,8 @@ class Location {
 	void									setLocationPath(const std::string&path);
 	void									setLocationUploadPath(const std::string& path);
 	void									setLocationRoot(const std::string& root);
-	void									setLocationIndex(const std::string& index);
+	//void									setLocationIndex(const std::string& index);
+	void									setLocationIndex(const std::vector<std::string>& index);
 	void									setLocationAutoIndex(const int autoIndex);
 	void									setLocationClientMaxSize(const unsigned maxSize);
 	void									setLocationAllowedMethods(const std::unordered_set<std::string>& methods);
