@@ -1,12 +1,15 @@
 #include "CGIHandler.hpp"
 #include <sys/select.h>
 
-Response CGIHandler::handle(const Request& req) {
-    try {
-        if (!isCGIRequest(req.getUri())) {
-            throw CGIException("Not a CGI request");
-        }
+CGIHandler::CGIHandler(const Response &response) 
+    : _envp(nullptr), _cgiPath(""), _scriptName(""), _queryString(""), _bodyInput(""), _cgiOutput("") {
+    // Initialize the CGI handler with the response
+    // This constructor can be used to set up any initial state if needed
+    std::unordered_map<std::string, std::string> envVariables = initEnvironmentVars(response.getRequest(), response.getLocationConfig()->getCgiPath());
+    }
 
+ CGIHandler::handle(const Request& req) {
+    try {
         //resolve script path
         std::string scriptPath = resolveScriptPath(req.getUri());
 
@@ -27,10 +30,6 @@ Response CGIHandler::handle(const Request& req) {
 
         return errorResponse;
     }
-}
-
-bool CGIHandler::isCGIRequest(const std::string& uri) {
-    return uri.find("/cgi-bin/") != std::string::npos;
 }
 
 std::string CGIHandler::resolveScriptPath(const std::string& uri) {
@@ -93,54 +92,20 @@ std::pair<std::string, std::string> CGIHandler::extractScriptNameAndPathInfo(con
     return std::make_pair(scriptName, pathInfo);
 }
 
-std::vector<std::string> CGIHandler::buildEnvironmentStrings(const Request& req, const std::string& scriptPath) {
-    std::vector<std::string> envStrings;
-    std::string uri = req.getUri();
-    (void) scriptPath;
-
-    auto [scriptName, pathInfo] = extractScriptNameAndPathInfo(uri);
-
-    std::string queryString = "";
-    size_t questionMarkPos = uri.find('?');
-    if (questionMarkPos != std::string::npos) {
-        queryString = uri.substr(questionMarkPos + 1);
-    }
-
-    envStrings.push_back("GATEWAY_INTERFACE=CGI/1.1");
-    envStrings.push_back("SERVER_PROTOCOL=" + req.getHttpVersion());
-    envStrings.push_back("REQUEST_METHOD=" + req.getMethod());
-    envStrings.push_back("SCRIPT_NAME=" + scriptName);
-    envStrings.push_back("PATH_INFO=" + pathInfo);
-    envStrings.push_back("QUERY_STRING=" + queryString);
-    envStrings.push_back("SERVER_SOFTWARE=webserv/1.0");
-    envStrings.push_back("REMOTE_ADDR=127.0.0.1"); //simplified for now, TODO
-
-    //content related headers
-    auto headers = req.getHeaders();
-    if (headers.find("Content-Type") != headers.end()) {
-        envStrings.push_back("CONTENT_TYPE=" + headers.at("Content-Type"));
-    }
-
-    if (headers.find("Content-Length") != headers.end()) {
-        envStrings.push_back("CONTENT_LENGTH=" + headers.at("Content-Length"));
-    }
-
-    //HTTP headers as HTTP_
-    for (const auto& header : headers) {
-        std::string name = header.first;
-        if (name != "Content-Type" && name != "Content-Length") {
-            std::string envName = "HTTP_";
-            for (char c : name) {
-                if (c == '-') {
-                    envName += '_';
-                } else {
-                    envName += std::toupper(c);
-                }
-            }
-            envStrings.push_back(envName + "=" + header.second);
-        }
-    }
-    return envStrings;
+std::unordered_map<std::string, std::string> CGIHandler::initEnvironmentVars(const Request& req, const std::string& scriptPath) {
+    
+    std::unordered_map<std::string, std::string> envVariables;
+    // Initialize environment variables for CGI execution
+    envVariables["REQUEST_METHOD"] = request.getMethod();
+    envVariables["SCRIPT_NAME"] = _scriptName;
+    envVariables["QUERY_STRING"] = _queryString;
+    envVariables["CONTENT_TYPE"] = request.getHeaders().at("Content-Type");
+    envVariables["CONTENT_LENGTH"] = std::to_string(request.getBody().size());
+    envVariables["SERVER_NAME"] = request.getHeaders().at("Host");
+    envVariables["SERVER_PROTOCOL"] = request.getHttpVersion();
+    envVariables["GATEWAY_INTERFACE"] = "CGI/1.1";
+    // Add more environment variables as needed
+    return envVariables;
 }
 
 char** CGIHandler::buildEnvironmentArray(const std::vector<std::string>& envStrings) {

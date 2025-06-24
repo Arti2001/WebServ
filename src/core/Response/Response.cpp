@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>                +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/23 17:57:35 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/06/24 16:34:38 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -316,6 +316,22 @@ void Response::makeChunkedResponse(const std:: string &path) {
 
 void Response::handleCGIRequest() {
     // Handle CGI request logic here
+    std::cout << "Handling CGI request" << std::endl;
+    if (!isMethodAllowed("GET") && !isMethodAllowed("POST")) {
+        setStatusCode(405); // Method Not Allowed
+        return generateErrorResponse();
+    }
+    // after checking the allowed method. We want to move into create an instanoce of cgi handler. it will take the response as tthe argument in its constructor. the attributes we would really care about are the cgi path, script name, environment variables, and the request body if applicable. 
+    try {
+        CGIHandler cgiHandler(*this);
+        _rawResponse = cgiHandler.handle(); // Handle the CGI request and get the raw response
+    }
+    // if it fails i should set the corresponsing status code and return an error response
+    catch (const CGIHandler::CGIException &e) {
+        std::cerr << "CGI Exception: " << e.what() << std::endl;
+        setStatusCode(500); // Internal Server Error
+        return generateErrorResponse();
+    }
     
 }
 
