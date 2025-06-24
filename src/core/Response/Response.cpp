@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>                +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/24 16:34:38 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/06/24 17:54:21 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,8 @@ Response::Response(Request *request, ServerManager *ServerManager, int clientSoc
     _statusCode = request->getStatusCode();
     _statusMessage = _statusMessages[_statusCode];
     _validPath = false; // Initially set to false, will be updated later
+    _autoindexEnabled = false;
+    _isCgiRequest = false;
     matchServer();
     matchLocation();
 }
@@ -100,6 +102,8 @@ void Response::matchLocation() {
     }
     if (_locationConfig->getLocationReturnPages().first)
         setStatusCode(_locationConfig->getLocationReturnPages().first);
+    if (_locationConfig->getLocationAutoIndex())
+        _autoindexEnabled = true;
 }
 
 const std::string& Response::getRawResponse() const {
@@ -186,9 +190,17 @@ void Response::handleGetRequest() {
             }
 		}
 		if (!foundIndex) {
-			std::cout << "Index file not found" << std::endl;
-			setStatusCode(404);
-			return generateErrorResponse();
+            if (_autoindexEnabled) {
+                std::cout << "Generating directory listing for: " << fullPath << std::endl;
+                _body = generateDirectoryListing(fullPath, path);
+                setStatusCode(200); // OK
+                addHeader("Content-Type", "text/html");
+                return ;
+            } else {
+                std::cout << "No index file found and autoindex is disabled" << std::endl;
+                setStatusCode(404);
+                return generateErrorResponse();
+            }
 		}
 	}
 
@@ -288,7 +300,7 @@ std::string Response::getMimeType(const std::string &path) const {
     return "application/octet-stream";
 }
 
-void Response::makeChunkedResponse(const std:: string &path) {
+void Response::makeChunkedResponse(const std::string &path) {
     char buffer[RESPONSE_READ_BUFFER_SIZE];
     int file = open(path.c_str(), O_RDONLY);
     ssize_t bytesRead = read(file, buffer, RESPONSE_READ_BUFFER_SIZE);
@@ -323,8 +335,8 @@ void Response::handleCGIRequest() {
     }
     // after checking the allowed method. We want to move into create an instanoce of cgi handler. it will take the response as tthe argument in its constructor. the attributes we would really care about are the cgi path, script name, environment variables, and the request body if applicable. 
     try {
-        CGIHandler cgiHandler(*this);
-        _rawResponse = cgiHandler.handle(); // Handle the CGI request and get the raw response
+        CGIHandler cgiHandler(*_request, *_locationConfig);
+        _rawResponse = cgiHandler.execute(); // Handle the CGI request and get the raw response
     }
     // if it fails i should set the corresponsing status code and return an error response
     catch (const CGIHandler::CGIException &e) {
@@ -466,12 +478,11 @@ void Response::createHeaders(){
     // need to add default headers as well as headers depending on request
 }
 
-std::string Response::generateDirectoryListing(const std::string& fsPath, const std::string& urlPath) {
+std::string Response::generateDirectoryListing(const std::string& fileSystemPath, const std::string& urlPath) {
     std::ostringstream html;
     html << "<html><head><title>Index of " << urlPath << "</title></head><body>";
     html << "<h1>Index of " << urlPath << "</h1><ul>";
-
-    DIR* dir = opendir(fsPath.c_str());
+    DIR* dir = opendir(fileSystemPath.c_str());
     if (!dir) {
         setStatusCode(500); // Internal Server Error
         return "";
