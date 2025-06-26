@@ -195,8 +195,8 @@ void	Client::handleResponse(int clientFd) {
 	_clientBytesSent += bytesSent;
 	if (_clientBytesSent == responseSize) {
 		std::cout << "All data sent" << "\n";
-		_serverManager->closeClientFd(clientFd);
 		_clientBytesSent = 0;
+		_serverManager->closeClientFd(clientFd);	
 	}
 }
 

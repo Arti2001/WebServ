@@ -58,13 +58,14 @@ class Request
         const std::string &getHttpVersion() const; // Get the HTTP version
         const std::unordered_map<std::string, std::string> &getHeaders() const; // Get the request headers
         const std::string &getBody() const; // Get the request body
+        int getBodySize() const { return _bodySize; } // Get the size of the request body
         const std::string &getQuery() const; // Get the query string
         time_t getTimeout() const; // Get the timeout for the request
         int getStatusCode() const; // Get the status code for the request
         bool getCgiStatus() const; // Check if the request is a CGI request
         bool getBodyExpected() const { return _bodyExpected; } // Check if the body is expected in the request
         bool getIsChunked() const { return _isChunked; } // Check if the request body is chunked
-        const std::string getUri() const { return _path; } // Get the request URI
+        const std::string &getUri() const { return _path; } // Get the request URI
 
 
         void parseStartLine(); // Parse the start line of the request (method, path(request target), HTTP version)

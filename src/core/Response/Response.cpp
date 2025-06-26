@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>                +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/23 17:57:35 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/06/26 15:17:32 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,6 +100,8 @@ void Response::matchLocation() {
     }
     if (_locationConfig->getLocationReturnPages().first)
         setStatusCode(_locationConfig->getLocationReturnPages().first);
+    if (_locationConfig->getLocationClientMaxSize() < static_cast<unsigned int>(_request->getBodySize()))
+        setStatusCode(413);
 }
 
 const std::string& Response::getRawResponse() const {
@@ -139,15 +141,34 @@ void Response::generateResponse() {
 }
 
 bool Response::isCgiRequest() const {
-    // std::string path = _request->getPath(); // e.g., "/cgi-bin/script.cgi"
-    // if (path.find(DEFAULT_CGI_DIRECTORY) != std::string::npos) {
-    //     for (const auto & ext : _locationConfig->getCgiExtensions()) {
-    //         if (path.find(ext) != std::string::npos) {
-    //             return true; // The request is a CGI request
-    //         }
-    //     }
-    // }
-    return false; // The request is not a CGI request
+    // check if the uri has the cgi extension
+    std::string path = _request->getUri(); // e.g., "/cgi-bin/script.cgi"
+    std::string extension = path.substr(path.find_last_of('.') + 1);
+    std::map <std::string, std::string> cgiExtensions = _locationConfig->getLocationAllowedCgi();
+    if (cgiExtensions.empty()) {
+        std::cerr << "No CGI extensions allowed for this location." << std::endl;
+        return false; // No CGI extensions allowed
+    }
+     // if the extension is in the supported/allowed cgi extensions, then it is a cgi request
+    if (extension.empty()) { // then it is a request for a directory. need to check index files and if any cgi's are allowed
+        std::vector<std::string> indexFiles = _locationConfig->getLocationIndex();
+        if (indexFiles.empty()) {
+            std::cerr << "No index files specified for this location." << std::endl;
+            return false; // No index files specified
+        }
+        for (const auto &indexFile : indexFiles) {
+            std::string indexExtension = indexFile.substr(indexFile.find_last_of('.') + 1);
+            if (cgiExtensions.find(indexExtension) != cgiExtensions.end()) {
+                std::cout << "CGI request detected for index file: " << indexFile << std::endl;
+                return true; // The request is a CGI request for an index file
+            }
+        }
+    }
+    else if (cgiExtensions.find(extension) != cgiExtensions.end()) {
+        std::cout << "CGI request detected for extension: " << extension << std::endl;
+        return true; // The request is a CGI request
+    } 
+   return false; // The request is not a CGI request
 }
 
 std::string Response::resolveRelativePath(const std::string &path, const std::string &locationPath) const {
