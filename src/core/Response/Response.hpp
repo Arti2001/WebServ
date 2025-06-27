@@ -6,7 +6,7 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:04:57 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/22 14:51:17 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/06/27 21:18:39 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,7 +79,6 @@ class Response {
         std::string generateDirectoryListing(const std::string& fsPath, const std::string& urlPath);
         bool isCgiRequest() const; // Check if the request is a CGI request
         std::string resolveRelativePath(const std::string &path, const std::string &locationPath) const; // Resolve relative path based on location path
-        std::string getMimeType(const std::string &path) const; // Get the MIME type based on the file extension
         std::string createUploadFile();
         std::string generateUUID();
         
@@ -107,6 +106,8 @@ class Response {
         std::string urlEncode(const std::string& value);
 
         void generateResponse(); // Generate the full HTTP response string
+        static    std::string getMimeType(const std::string &path); // Get the MIME type based on the file extension
+
 };
 
 #endif

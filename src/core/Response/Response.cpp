@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>                +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/27 20:41:20 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/06/27 21:18:56 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -230,21 +230,21 @@ bool Response::isCgiRequest() const {
 void Response::handleCGIRequest() {
     // Handle CGI request logic here
     std::cout << "Handling CGI request" << std::endl;
-    // if (!isMethodAllowed("GET") && !isMethodAllowed("POST")) {
-    //     setStatusCode(405); // Method Not Allowed
-    //     return generateErrorResponse();
-    // }
-    // // after checking the allowed method. We want to move into create an instanoce of cgi handler. it will take the response as tthe argument in its constructor. the attributes we would really care about are the cgi path, script name, environment variables, and the request body if applicable. 
-    // try {
-    //     CGIHandler cgiHandler(*_request, *_locationConfig);
-    //     _rawResponse = cgiHandler.execute(); // Handle the CGI request and get the raw response
-    // }
-    // // if it fails i should set the corresponsing status code and return an error response
-    // catch (const CGIHandler::CGIException &e) {
-    //     std::cerr << "CGI Exception: " << e.what() << std::endl;
-    //     setStatusCode(500); // Internal Server Error
-    //     return generateErrorResponse();
-    // }
+    if (!isMethodAllowed("GET") && !isMethodAllowed("POST")) {
+        setStatusCode(405); // Method Not Allowed
+        return generateErrorResponse();
+    }
+    // after checking the allowed method. We want to move into create an instanoce of cgi handler. it will take the response as tthe argument in its constructor. the attributes we would really care about are the cgi path, script name, environment variables, and the request body if applicable. 
+    try {
+        CGIHandler cgiHandler(*_request, *_locationConfig);
+        _rawResponse = cgiHandler.execute(); // Handle the CGI request and get the raw response
+    }
+    // if it fails i should set the corresponsing status code and return an error response
+    catch (const CGIHandler::CGIException &e) {
+        std::cerr << "CGI Exception: " << e.what() << std::endl;
+        setStatusCode(500); // Internal Server Error
+        return generateErrorResponse();
+    }
     setStatusCode(418);
     return generateErrorResponse();
 }
@@ -525,7 +525,7 @@ bool Response::isLargeFile(const std::string &path) {
     return fileStat.st_size > LARGE_FILE_SIZE_THRESHOLD;
 }
 
-std::string Response::getMimeType(const std::string &path) const {
+std::string Response::getMimeType(const std::string &path)  {
     // Determine the MIME type based on the file extension
     std::string extension = path.substr(path.find_last_of('.'));
     if (extension == ".html" || extension == ".htm") {
