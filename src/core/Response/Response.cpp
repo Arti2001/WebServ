@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>                +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/26 15:17:32 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/06/27 20:41:20 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,7 +117,7 @@ void Response::generateResponse() {
 
     if (_statusCode >= 300 && _statusCode < 400)
         return handleRedirectRequest();
-
+    std::cout << "Checking if it is a cgi request" << std::endl;
     if (isCgiRequest())
         return handleCGIRequest();
 
@@ -140,10 +140,60 @@ void Response::generateResponse() {
     createBody();
 }
 
+void Response::generateErrorResponse() {
+    std::cout << "Generating error response for status code: " << _statusCode << std::endl;
+    setStatusMessage(_statusMessages[_statusCode]);
+    
+    // Clear existing headers and body
+    _headers.clear();
+    _body.clear();
+    
+    // Set default headers for error responses
+    addHeader("Content-Type", "text/html");
+    addHeader("Connection", "close");
+    
+    // Generate a simple HTML body for the error response
+    _body = "<html><body><h1>" + std::to_string(_statusCode) + " " + _statusMessage + "</h1></body></html>";
+    
+    // Generate the full response
+    createStartLine();
+    createHeaders();
+    createBody();
+}
+
+void Response::handleRedirectRequest() {
+    // Handle redirect request logic here
+    // This is a placeholder for the actual redirect handling logic
+    if (_locationConfig) {
+        std::pair<int, std::string> redirect = _locationConfig->getLocationReturnPages();
+        if (redirect.first != 0) {
+            setStatusCode(redirect.first);
+            setStatusMessage(_statusMessages[redirect.first]);
+            addHeader("Location", redirect.second);
+            _body.clear(); // Clear body for redirect responses
+            createStartLine();
+            createHeaders();
+        } else {
+            setStatusCode(404); // If no redirect is set, return 404
+            generateErrorResponse();
+        }
+    } else {
+        setStatusCode(404); // No location config found, return 404
+        generateErrorResponse();
+    }
+}
+
 bool Response::isCgiRequest() const {
     // check if the uri has the cgi extension
     std::string path = _request->getUri(); // e.g., "/cgi-bin/script.cgi"
-    std::string extension = path.substr(path.find_last_of('.') + 1);
+    std::cout << "Path: " << path << std::endl;
+    size_t extDot = path.find_last_of('.');
+    std::string extension;
+    if (extDot != std::string::npos)
+        extension = path.substr(path.find_last_of('.')); // need to check whether the extension is extracted with a dot or not. if not remove +1
+    else
+        extension = "";
+    std::cout << "Extension: " << extension << std::endl;
     std::map <std::string, std::string> cgiExtensions = _locationConfig->getLocationAllowedCgi();
     if (cgiExtensions.empty()) {
         std::cerr << "No CGI extensions allowed for this location." << std::endl;
@@ -156,8 +206,14 @@ bool Response::isCgiRequest() const {
             std::cerr << "No index files specified for this location." << std::endl;
             return false; // No index files specified
         }
+        std::cout << "Index files: " << indexFiles.size() << std::endl;
         for (const auto &indexFile : indexFiles) {
-            std::string indexExtension = indexFile.substr(indexFile.find_last_of('.') + 1);
+            extDot = indexFile.find_last_of('.');
+            std::string indexExtension;
+            if (extDot != std::string::npos)
+                indexExtension = indexFile.substr(extDot);
+            else
+                indexExtension = "";
             if (cgiExtensions.find(indexExtension) != cgiExtensions.end()) {
                 std::cout << "CGI request detected for index file: " << indexFile << std::endl;
                 return true; // The request is a CGI request for an index file
@@ -171,13 +227,28 @@ bool Response::isCgiRequest() const {
    return false; // The request is not a CGI request
 }
 
-std::string Response::resolveRelativePath(const std::string &path, const std::string &locationPath) const {
-    // Resolve relative path based on location path
-    if (path.empty() || path[0] == '/') {
-        return path; // Absolute path, return as is
-    }
-    return locationPath + "/" + path; // Relative path, prepend location path
+void Response::handleCGIRequest() {
+    // Handle CGI request logic here
+    std::cout << "Handling CGI request" << std::endl;
+    // if (!isMethodAllowed("GET") && !isMethodAllowed("POST")) {
+    //     setStatusCode(405); // Method Not Allowed
+    //     return generateErrorResponse();
+    // }
+    // // after checking the allowed method. We want to move into create an instanoce of cgi handler. it will take the response as tthe argument in its constructor. the attributes we would really care about are the cgi path, script name, environment variables, and the request body if applicable. 
+    // try {
+    //     CGIHandler cgiHandler(*_request, *_locationConfig);
+    //     _rawResponse = cgiHandler.execute(); // Handle the CGI request and get the raw response
+    // }
+    // // if it fails i should set the corresponsing status code and return an error response
+    // catch (const CGIHandler::CGIException &e) {
+    //     std::cerr << "CGI Exception: " << e.what() << std::endl;
+    //     setStatusCode(500); // Internal Server Error
+    //     return generateErrorResponse();
+    // }
+    setStatusCode(418);
+    return generateErrorResponse();
 }
+
 
 void Response::handleGetRequest() {
     std::cout << "Handling get request" << std::endl;
@@ -222,54 +293,6 @@ void Response::handleGetRequest() {
     }
 }
 
-void Response::generateErrorResponse() {
-    std::cout << "Generating error response for status code: " << _statusCode << std::endl;
-    setStatusMessage(_statusMessages[_statusCode]);
-    
-    // Clear existing headers and body
-    _headers.clear();
-    _body.clear();
-    
-    // Set default headers for error responses
-    addHeader("Content-Type", "text/html");
-    addHeader("Connection", "close");
-    
-    // Generate a simple HTML body for the error response
-    _body = "<html><body><h1>" + std::to_string(_statusCode) + " " + _statusMessage + "</h1></body></html>";
-    
-    // Generate the full response
-    createStartLine();
-    createHeaders();
-    createBody();
-}
-
-bool Response::isMethodAllowed(const std::string &method) const {
-    const std::unordered_set<std::string>& allowedMethods = _locationConfig->getLocationAllowedMethods();
-    return (allowedMethods.count(method));
-}
-
-
-bool Response::fileExists(const std::string &path) {
-    // need to confirm if file exists
-    struct stat fileStat;
-    if (stat(path.c_str(), &fileStat) == -1) {
-        return false; // File does not exist or cannot be accessed
-    }
-    _validPath = true;
-    return S_ISREG(fileStat.st_mode); // Check if it's a regular file
-};
-
-bool Response::isLargeFile(const std::string &path) {
-    struct stat fileStat;
-    // Use stat() to get file information
-    if (stat(path.c_str(), &fileStat) == -1) {
-        setStatusCode(404);
-        return false;    // Could not access file
-    }
-    // Compare file size to buffer size
-    return fileStat.st_size > LARGE_FILE_SIZE_THRESHOLD;
-}
-
 void Response::makeRegularResponse(const std::string &path) {
     std::ifstream file(path);
     if (!file.is_open()) {
@@ -284,30 +307,6 @@ void Response::makeRegularResponse(const std::string &path) {
     addHeader("Content-Length", std::to_string(_body.size())); // Add Content-Length header
     addHeader("Content-Type", getMimeType(path)); // Set content type to binary
 };
-
-std::string Response::getMimeType(const std::string &path) const {
-    // Determine the MIME type based on the file extension
-    std::string extension = path.substr(path.find_last_of('.'));
-    if (extension == ".html" || extension == ".htm") {
-        return "text/html";
-    } else if (extension == ".css") {
-        return "text/css";
-    } else if (extension == ".js") {
-        return "application/javascript";
-    } else if (extension == ".png") {
-        return "image/png";
-    } else if (extension == ".jpg" || extension == ".jpeg") {
-        return "image/jpeg";
-    } else if (extension == ".gif") {
-        return "image/gif";
-    } else if (extension == ".svg") {
-        return "image/svg+xml";
-    } else if (extension == ".txt") {
-        return "text/plain";
-    }
-    // Default to application/octet-stream for unknown types
-    return "application/octet-stream";
-}
 
 void Response::makeChunkedResponse(const std:: string &path) {
     char buffer[RESPONSE_READ_BUFFER_SIZE];
@@ -334,33 +333,6 @@ void Response::makeChunkedResponse(const std:: string &path) {
     addHeader("Content-Type", getMimeType(path)); // Set content type based on file extension
     setStatusCode(200); // Set status code to 200 OK
 };
-
-void Response::handleCGIRequest() {
-    // Handle CGI request logic here
-    
-}
-
-void Response::handleRedirectRequest() {
-    // Handle redirect request logic here
-    // This is a placeholder for the actual redirect handling logic
-    if (_locationConfig) {
-        std::pair<int, std::string> redirect = _locationConfig->getLocationReturnPages();
-        if (redirect.first != 0) {
-            setStatusCode(redirect.first);
-            setStatusMessage(_statusMessages[redirect.first]);
-            addHeader("Location", redirect.second);
-            _body.clear(); // Clear body for redirect responses
-            createStartLine();
-            createHeaders();
-        } else {
-            setStatusCode(404); // If no redirect is set, return 404
-            generateErrorResponse();
-        }
-    } else {
-        setStatusCode(404); // No location config found, return 404
-        generateErrorResponse();
-    }
-}
 
 std::string Response::createUploadFile() {
     const std::string &body = _request->getBody();
@@ -517,4 +489,62 @@ void Response::createBody() {
     } else {
         _rawResponse += _body + "\r\n"; // Add body to the response
     }
+}
+
+std::string Response::resolveRelativePath(const std::string &path, const std::string &locationPath) const {
+    // Resolve relative path based on location path
+    if (path.empty() || path[0] == '/') {
+        return path; // Absolute path, return as is
+    }
+    return locationPath + "/" + path; // Relative path, prepend location path
+}
+
+bool Response::isMethodAllowed(const std::string &method) const {
+    const std::unordered_set<std::string>& allowedMethods = _locationConfig->getLocationAllowedMethods();
+    return (allowedMethods.count(method));
+}
+
+bool Response::fileExists(const std::string &path) {
+    // need to confirm if file exists
+    struct stat fileStat;
+    if (stat(path.c_str(), &fileStat) == -1) {
+        return false; // File does not exist or cannot be accessed
+    }
+    _validPath = true;
+    return S_ISREG(fileStat.st_mode); // Check if it's a regular file
+};
+
+bool Response::isLargeFile(const std::string &path) {
+    struct stat fileStat;
+    // Use stat() to get file information
+    if (stat(path.c_str(), &fileStat) == -1) {
+        setStatusCode(404);
+        return false;    // Could not access file
+    }
+    // Compare file size to buffer size
+    return fileStat.st_size > LARGE_FILE_SIZE_THRESHOLD;
+}
+
+std::string Response::getMimeType(const std::string &path) const {
+    // Determine the MIME type based on the file extension
+    std::string extension = path.substr(path.find_last_of('.'));
+    if (extension == ".html" || extension == ".htm") {
+        return "text/html";
+    } else if (extension == ".css") {
+        return "text/css";
+    } else if (extension == ".js") {
+        return "application/javascript";
+    } else if (extension == ".png") {
+        return "image/png";
+    } else if (extension == ".jpg" || extension == ".jpeg") {
+        return "image/jpeg";
+    } else if (extension == ".gif") {
+        return "image/gif";
+    } else if (extension == ".svg") {
+        return "image/svg+xml";
+    } else if (extension == ".txt") {
+        return "text/plain";
+    }
+    // Default to application/octet-stream for unknown types
+    return "application/octet-stream";
 }
