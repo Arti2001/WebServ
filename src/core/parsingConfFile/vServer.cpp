@@ -12,7 +12,7 @@ vServer::vServer() {
 	_vServerAutoIndex = false;
 	_vServerClientMaxSize = 1024 * 1024 * 10;
 	_vServerErrorPages = {
-
+		
 		{400, "/errors/400.html"},
 		{403, "/errors/403.html"},
 		{404, "/errors/404.html"},
@@ -37,10 +37,9 @@ void	vServer::setServerRoot(const std::string& path) {
 	_vServerRoot = path;
 }
 
-//void	vServer::setServerIndex(const std::string& index) {
-//	_vServerIndex = index;
+//void	vServer::setServerLocations(const Location& locations) {
+//_vServerLocations = locations;
 //}
-
 void	vServer::setServerIndex(const std::vector<std::string>& index) {
 	_vServerIndex = index;
 }

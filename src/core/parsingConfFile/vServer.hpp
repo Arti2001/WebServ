@@ -31,7 +31,6 @@ class vServer {
 		std::vector<std::string>				_vServerNames;
 		std::map<std::string, Location>			_vServerLocations;
 		std::string								_vServerRoot;
-		//std::string								_vServerIndex;
 		std::vector<std::string>				_vServerIndex;
 		bool									_vServerAutoIndex;
 		uint64_t								_vServerClientMaxSize;
@@ -49,8 +48,7 @@ class vServer {
 	uint64_t									getServerClientMaxSize( void ) const;
 	std::string									getServerRoot( void ) const;
 	std::vector<std::string>					getServerNames( void ) const;
-	//std::string									getServerIndex( void ) const;
-	std::vector<std::string>									getServerIndex( void ) const;
+	std::vector<std::string>					getServerIndex( void ) const;
 	
 
 	std::map<std::string, Location>	&			getServerLocations(); // allows writing
@@ -59,10 +57,8 @@ class vServer {
 
 
 	// Setters
-
 	void	setServerLocations(const Location& loc);
 	void	setServerRoot(const std::string& path);
-	//void	setServerIndex(const std::string& index);
 	void	setServerIndex(const std::vector<std::string>& index);
 	void	setServerAutoIndex(const int mode);
 	void	setServerClientMaxSize(const uint64_t size);

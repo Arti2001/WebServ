@@ -435,6 +435,9 @@ const Location*	ServerManager::findDefaultLocationBlock(const std::map<std::stri
 const Location*	ServerManager::findLocationBlockByUri(const vServer& serverConfig, const std::string& uri) const {
 	const std::map<std::string, Location>& locations = serverConfig.getServerLocations();
 
+	if (locations.find("/") != locations.end())
+		std::cout << "))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))" << "\n";
+
 	size_t longestMatchLen = 0;
 	const Location* bestMatchLocation = nullptr;
 
@@ -454,6 +457,7 @@ const Location*	ServerManager::findLocationBlockByUri(const vServer& serverConfi
 		if (!defaultLocation) {
 			std::cout<< "No location block found, no  default location block found " << "\n";
 			return (nullptr); // better to return nullptr if no default location is found as it inicates that something went wrogn with creation of default location
+			
 		}
 		
 		std::cout<< "No  location block found, fell back to default location block " << "\n";

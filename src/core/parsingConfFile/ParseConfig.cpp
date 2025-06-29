@@ -98,7 +98,10 @@ void	ParseConfig::parseConfigFileTokens(std::vector<vServer>& _vServers) {
 			depth = LEVEL;
 			currToken += 2;
 			parsevServerBlock(vserv);
+			if (vserv.getServerLocations().find("/") == vserv.getServerLocations().end())
+				vserv.getServerLocations().emplace("/", Location(vserv));
 			_vServers.push_back(vserv);
+			seenDirectives.clear();
 		}
 		else {
 			throw ConfException("Alien object is detected at the line: " + std::to_string(_tokens[currToken].line_number));

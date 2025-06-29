@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   Response.cpp                                       :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: amysiv <amysiv@student.42.fr>                +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/23 17:57:35 by vovashko      ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   Response.cpp                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/04/18 16:05:00 by pminialg          #+#    #+#             */
+/*   Updated: 2025/06/29 16:08:37 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,6 +97,7 @@ void Response::matchLocation() {
     if (!_locationConfig) {
         std::cerr << "No matching location block found for the request URI. No default." << std::endl;
         setStatusCode(404);
+		return;
     }
     if (_locationConfig->getLocationReturnPages().first)
         setStatusCode(_locationConfig->getLocationReturnPages().first);
