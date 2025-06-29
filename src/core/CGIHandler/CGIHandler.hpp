@@ -22,7 +22,6 @@
 
 class CGIHandler {
     public:
-        CGIHandler() = default;
         CGIHandler(const Request &Request, const Location &Location, std::string cgiIndexFile); // last argument needed if the request is made to the directory, so we are storing the index file that should be called with this request
         ~CGIHandler() = default;
 

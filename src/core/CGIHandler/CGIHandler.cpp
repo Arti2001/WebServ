@@ -49,36 +49,6 @@ std::string CGIHandler::resolveScriptPath(const std::string& rootPath, const std
     return parseOutput(output);
 }
 
-std::pair<std::string, std::string> CGIHandler::extractScriptNameAndPathInfo(const std::string& uri) {
-    // split the URI into script name and PATH_INFO
-    size_t cgiPos = uri.find("/cgi-bin/");
-    if (cgiPos == std::string::npos) {
-        return std::make_pair(uri, "");
-    }
-
-    // find the start of PATH_INFO
-    size_t scriptStart = cgiPos + 9;
-    size_t scriptEnd = uri.find('/', scriptStart);
-
-    std::string scriptName;
-    std::string pathInfo = "";
-
-    if (scriptEnd == std::string::npos) {
-        scriptName = uri;
-    } else {
-        scriptName = uri.substr(0, scriptEnd);
-        pathInfo = uri.substr(scriptEnd);
-    }
-
-    // remove query string from scriptName
-    size_t questionMarkPos = scriptName.find('?');
-    if (questionMarkPos != std::string::npos) {
-        scriptName = scriptName.substr(0, questionMarkPos);
-    }
-
-    return std::make_pair(scriptName, pathInfo);
-}
-
 std::unordered_map<std::string, std::string> CGIHandler::initEnvironmentVars(const Request& request) {
     
     std::unordered_map<std::string, std::string> envVariables;
@@ -129,7 +99,7 @@ std::string CGIHandler::getInterpreter(const std::string& scriptPath) {
     // check if i actually need all of these TODO
     std::string extension = scriptPath.substr(dot);
     _interpreter = extension;
-    if (extension == ".py") return "/opt/homebrew/bin/python3"; // for macOS is /opt/homebrew/bin/python3 for linux is /usr/bin/python3
+    if (extension == ".py") return "/usr/bin/python3"; // for macOS is /opt/homebrew/bin/python3 for linux is /usr/bin/python3
     if (extension == ".pl") return "/usr/bin/perl";
     if (extension == ".rb") return "/usr/bin/ruby";
     if (extension == ".sh") return "/bin/bash";
@@ -148,8 +118,10 @@ std::vector<char> CGIHandler::executeScript(const Request& req) {
         throw CGIException("Failed to create pipes");
     }
     std::cout << "creating child process" << std::endl;
-    pid_t pid = fork();
-    std::cout << "forked child process with pid: " << pid << std::endl;
+
+	
+	pid_t pid = fork();
+
     if (pid < 0) {
         //fork failed
         close(stdin_pipe[0]);
@@ -165,7 +137,7 @@ std::vector<char> CGIHandler::executeScript(const Request& req) {
         std::cout << "child process starting at: " << std::time(nullptr) << std::endl;
         std::cout << "executing script: " << _scriptPath << std::endl;
         std::cout << "with interpreter: " << _cgiPath << std::endl;
-        
+		std::string scriptName;
         //child process
         //redirect stdin/stdout/stderr
         dup2(stdin_pipe[0], STDIN_FILENO);
@@ -183,27 +155,26 @@ std::vector<char> CGIHandler::executeScript(const Request& req) {
         // Change to script directory
         size_t lastSlash = _scriptPath.find_last_of('/');
         if (lastSlash != std::string::npos) {
-            std::string scriptDir = "myWebsite/pages/";
+            std::string scriptDir = _scriptPath.substr(0, lastSlash);
             if (chdir(scriptDir.c_str()) != 0) {
                 perror("CGI chdir failed");
                 exit(1);
             }
         }
-        
         // Extract script filename
-        std::string scriptName = "hello.py";
-        // if (lastSlash != std::string::npos) {
-        //     scriptName = _scriptPath.substr(lastSlash + 1);
-        // }
         
-        // if (!_cgiPath.empty()) {
-            char* args[] = {const_cast<char*>(_cgiPath.c_str()), const_cast<char*>(scriptName.c_str()), nullptr};
-            execve(_cgiPath.c_str(), args, _envp);
-        // // } else {
-        //     char* args[] = {const_cast<char*>(scriptName.c_str()), nullptr};
-        //     execve(scriptName.c_str(), args, _envp);
-        // // }
-
+    	if (lastSlash != std::string::npos) {
+    	     scriptName = _scriptPath.substr(lastSlash + 1);
+        }
+        
+        if (!_cgiPath.empty()) {
+    		const char* args[] = {_cgiPath.c_str(), scriptName.c_str(), nullptr};
+    		execve(_cgiPath.c_str(), const_cast<char* const*>(args), _envp);
+		} else {
+    		const char* args[] = {scriptName.c_str(), nullptr};
+    		execve(scriptName.c_str(), const_cast<char* const*>(args), _envp);
+		}
+		
         //execve failed if we get here
         perror("CGI execve failed for script");
         freeEnvironmentArray(_envp);
@@ -212,9 +183,6 @@ std::vector<char> CGIHandler::executeScript(const Request& req) {
 
     std::cout << "parent process starting at: " << std::time(nullptr) << std::endl;
     //parent process
-    
-    // Give child process time to start
-    usleep(10000); // 10ms delay
     
     //close unused pipes
     close(stdin_pipe[0]);
