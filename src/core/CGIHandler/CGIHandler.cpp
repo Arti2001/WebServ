@@ -1,49 +1,35 @@
 #include "CGIHandler.hpp"
 #include <sys/select.h>
+#include <unistd.h>
 
-CGIHandler::CGIHandler(const Request &request, const Location &location) 
-    : _envp(nullptr), _interpreter("") , _cgiPath(""), _scriptName(""), _queryString(""), _bodyInput(""), _cgiOutput("") {
+CGIHandler::CGIHandler(const Request &request, const Location &location, std::string cgiIndexFile) 
+    : _request(request), _envp(nullptr), _interpreter("") , _cgiPath(""), _queryString(""), _bodyInput(""), _cgiOutput("") {
     // Initialize the CGI handler with the response
     // This constructor can be used to set up any initial state if needed
-    _scriptName = request.getUri();
-    _cgiPath = getInterpreter(_scriptName);
+    _scriptPath = resolveScriptPath(location.getLocationRoot(), request.getUri(), cgiIndexFile);
+    _cgiPath = getInterpreter(_scriptPath);
     if (_cgiPath.empty()) {
-        throw CGIException("No interpreter found for script: " + _scriptName);
+        throw CGIException("No interpreter found for script: " + _scriptPath);
     }
     if (location.getLocationAllowedCgi().find(_interpreter) == location.getLocationAllowedCgi().end()) {
-        throw CGIException("Selected interpreter unavailable for this location: " + _scriptName);
+        throw CGIException("Selected interpreter unavailable for this location: " + _scriptPath);
     }
     _queryString = request.getQuery();
     _bodyInput = request.getBody();
     std::cout << "creating env vars" << std::endl;
-    std::unordered_map<std::string, std::string> envVariables = initEnvironmentVars(request);
+    std::unordered_map<std::string, std::string> envVariables;
+    envVariables = initEnvironmentVars(request);
     std::cout << "building env vars" << std::endl;
     _envp = buildEnvironmentArray(envVariables);
     }
 
- std::string CGIHandler::execute() {
-        std::vector<char> output = executeScript(req, scriptPath);
-        // //parse output
-        return parseOutput(output);
-}
+std::string CGIHandler::resolveScriptPath(const std::string& rootPath, const std::string& uri, const std::string& cgiIndexFile)
+{
+    std::string scriptPath;
+    scriptPath = joinPaths(rootPath, uri);
+    if (!cgiIndexFile.empty())
+        scriptPath = joinPaths(scriptPath, cgiIndexFile);
 
-std::string CGIHandler::resolveScriptPath(const std::string& uri) {
-    // extract the script path from uri
-    std::string scriptPath = uri;
-
-    // remove any query parameters
-    size_t questionMarkPos = scriptPath.find('?');
-    if (questionMarkPos != std::string::npos) {
-        scriptPath = scriptPath.substr(0, questionMarkPos);
-    }
-
-    //for now convert /cgi-bin/script.py to ./myWebsite/cgi-bin/script.py
-    // might need to adjust this later TODO
-    if (scriptPath.find("/cgi-bin/") == 0) {
-        scriptPath = "myWebsite" + scriptPath;
-    }
-    
-    // check if the file exists
     struct stat fileStat;
     if (stat(scriptPath.c_str(), &fileStat) < 0) {
         throw CGIException("Script file not found: " + scriptPath);
@@ -53,8 +39,14 @@ std::string CGIHandler::resolveScriptPath(const std::string& uri) {
     if ((fileStat.st_mode & S_IXUSR) == 0) {
         throw CGIException("Script file is not executable: " + scriptPath);
     }
-
     return scriptPath;
+}
+
+ std::string CGIHandler::process() {
+    std::cout << "starting script execution" << std::endl;
+    std::vector<char> output = executeScript(_request);
+    // parse output
+    return parseOutput(output);
 }
 
 std::pair<std::string, std::string> CGIHandler::extractScriptNameAndPathInfo(const std::string& uri) {
@@ -92,10 +84,10 @@ std::unordered_map<std::string, std::string> CGIHandler::initEnvironmentVars(con
     std::unordered_map<std::string, std::string> envVariables;
     // Initialize environment variables for CGI execution
     envVariables["REQUEST_METHOD"] = request.getMethod();
-    envVariables["SCRIPT_NAME"] = _scriptName;
+    envVariables["SCRIPT_NAME"] = _scriptPath;
     envVariables["QUERY_STRING"] = _queryString;
-    envVariables["CONTENT_TYPE"] = Response::getMimeType(request.getUri());
-    envVariables["CONTENT_LENGTH"] = std::to_string(request.getBody().size());
+    envVariables["CONTENT_TYPE"] = Response::getMimeType(_scriptPath);
+    envVariables["CONTENT_LENGTH"] = std::to_string(request.getBodySize());
     envVariables["SERVER_NAME"] = request.getHeaders().at("Host");
     envVariables["SERVER_PROTOCOL"] = request.getHttpVersion();
     envVariables["GATEWAY_INTERFACE"] = "CGI/1.1";
@@ -137,7 +129,7 @@ std::string CGIHandler::getInterpreter(const std::string& scriptPath) {
     // check if i actually need all of these TODO
     std::string extension = scriptPath.substr(dot);
     _interpreter = extension;
-    if (extension == ".py") return "/usr/bin/python3";
+    if (extension == ".py") return "/opt/homebrew/bin/python3"; // for macOS is /opt/homebrew/bin/python3 for linux is /usr/bin/python3
     if (extension == ".pl") return "/usr/bin/perl";
     if (extension == ".rb") return "/usr/bin/ruby";
     if (extension == ".sh") return "/bin/bash";
@@ -146,7 +138,7 @@ std::string CGIHandler::getInterpreter(const std::string& scriptPath) {
     return "";
 }
 
-std::vector<char> CGIHandler::executeScript(const Request& req, const std::string& scriptPath) {
+std::vector<char> CGIHandler::executeScript(const Request& req) {
     //setup pipes for communication
     int stdin_pipe[2];
     int stdout_pipe[2];
@@ -155,9 +147,9 @@ std::vector<char> CGIHandler::executeScript(const Request& req, const std::strin
     if (pipe(stdin_pipe) < 0 || pipe(stdout_pipe) < 0 || pipe(stderr_pipe) < 0) {
         throw CGIException("Failed to create pipes");
     }
-
+    std::cout << "creating child process" << std::endl;
     pid_t pid = fork();
-
+    std::cout << "forked child process with pid: " << pid << std::endl;
     if (pid < 0) {
         //fork failed
         close(stdin_pipe[0]);
@@ -170,12 +162,16 @@ std::vector<char> CGIHandler::executeScript(const Request& req, const std::strin
     }
 
     if (pid == 0) {
+        std::cout << "child process starting at: " << std::time(nullptr) << std::endl;
+        std::cout << "executing script: " << _scriptPath << std::endl;
+        std::cout << "with interpreter: " << _cgiPath << std::endl;
+        
         //child process
         //redirect stdin/stdout/stderr
         dup2(stdin_pipe[0], STDIN_FILENO);
         dup2(stdout_pipe[1], STDOUT_FILENO);
         dup2(stderr_pipe[1], STDERR_FILENO);
-
+        
         // Close all original pipe file descriptors as they are duplicated now
         close(stdin_pipe[0]);
         close(stdin_pipe[1]);
@@ -183,40 +179,48 @@ std::vector<char> CGIHandler::executeScript(const Request& req, const std::strin
         close(stdout_pipe[1]);
         close(stderr_pipe[0]);
         close(stderr_pipe[1]);
-
-        std::string scriptDir = scriptPath.substr(0, scriptPath.find_last_of('/'));
-        if (chdir(scriptDir.c_str()) != 0) {
-            perror("CGI chdir failed");
-            exit(1);
+        
+        // Change to script directory
+        size_t lastSlash = _scriptPath.find_last_of('/');
+        if (lastSlash != std::string::npos) {
+            std::string scriptDir = "myWebsite/pages/";
+            if (chdir(scriptDir.c_str()) != 0) {
+                perror("CGI chdir failed");
+                exit(1);
+            }
         }
+        
+        // Extract script filename
+        std::string scriptName = "hello.py";
+        // if (lastSlash != std::string::npos) {
+        //     scriptName = _scriptPath.substr(lastSlash + 1);
+        // }
+        
+        // if (!_cgiPath.empty()) {
+            char* args[] = {const_cast<char*>(_cgiPath.c_str()), const_cast<char*>(scriptName.c_str()), nullptr};
+            execve(_cgiPath.c_str(), args, _envp);
+        // // } else {
+        //     char* args[] = {const_cast<char*>(scriptName.c_str()), nullptr};
+        //     execve(scriptName.c_str(), args, _envp);
+        // // }
 
-        std::string scriptName = scriptPath.substr(scriptPath.find_last_of('/') + 1);
-
-        //prepare environment
-        std::unordered_map<std::string, std::string> envStrings = initEnvironmentVars(req);
-        char** envArray = buildEnvironmentArray(envStrings);
-
-        std::string interpreter = getInterpreter(scriptPath);
-
-        //execute script using execve
-        if (!interpreter.empty()) {
-            char* args[] = {const_cast<char*>(interpreter.c_str()), const_cast<char*>(scriptName.c_str()), nullptr};
-            execve(interpreter.c_str(), args, envArray);
-        } else {
-            char* args[] = {const_cast<char*>(scriptName.c_str()), nullptr};
-            execve(scriptName.c_str(), args, envArray);
-        }
         //execve failed if we get here
-        perror("CGI execve failed");
+        perror("CGI execve failed for script");
+        freeEnvironmentArray(_envp);
         exit(1);
     }
 
+    std::cout << "parent process starting at: " << std::time(nullptr) << std::endl;
     //parent process
+    
+    // Give child process time to start
+    usleep(10000); // 10ms delay
+    
     //close unused pipes
     close(stdin_pipe[0]);
     close(stdout_pipe[1]);
     close(stderr_pipe[1]);
-
+    std::cout << "closed unused pipes" << std::endl;
     //send request body to script stdin (for POST)
     if (req.getMethod() == "POST") {
         std::string body = req.getBody();
@@ -224,11 +228,16 @@ std::vector<char> CGIHandler::executeScript(const Request& req, const std::strin
             write(stdin_pipe[1], body.c_str(), body.length());
         }
     }
-
+    
     //close stdin to signal EOF
     close(stdin_pipe[1]);
+    std::cout << "closed stdin to signal EOF" << std::endl;
+    // Read output from the child process
+    std::cout << "reading from pipes" << std::endl;
+    return readFromPipes(stdout_pipe[0], stderr_pipe[0], pid);
+}
 
-    //read output from stdout_pipe[0] and stderr_pipe[0] using select()
+std::vector<char> CGIHandler::readFromPipes(int stdout_fd, int stderr_fd, pid_t pid) {
     std::vector<char> output;
     std::vector<char> errorOutput;
     char buffer[4096];
@@ -236,8 +245,6 @@ std::vector<char> CGIHandler::executeScript(const Request& req, const std::strin
 
     fd_set read_fds;
     struct timeval timeout;
-    int stdout_fd = stdout_pipe[0];
-    int stderr_fd = stderr_pipe[0];
 
     while (stdout_fd != -1 || stderr_fd != -1) {
         FD_ZERO(&read_fds);
@@ -387,4 +394,17 @@ std::string CGIHandler::parseOutput(const std::vector<char>& output) {
     // }
 
     // return response;
+}
+
+std::string CGIHandler::joinPaths(const std::string& path1, const std::string& path2) {
+    if (path1.empty()) return path2;
+    if (path2.empty()) return path1;
+    
+    if (path1.back() == '/' && path2.front() == '/') {
+        return path1 + path2.substr(1);
+    } else if (path1.back() == '/' || path2.front() == '/') {
+        return path1 + path2;
+    } else {
+        return path1 + "/" + path2;
+    }
 }
