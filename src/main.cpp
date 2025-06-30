@@ -21,16 +21,15 @@ void signalHandler(int signum)
 }
 
 
-int main(int argc, char *argv[])
-{
-	if (argc != 2) {
+int main(int argc, char *argv[]) {
+	if (argc > 2) {
 		std::cerr<< "Usage ./webserv config_file(.conf)." << "\n";
 		return (1);
 	}
 	try{
-		std::string fileName (argv[1]);
-		ServerManager serverManager(fileName, EPOLL_CAPACITY);
+		ServerManager serverManager(argv[1], EPOLL_CAPACITY);
 		signal(SIGINT, signalHandler);
+		
 		serverManager.parsConfigFile(serverManager.getVirtualServers());
 		std::cout << "Configuration file parsed successfully." << "\n";
 		serverManager.groupServers(serverManager.getVirtualServers());
@@ -48,3 +47,5 @@ int main(int argc, char *argv[])
 
 	return 0;
 }
+
+

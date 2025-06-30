@@ -3,31 +3,32 @@
 #include <utility>
 
 //constructors
-ServerManager::ServerManager(std::string& fileName, int epollSize) {
+ServerManager::ServerManager(char* fileName, int epollSize) {
+	std::string fileNameStr;
 
-	if (fileName.empty()){
-		fileName = DEFAULT_CONFIG_FILE_PATH;
+	if (fileName) {
+		fileNameStr = fileName;
+		struct stat s;
+		if (stat(fileName, &s) == 0 && S_ISDIR(s.st_mode)) {
+			throw ServerManagerException(fileNameStr + " is not a file.");
+		}
+	} else {
+		fileNameStr = "default.conf";
+		createDefaultConfig();
 	}
-	struct stat s;
 
-	if (stat(fileName.c_str(), &s) == 0 && S_ISDIR(s.st_mode)) 
-		throw ServerManagerException(fileName + " not a file.");
-	else {
-		_configFileFd.open(fileName);
-		if (!_configFileFd) {
-			throw (ServerManagerException("Failed to open " + fileName));
-		}
-		else{
-			std::cout << "File: '" << fileName << "' is opend." << "\n";
-		}
+	_configFileFd.open(fileNameStr);
+	if (!_configFileFd) {
+		throw ServerManagerException("Failed to open config file: " + fileNameStr);
+	} else {
+		std::cout << "File: '" << fileNameStr << "' is opened." << "\n";
 	}
 
 	_epollFd = epoll_create(epollSize);
-	if (_epollFd == -1){
+	if (_epollFd == -1) {
 		throw ServerManagerException("Failed to create an epoll instance.");
 	}
 }
-
 
 ServerManager::ServerManagerException::ServerManagerException(const std::string& msg) : _message(msg) {
 
@@ -89,6 +90,16 @@ void	ServerManager::parsConfigFile(std::vector<vServer>& _vServers) {
 		std::cerr << "Error: " << ex.what()<< "\n";
 		exit(EXIT_FAILURE);
 	}
+}
+
+void	ServerManager::createDefaultConfig(void) {
+
+	vServer	defaulConfig;
+	Location location (defaulConfig);
+
+	defaulConfig.getServerLocations().emplace("/", location);
+
+	_vServers.push_back(defaulConfig);
 }
 
 

@@ -57,7 +57,7 @@ class vServer {
 
 
 	// Setters
-	void	setServerLocations(const Location& loc);
+	void	setServerLocations(const std::map<std::string, Location>& loc);
 	void	setServerRoot(const std::string& path);
 	void	setServerIndex(const std::vector<std::string>& index);
 	void	setServerAutoIndex(const int mode);
