@@ -478,41 +478,9 @@
             class="upload-form"
             id="uploadForm"
           >
-            <input type="file" name="uploadFile" id="uploadFile" required />
-			<!-- <a href="../cgi-bin/upload.py" type="submit" class="btn primary-btn">Upload</a> -->
+            <input type="file" name="uploadFile" required />
             <button type="submit" class="btn primary-btn">Upload</button>
           </form>
-          <div id="response" style="margin-top: 20px; display: none"></div>
-
-          <!--<script>
-            document.getElementById("uploadForm").onsubmit = function (e) {
-              e.preventDefault();
-
-              var formData = new FormData(this);
-
-              fetch(this.action, {
-                method: "POST",
-                body: formData,
-              })
-                .then((response) => response.json())
-                .then((data) => {
-                  var responseDiv = document.getElementById("response");
-                  responseDiv.style.display = "block";
-                  responseDiv.innerHTML = `<div class="${
-                    data.status === "success" ? "success" : "error"
-                  }-message" style="padding: 10px; border-radius: 5px; ${
-                    data.status === "success"
-                      ? "background-color: #d4edda; color: #155724;"
-                      : "background-color: #f8d7da; color: #721c24;"
-                  }">${data.message}</div>`;
-                })
-                .catch((error) => {
-                  document.getElementById(
-                    "response"
-                  ).innerHTML = `<div class="error-message" style="padding: 10px; border-radius: 5px; background-color: #f8d7da; color: #721c24;">Error: ${error.message}</div>`;
-                });
-            };
-          </script>-->
         </div>
       </section>
     </main>

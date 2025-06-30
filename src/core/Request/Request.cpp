@@ -48,6 +48,23 @@ Request::~Request() {
     // Destructor
 }
 
+void Request::reset() {
+    _rawRequest.clear();
+    _currentPosition = 0;
+    _method.clear();
+    _path.clear();
+    _httpVersion.clear();
+    _headers.clear();
+    _body.clear();
+    _query.clear();
+    _timeout = REQUEST_DEFAULT_TIMEOUT;
+    _statusCode = REQUEST_DEFAULT_STATUS_CODE;
+    _bodySize = REQUEST_DEFAULT_MAX_BODY_SIZE;
+    _isChunked = false;
+    // Note: don't clear _supportedMethods as it's constant
+}
+
+
 void Request::parseRequest() {
     // Parse start line
     parseStartLine();

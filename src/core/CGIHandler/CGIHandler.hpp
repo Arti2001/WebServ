@@ -6,7 +6,7 @@
 /*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/06/30 12:13:08 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/06/30 12:13:17 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/06/30 13:03:22 by vshkonda      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@
 class CGIHandler {
     public:
         CGIHandler(const Request &Request, const Location &Location, std::string cgiIndexFile); // last argument needed if the request is made to the directory, so we are storing the index file that should be called with this request
-        ~CGIHandler() = default;
+        ~CGIHandler();
 
         std::string process(void);
         class CGIException : public std::runtime_error {
@@ -49,7 +49,7 @@ class CGIHandler {
         std::unordered_map<std::string, std::string> initEnvironmentVars(const Request& request);
         char** buildEnvironmentArray(const std::unordered_map<std::string, std::string>& envVariables);
         std::string getInterpreter(const std::string& scriptPath);
-        void freeEnvironmentArray(char** envArray);
+        void freeEnvironmentArray();
 
         //execution methods
         std::vector<char> executeScript(const Request& req);
@@ -63,11 +63,14 @@ class CGIHandler {
 
         //attributes
         const Request& _request;
-        char **_envp; // Environment variables for CGI execution
+		char ** _envp;
         std::string _interpreter; // Interpreter for the CGI script (e.g., Python, Perl)
         std::string _cgiPath; // Path to the CGI script
         std::string _scriptPath; // Name of the CGI script
         std::string _queryString; // Query string for the CGI script
         std::string _bodyInput; // Body input for the CGI script, if applicable
         std::string _cgiOutput; // Output from the CGI script execution
+		
+
+
 };

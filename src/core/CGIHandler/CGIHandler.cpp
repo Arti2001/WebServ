@@ -6,7 +6,7 @@
 /*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/06/30 12:13:01 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/06/30 12:13:02 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/06/30 16:37:12 by vshkonda      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,14 +26,20 @@ CGIHandler::CGIHandler(const Request &request, const Location &location, std::st
         throw CGIException("Selected interpreter unavailable for this location: " + _scriptPath);
     }
     _queryString = request.getQuery();
+	std::cout << "query is " << _queryString << std::endl;
     _bodyInput = request.getBody();
+	std::cout << "received body" << _bodyInput << std::endl;
     std::cout << "creating env vars" << std::endl;
-    std::unordered_map<std::string, std::string> envVariables;
-    envVariables = initEnvironmentVars(request);
-    std::cout << "building env vars" << std::endl;
+	std::unordered_map<std::string, std::string> envVariables = initEnvironmentVars(request);
+	std::cout << "building env vars" << std::endl;
     _envp = buildEnvironmentArray(envVariables);
     }
 
+CGIHandler::~CGIHandler()
+{
+	freeEnvironmentArray();
+}
+	
 std::string CGIHandler::resolveScriptPath(const std::string& rootPath, const std::string& uri, const std::string& cgiIndexFile)
 {
     std::string scriptPath;
@@ -54,10 +60,10 @@ std::string CGIHandler::resolveScriptPath(const std::string& rootPath, const std
 }
 
  std::string CGIHandler::process() {
-    std::cout << "starting script execution" << std::endl;
+    std::cout << "starting script execution" << std::endl;	
     std::vector<char> output = executeScript(_request);
-    // parse output
-    return parseOutput(output);
+    std::string result = parseOutput(output);
+	return result;
 }
 
 std::unordered_map<std::string, std::string> CGIHandler::initEnvironmentVars(const Request& request) {
@@ -67,7 +73,8 @@ std::unordered_map<std::string, std::string> CGIHandler::initEnvironmentVars(con
     envVariables["REQUEST_METHOD"] = request.getMethod();
     envVariables["SCRIPT_NAME"] = _scriptPath;
     envVariables["QUERY_STRING"] = _queryString;
-    envVariables["CONTENT_TYPE"] = Response::getMimeType(_scriptPath);
+	auto it = request.getHeaders().find("Content-Type");
+	envVariables["CONTENT_TYPE"] = (it != request.getHeaders().end()) ? it->second : Response::getMimeType(_scriptPath);
     envVariables["CONTENT_LENGTH"] = std::to_string(request.getBodySize());
     envVariables["SERVER_NAME"] = request.getHeaders().at("Host");
     envVariables["SERVER_PROTOCOL"] = request.getHttpVersion();
@@ -77,32 +84,41 @@ std::unordered_map<std::string, std::string> CGIHandler::initEnvironmentVars(con
 }
 
 char** CGIHandler::buildEnvironmentArray(const std::unordered_map<std::string, std::string>& envVariables) {
-    char **envp = static_cast<char **>(malloc((envVariables.size() + 1) * sizeof(char *)));
-    if (!envp) {
+    char** envp = new char*[envVariables.size() + 1];
+    
+    size_t i = 0;
+    try {
+        for (const auto &pair : envVariables) {
+            std::string envVar = pair.first + "=" + pair.second;
+            // Allocate each string with new[]
+            envp[i] = new char[envVar.length() + 1];
+            // Copy string data
+            std::strcpy(envp[i], envVar.c_str());
+            ++i;
+        }
+        envp[i] = nullptr; // Null-terminate array
+    } catch (...) {
+        // Cleanup if any allocation fails
+        for (size_t j = 0; j < i; ++j) {
+            delete[] envp[j];
+        }
+        delete[] envp;
         throw std::runtime_error("Failed to allocate memory for environment variables");
     }
-
-    size_t i = 0;
-    for (const auto &pair : envVariables) {
-        std::string envVar = pair.first + "=" + pair.second;
-        envp[i] = strdup(envVar.c_str());
-        if (!envp[i]) {
-            throw std::runtime_error("Failed to duplicate environment variable string");
-        }
-        ++i;
-    }
-    envp[i] = nullptr; // Null-terminate the array
     return envp;
 }
 
-void CGIHandler::freeEnvironmentArray(char** envArray) {
-    if (!envArray) return;
+void CGIHandler::freeEnvironmentArray() {
+    if (!_envp) return;
 
-    for (size_t i = 0; envArray[i] != NULL; i++) {
-        free(envArray[i]);
+    for (size_t i = 0; _envp[i] != nullptr; i++) {
+        delete[] _envp[i];
     }
-    delete[] envArray;
+    
+    delete[] _envp;
+    _envp = nullptr; 
 }
+
 
 std::string CGIHandler::getInterpreter(const std::string& scriptPath) {
     size_t dot = scriptPath.find_last_of('.');
@@ -178,7 +194,6 @@ std::vector<char> CGIHandler::executeScript(const Request& req) {
 		
         //execve failed if we get here
         perror("CGI execve failed for script");
-        freeEnvironmentArray(_envp);
         exit(1);
     }
     
@@ -186,12 +201,20 @@ std::vector<char> CGIHandler::executeScript(const Request& req) {
     close(stdin_pipe[0]);
     close(stdout_pipe[1]);
     close(stderr_pipe[1]);
-
+	std::cout << "=== CGI Environment Variables ===" << std::endl;
+		for (size_t i = 0; _envp[i] != nullptr; ++i) {
+			std::cout << _envp[i] << std::endl;
+		}
+	std::cout << "=== END ===" << std::endl;
 	//send request body to script stdin (for POST)
+	
+	std::cerr << "=== CGI Input Body ===" << std::endl;
+	std::cerr << _bodyInput << std::endl;
+	std::cerr << "=== END OF Body ===" << std::endl;
+
     if (req.getMethod() == "POST") {
-        std::string body = req.getBody();
-        if (!body.empty()) {
-            write(stdin_pipe[1], body.c_str(), body.length());
+        if (!_bodyInput.empty()) {
+            write(stdin_pipe[1], _bodyInput.c_str(), _bodyInput.length());
         }
     }
     //close stdin to signal EOF
@@ -275,6 +298,8 @@ std::vector<char> CGIHandler::readFromPipes(int stdout_fd, int stderr_fd, pid_t 
         }
         throw CGIException(errorMsg);
     }
+	std::cerr << "STDOUT:\n" << std::string(output.begin(), output.end()) << "\n";
+	std::cerr << "STDERR:\n" << std::string(errorOutput.begin(), errorOutput.end()) << "\n";
 
     return output;
 }
@@ -290,6 +315,7 @@ std::string CGIHandler::parseOutput(const std::vector<char>& output) {
     }
     rawResponse += "Content-Length: " + std::to_string(output.size()) + "\r\n\r\n";
     rawResponse.append(output.begin(), output.end());
+	
     return rawResponse;
 }
 

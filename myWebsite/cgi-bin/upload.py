@@ -6,7 +6,8 @@ sys.stderr.write(f"CGI got {os.environ.get('CONTENT_LENGTH')} bytes, "
 
 # Show trace-backs in the browser during debugging
 cgitb.enable()
-print(os.environ, file=sys.stderr)
+# Optionally, print the content of stdin
+sys.stderr.write("First 200 bytes of stdin: " + sys.stdin.read(200) + "\n")
 # --- configuration ----------------------------------------------------------
 SCRIPT_DIR   = os.path.dirname(os.path.realpath(__file__))
 UPLOAD_DIR   = os.path.join(SCRIPT_DIR, "uploads")   # absolute path is safer
@@ -40,10 +41,10 @@ def main():
     # Parse multipart/form-data
     form = cgi.FieldStorage()
 
-    if "uploadFile" not in form:
-        reply("error", "No form part named 'uploadFile' found")
+    if "filename" not in form:
+        reply("error", f"No form part named 'filename' found. Form is {form}")
 
-    filepart = form["uploadFile"]
+    filepart = form["filename"]
     if not filepart.filename:
         reply("error", "No file selected")
 

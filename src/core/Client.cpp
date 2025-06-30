@@ -120,7 +120,9 @@ void    Client::handleRequest (int clientFd) {
 				std::cout << "Request is still incomplete, waiting for more data..." << std::endl;
 				return;
 			}
+			_request.reset();
 			_request = Request(_startLineAndHeadersBuffer);
+			std::cout << "request address" << &_request << std::endl;
 			std::cout << "Trying to parse request for " << clientFd << std::endl;
 			try {
 				if (!_headersParsed)

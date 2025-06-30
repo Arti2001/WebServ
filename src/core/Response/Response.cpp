@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>                +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/29 15:01:18 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/06/30 12:43:53 by vshkonda      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -246,8 +246,6 @@ void Response::handleCGIRequest() {
         setStatusCode(500); // Internal Server Error
         return generateErrorResponse();
     }
-    setStatusCode(418);
-    return generateErrorResponse();
 }
 
 

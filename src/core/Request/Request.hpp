@@ -51,7 +51,7 @@ class Request
         void setStatusCode(int statusCode); // Set the status code for the request
         void setCgi(bool isCgi); // Set the CGI flag for the request
         void setBody(const std::string &body) { _body = body; } // Set the request body
-
+		void reset(void);
 
         const std::string &getMethod() const; // Get the HTTP method
         const std::string &getPath() const; // Get the request path
