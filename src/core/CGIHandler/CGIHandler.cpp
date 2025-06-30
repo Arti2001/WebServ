@@ -1,6 +1,17 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        ::::::::            */
+/*   CGIHandler.cpp                                     :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/06/30 12:13:01 by vshkonda      #+#    #+#                 */
+/*   Updated: 2025/06/30 12:13:02 by vshkonda      ########   odam.nl         */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "CGIHandler.hpp"
-#include <sys/select.h>
-#include <unistd.h>
+
 
 CGIHandler::CGIHandler(const Request &request, const Location &location, std::string cgiIndexFile) 
     : _request(request), _envp(nullptr), _interpreter("") , _cgiPath(""), _queryString(""), _bodyInput(""), _cgiOutput("") {
@@ -117,11 +128,7 @@ std::vector<char> CGIHandler::executeScript(const Request& req) {
     if (pipe(stdin_pipe) < 0 || pipe(stdout_pipe) < 0 || pipe(stderr_pipe) < 0) {
         throw CGIException("Failed to create pipes");
     }
-    std::cout << "creating child process" << std::endl;
-
-	
 	pid_t pid = fork();
-
     if (pid < 0) {
         //fork failed
         close(stdin_pipe[0]);
@@ -132,11 +139,7 @@ std::vector<char> CGIHandler::executeScript(const Request& req) {
         close(stderr_pipe[1]);
         throw CGIException("Failed to fork");
     }
-
     if (pid == 0) {
-        std::cout << "child process starting at: " << std::time(nullptr) << std::endl;
-        std::cout << "executing script: " << _scriptPath << std::endl;
-        std::cout << "with interpreter: " << _cgiPath << std::endl;
 		std::string scriptName;
         //child process
         //redirect stdin/stdout/stderr
@@ -161,12 +164,10 @@ std::vector<char> CGIHandler::executeScript(const Request& req) {
                 exit(1);
             }
         }
+
         // Extract script filename
-        
-    	if (lastSlash != std::string::npos) {
+    	if (lastSlash != std::string::npos) 
     	     scriptName = _scriptPath.substr(lastSlash + 1);
-        }
-        
         if (!_cgiPath.empty()) {
     		const char* args[] = {_cgiPath.c_str(), scriptName.c_str(), nullptr};
     		execve(_cgiPath.c_str(), const_cast<char* const*>(args), _envp);
@@ -180,28 +181,22 @@ std::vector<char> CGIHandler::executeScript(const Request& req) {
         freeEnvironmentArray(_envp);
         exit(1);
     }
-
-    std::cout << "parent process starting at: " << std::time(nullptr) << std::endl;
-    //parent process
     
     //close unused pipes
     close(stdin_pipe[0]);
     close(stdout_pipe[1]);
     close(stderr_pipe[1]);
-    std::cout << "closed unused pipes" << std::endl;
-    //send request body to script stdin (for POST)
+
+	//send request body to script stdin (for POST)
     if (req.getMethod() == "POST") {
         std::string body = req.getBody();
         if (!body.empty()) {
             write(stdin_pipe[1], body.c_str(), body.length());
         }
     }
-    
     //close stdin to signal EOF
     close(stdin_pipe[1]);
-    std::cout << "closed stdin to signal EOF" << std::endl;
     // Read output from the child process
-    std::cout << "reading from pipes" << std::endl;
     return readFromPipes(stdout_pipe[0], stderr_pipe[0], pid);
 }
 
@@ -296,73 +291,8 @@ std::string CGIHandler::parseOutput(const std::vector<char>& output) {
     rawResponse += "Content-Length: " + std::to_string(output.size()) + "\r\n\r\n";
     rawResponse.append(output.begin(), output.end());
     return rawResponse;
-
-    // //convert output to string for easier parsing
-    // std::string outputStr(output.begin(), output.end());
-
-    // //find separator between headers and body
-    // size_t headerEnd = outputStr.find("\r\n\r\n");
-    // if (headerEnd == std::string::npos) {
-    //    //no headers, treat output as body
-    //    response.setBody(output);
-    //    response.addHeader("Content-Type", "text/html");
-    //    response.addHeader("Content-Lenght", std::to_string(output.size()));
-    //    return response;
-    // }
-
-    // //extract headers
-    // std::string headersStr = outputStr.substr(0, headerEnd);
-    // std::istringstream headerStream(headersStr);
-    // std::string line;
-
-    // //parse each header line
-    // while (std::getline(headerStream, line)) {
-    //     if (line.empty() || line == "\r") continue;
-
-    //     //remove trailing \r if present
-    //     if (!line.empty() && line[line.length() -1] == '\r') {
-    //         line.erase(line.length() - 1);
-    //     }
-    //     //find the colon separator
-    //     size_t colonPos = line.find(':');
-    //     if (colonPos != std::string::npos) {
-    //         std::string name = line.substr(0, colonPos);
-    //         std::string value = line.substr(colonPos + 1);
-
-    //         //trim whitespace
-    //         value.erase(0, value.find_first_not_of(" \t"));
-
-    //         //check for status header
-    //         if (name == "Status") {
-    //             size_t spacePos = value.find(' ');
-    //             if (spacePos != std::string::npos) {
-    //                 int statusCode = std::stoi(value.substr(0, spacePos));
-    //                 std::string reasonPhrase = value.substr(spacePos + 1);
-    //                 response.setStatusCode(statusCode);
-    //                 response.setReasonPhrase(reasonPhrase);
-    //             }
-    //         } else {
-    //             response.addHeader(name, value);
-    //         }
-    //     }
-    // }
-
-    // //extract body
-    // std::vector<char> body(output.begin() + headerEnd + 4, output.end());
-    // response.setBody(body);
-
-    // //if content type not set, default to text/html
-    // if (response.getHeaders().find("Content-Type") == response.getHeaders().end()) {
-    //     response.addHeader("Content-Type", "text/html");
-    // }
-
-    // //set content length header if not set
-    // if (response.getHeaders().find("Content-Length") == response.getHeaders().end()) {
-    //     response.addHeader("Content-Length", std::to_string(response.getBody().size()));
-    // }
-
-    // return response;
 }
+
 
 std::string CGIHandler::joinPaths(const std::string& path1, const std::string& path2) {
     if (path1.empty()) return path2;

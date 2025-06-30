@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        ::::::::            */
+/*   CGIHandler.hpp                                     :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/06/30 12:13:08 by vshkonda      #+#    #+#                 */
+/*   Updated: 2025/06/30 12:13:17 by vshkonda      ########   odam.nl         */
+/*                                                                            */
+/* ************************************************************************** */
+
 #pragma once
 
 #include <string>
@@ -10,6 +22,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/wait.h>
+#include <sys/select.h>
 #include <signal.h>
 #include <cstring>
 #include "../Request/Request.hpp"
