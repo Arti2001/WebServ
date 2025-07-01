@@ -6,7 +6,7 @@
 /*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/06/30 12:13:01 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/07/01 20:48:04 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/07/01 21:10:51 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,8 @@ CGIHandler::CGIHandler(const Request &request, const Location &location, std::st
     // This constructor can be used to set up any initial state if needed
     _scriptPath = resolveScriptPath(location.getLocationRoot(), request.getUri(), cgiIndexFile);
     _cgiPath = getInterpreter(_scriptPath);
+    std::cout << "script path is " << _scriptPath << std::endl;
+    std::cout << "cgi path is " << _cgiPath << std::endl;
     if (_cgiPath.empty()) {
         throw CGIException("No interpreter found for script: " + _scriptPath);
     }
