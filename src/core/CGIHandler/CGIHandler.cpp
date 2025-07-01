@@ -6,7 +6,7 @@
 /*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/06/30 12:13:01 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/06/30 16:37:12 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/07/01 20:48:04 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,8 +27,7 @@ CGIHandler::CGIHandler(const Request &request, const Location &location, std::st
     }
     _queryString = request.getQuery();
 	std::cout << "query is " << _queryString << std::endl;
-    _bodyInput = request.getBody();
-	std::cout << "received body" << _bodyInput << std::endl;
+     _bodyInput = request.getBody();
     std::cout << "creating env vars" << std::endl;
 	std::unordered_map<std::string, std::string> envVariables = initEnvironmentVars(request);
 	std::cout << "building env vars" << std::endl;

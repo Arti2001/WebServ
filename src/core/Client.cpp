@@ -91,6 +91,8 @@ bool Client::bodyComplete(const std::string& body) const {
 	auto it = _request.getHeaders().find("Content-Length");
 	if (it != _request.getHeaders().end()) {
 		int contentLength = std::stoi(it->second);
+		std::cout << "Content-Length: " << contentLength << std::endl;
+		std::cout << "Body size: " << body.size() << std::endl;
 		return body.size() >= static_cast<size_t>(contentLength);
 	}
 	if (_request.getIsChunked()) {
@@ -122,7 +124,6 @@ void    Client::handleRequest (int clientFd) {
 			}
 			_request.reset();
 			_request = Request(_startLineAndHeadersBuffer);
-			std::cout << "request address" << &_request << std::endl;
 			std::cout << "Trying to parse request for " << clientFd << std::endl;
 			try {
 				if (!_headersParsed)
@@ -153,6 +154,10 @@ void    Client::handleRequest (int clientFd) {
 				std::cout << "Body is complete, parsing body..." <<  _request.getBody() << std::endl;
 				_request.parseBody();
 				_bodyBuffer.clear(); // Clear the body buffer after parsing
+			}
+			else {
+				std::cout << "Body is not complete, waiting for more data..." << std::endl;
+				return;
 			}
 		}
 		std::cout << "Request parsed successfully." << std::endl;
