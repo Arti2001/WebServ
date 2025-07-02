@@ -11,7 +11,7 @@ cgitb.enable()
 # --- configuration ----------------------------------------------------------
 SCRIPT_DIR   = os.path.dirname(os.path.realpath(__file__))
 UPLOAD_DIR = os.path.join(SCRIPT_DIR, os.environ.get("UPLOAD_DIR"))   # absolute path is safer
-MAX_BYTES    = 50 * 1024 * 1024                     # 50 MiB
+MAX_BYTES    = 500 * 1024 * 1024                     # 50 MiB
 # ---------------------------------------------------------------------------
 
 def reply(status: str, message: str, http_code: str = "200 OK"):
