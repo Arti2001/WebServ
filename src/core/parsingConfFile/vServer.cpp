@@ -4,15 +4,15 @@
 vServer::vServer() {
 
 	_vServerIp = "0.0.0.0";
-	_vServerPort = "80";
-	_vServerIpPort = "0.0.0.0:80";
+	_vServerPort = "8080";
+	_vServerIpPort = "0.0.0.0:8080";
 	_vServerNames = {"localhost"};
 	_vServerRoot = "default_root/";
 	_vServerIndex = {"index.html"};
 	_vServerAutoIndex = false;
 	_vServerClientMaxSize = 1024 * 1024 * 10;
 	_vServerErrorPages = {
-
+		
 		{400, "/errors/400.html"},
 		{403, "/errors/403.html"},
 		{404, "/errors/404.html"},
@@ -37,10 +37,9 @@ void	vServer::setServerRoot(const std::string& path) {
 	_vServerRoot = path;
 }
 
-//void	vServer::setServerIndex(const std::string& index) {
-//	_vServerIndex = index;
-//}
-
+void	vServer::setServerLocations(const std::map<std::string, Location>& loc) {
+_vServerLocations = loc;
+}
 void	vServer::setServerIndex(const std::vector<std::string>& index) {
 	_vServerIndex = index;
 }

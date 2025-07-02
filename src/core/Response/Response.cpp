@@ -97,6 +97,7 @@ void Response::matchLocation() {
     if (!_locationConfig) {
         std::cerr << "No matching location block found for the request URI. No default." << std::endl;
         setStatusCode(404);
+		return;
     }
     if (_locationConfig->getLocationReturnPages().first)
         setStatusCode(_locationConfig->getLocationReturnPages().first);
