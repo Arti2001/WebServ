@@ -6,7 +6,7 @@
 /*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/06/30 12:13:01 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/07/02 11:35:59 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/07/02 16:25:50 by vshkonda      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 
 CGIHandler::CGIHandler(const Request &request, const Location &location, std::string cgiIndexFile) 
-    : _request(request), _envp(nullptr), _interpreter("") , _cgiPath(""), _queryString(""), _bodyInput(""), _cgiOutput("") {
+    : _request(request), _envp(nullptr), _interpreter("") , _cgiPath(""), _queryString(""), _bodyInput(""), _cgiUploadPath("") {
     // Initialize the CGI handler with the response
     // This constructor can be used to set up any initial state if needed
     _scriptPath = resolveScriptPath(location.getLocationRoot(), request.getUri(), cgiIndexFile);
@@ -29,7 +29,8 @@ CGIHandler::CGIHandler(const Request &request, const Location &location, std::st
     }
     _queryString = request.getQuery();
 	std::cout << "query is " << _queryString << std::endl;
-     _bodyInput = request.getBody();
+    _bodyInput = request.getBody();
+	_cgiUploadPath = location.getLocationUploadPath();
     std::cout << "creating env vars" << std::endl;
 	std::unordered_map<std::string, std::string> envVariables = initEnvironmentVars(request);
 	std::cout << "building env vars" << std::endl;
@@ -80,6 +81,7 @@ std::unordered_map<std::string, std::string> CGIHandler::initEnvironmentVars(con
     envVariables["SERVER_NAME"] = request.getHeaders().at("Host");
     envVariables["SERVER_PROTOCOL"] = request.getHttpVersion();
     envVariables["GATEWAY_INTERFACE"] = "CGI/1.1";
+	envVariables["UPLOAD_DIR"] = _cgiUploadPath;
     // Add more environment variables as needed
     return envVariables;
 }
@@ -306,13 +308,10 @@ std::vector<char> CGIHandler::readFromPipes(int stdout_fd, int stderr_fd, pid_t 
 std::string CGIHandler::parseOutput(const std::vector<char>& output) {
     std::string rawResponse;
     std::string startLine = "HTTP/1.1 200 OK\r\n";
-    if (output.empty()) {
-        startLine = "HTTP/1.1 204 No Content\r\n";
-        return startLine + "Content-Length: 0\r\n\r\n";
-    }
     rawResponse += startLine;
 
     std::string outputStr(output.begin(), output.end());
+	std::cout << "Received CGI output: " << outputStr << std::endl;
     // separate any headers that might be in the output
     std::string headers;
     //find separator between headers and body
@@ -320,7 +319,7 @@ std::string CGIHandler::parseOutput(const std::vector<char>& output) {
     if (headerEnd == std::string::npos) {
        //no headers, treat output as body
        headers += "Content-Type: text/html\r\n";
-       headers += "Content-Length: " + std::to_string(output.size()) + "\r\n";
+       headers += "\r\nContent-Length: " + std::to_string(output.size()) + "\r\n";
        rawResponse += headers + "\r\n";
        rawResponse += outputStr;
        return rawResponse;
@@ -334,8 +333,9 @@ std::string CGIHandler::parseOutput(const std::vector<char>& output) {
         rawResponse += "Content-Length: 0\r\n\r\n";
         return rawResponse;
     }
-    headers += "Content-Length: " + std::to_string(body.size()) + "\r\n";
+    headers += "\r\nContent-Length: " + std::to_string(body.size()) + "\r\n";
     rawResponse += headers + "\r\n";
+	rawResponse += body;
     
     return rawResponse;
 }

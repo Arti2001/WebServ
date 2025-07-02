@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>                +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/07/02 14:46:26 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/07/02 16:38:41 by vshkonda      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,8 +99,12 @@ void Response::matchLocation() {
         setStatusCode(404);
 		return;
     }
-    if (_locationConfig->getLocationReturnPages().first)
+    if (_locationConfig->getLocationReturnPages().first) {
         setStatusCode(_locationConfig->getLocationReturnPages().first);
+	}
+	std::cout << "Location max client size: " << _locationConfig->getLocationClientMaxSize() << std::endl;
+	std::cout << "Request body size: " << _request->getBodySize() << std::endl;
+	std::cout << "Code: " << _statusCode << std::endl;
     if (_locationConfig->getLocationClientMaxSize() < static_cast<unsigned int>(_request->getBodySize()))
         setStatusCode(413);
 }
@@ -112,7 +116,7 @@ const std::string& Response::getRawResponse() const {
 void Response::generateResponse() {
     if (_statusCode >= 400 && _statusCode < 600)
     {
-        std::cout << "Error response with " << _statusCode << "after parsing." << std::endl;
+        std::cout << "Error response with " << _statusCode << " after matching." << std::endl;
         return generateErrorResponse();
     }
 

@@ -6,7 +6,7 @@
 /*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/06/30 12:13:08 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/06/30 13:03:22 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/07/02 15:44:20 by vshkonda      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,7 @@ class CGIHandler {
         std::string _scriptPath; // Name of the CGI script
         std::string _queryString; // Query string for the CGI script
         std::string _bodyInput; // Body input for the CGI script, if applicable
-        std::string _cgiOutput; // Output from the CGI script execution
+        std::string _cgiUploadPath; // Output from the CGI script execution
 		
 
 
