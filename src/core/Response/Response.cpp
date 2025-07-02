@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>                +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/30 12:43:53 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/07/02 14:46:26 by vshkonda      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -278,8 +278,14 @@ void Response::handleGetRequest() {
 		}
 		if (!foundIndex) {
 			std::cout << "Index file not found" << std::endl;
-			setStatusCode(404);
-			return generateErrorResponse();
+			if (_locationConfig->getLocationAutoIndex()) {
+				_body = generateDirectoryListing(fullPath, _locationConfig->getLocationPath());
+				return ;
+			}
+			else {
+				setStatusCode(404);
+				return generateErrorResponse();
+			}
 		}
 	}
 
@@ -323,7 +329,7 @@ void Response::makeChunkedResponse(const std:: string &path) {
     }
     else
     {
-        std::string chunkSize = std::to_string(bytesRead) + "\r\n";
+        std::string chunkSize = std::to_string(bytesRead) + "\r\n"; // convert to hex	
         _rawResponse += chunkSize; // Add chunk size to the response
         _rawResponse.append(buffer, bytesRead); // Append the read bytes to the response
         _rawResponse += "\r\n"; // End of chunk    
@@ -521,7 +527,7 @@ bool Response::isLargeFile(const std::string &path) {
         return false;    // Could not access file
     }
     // Compare file size to buffer size
-    return fileStat.st_size > LARGE_FILE_SIZE_THRESHOLD;
+    return fileStat.st_size > LARGE_FILE_SIZE_THRESHOLD; // need to set payload too large status code
 }
 
 std::string Response::getMimeType(const std::string &path)  {

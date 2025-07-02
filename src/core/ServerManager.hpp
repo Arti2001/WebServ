@@ -15,6 +15,7 @@
 #include "Request/Request.hpp"
 #include "Client.hpp"
 #include "CGIHandler/CGIHandler.hpp"
+#include <map>
 
 
 extern volatile sig_atomic_t running;
