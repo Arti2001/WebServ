@@ -134,35 +134,33 @@ void    Client::handleRequest (int clientFd) {
 				return;
 			}
 			_headersParsed = true;
-			// _startLineAndHeadersBuffer.clear(); // Clear the buffer after parsing headers
 		}
 		// If headers are parsed, we can now check for the body. It is optional depending on request type, 
 		// so it is separated from the headers parsing logic.
 		std::cout << "Is body expected? " << (_request.getBodyExpected() ? "Yes" : "No") << std::endl;
+
 		if (_headersParsed && _request.getBodyExpected())
 		{
 			std::cout << "Request body expected, processing body..." << std::endl;
-			if (_bodyBuffer.empty()) {
-				// Capture the initial body segment from the combined header+body buffer
-				_bodyBuffer = _startLineAndHeadersBuffer.substr(_bodyStart);
-			} else {
-				// Append subsequent chunks directly
-				_bodyBuffer += incomingData;
-			}
+			_bodyBuffer += incomingData.substr(_bodyStart);
+			_bodyStart = 0;
+			std::cout << "Current body buffer size: " << _bodyBuffer.size() << std::endl;
 			if (bodyComplete(_bodyBuffer)) {
 				_request.setBody(_bodyBuffer);
 				std::cout << "Body is complete, parsing body..." <<  _request.getBody() << std::endl;
 				_request.parseBody();
 				_bodyBuffer.clear(); // Clear the body buffer after parsing
+				
 			}
 			else {
-				std::cout << "Body is not complete, waiting for more data..." << std::endl;
-				return;
+			std::cout << "Body is not complete, waiting for more data..." << std::endl;
+			return;
 			}
 		}
 		std::cout << "Request parsed successfully." << std::endl;
 		_serverManager->setEpollCtl(clientFd, EPOLLOUT, EPOLL_CTL_MOD);
         return ;
+		
     }
     else if (bytesRead == 0){
         std::cout << "Client disconnected: Clean up!" << std::endl;
