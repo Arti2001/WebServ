@@ -13,7 +13,7 @@
 
 #define REQUEST_DEFAULT_TIMEOUT 60 // Default timeout for the request in seconds
 #define REQUEST_DEFAULT_STATUS_CODE 200 // Default status code for the request
-#define REQUEST_DEFAULT_MAX_BODY_SIZE 104857600 // Maximum body size for the request in bytes (10 MB)
+#define REQUEST_DEFAULT_MAX_BODY_SIZE 10485760 // Maximum body size for the request in bytes (10 MB)
 
 class Request
 {

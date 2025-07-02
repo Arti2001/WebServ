@@ -77,6 +77,8 @@ void Request::parseRequest() {
     if (_bodyExpected && _headers.find("Content-Length") != _headers.end()) {
         _bodySize = std::stoi(_headers["Content-Length"]);
     }  
+	if (!_bodyExpected)
+		_bodySize = 0;
 }
 
 bool Request::checkBodyRelatedHeaders() {
@@ -105,11 +107,9 @@ void Request::parseStartLine() {
     while (_currentPosition < _rawRequest.size() && _rawRequest[_currentPosition] != '\n') {
         startLine += _rawRequest[_currentPosition++];
     }
-    std::cout << "Start line: " << startLine << std::endl;
     std::istringstream ss(startLine);
     std::string method, uri, httpVersion;
     ss >> method >> uri >> httpVersion;
-    std::cout << "Parsing start line: " << method << " " << uri << " " << httpVersion << std::endl;
     parseMethod(method);
     parseUri(uri);
     parseHttpVersion(httpVersion);
@@ -183,7 +183,6 @@ void Request::parseHeaders() {
                 std::cerr << "Invalid header: " << line << std::endl;
                 return this->setStatusCode(400); // Bad Request, invalid header
             }
-            std::cout << "Parsed header:" << headerName << ": " << headerValue << std::endl;
             _headers[headerName] = headerValue;
         } else {
             std::cerr << "Invalid header format: " << line << std::endl;

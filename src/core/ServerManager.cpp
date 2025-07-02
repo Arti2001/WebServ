@@ -324,7 +324,6 @@ void	ServerManager::runServers(void) {
 	while (running) {
 		int timeout = 1000;
 		int readyFds = epoll_wait(_epollFd, epollEvents, EPOLL_CAPACITY, timeout);
-		std::cout << "Epoll wait returned with " << readyFds << " ready file descriptors.\n";
 		//if (readyFds == 0)
 		//{
 		//	closeIdleConnections();
@@ -334,7 +333,6 @@ void	ServerManager::runServers(void) {
 			throw ServerManagerException("epoll_wait() failed");
 		}
 		for (int i = 0; i < readyFds; i++) {
-			std::cout << "Epoll event on fd: " << epollEvents[i].data.fd << " with events: " << epollEvents[i].events << "\n";
 			manageEpollEvent(epollEvents[i]);
 		}
 	}
@@ -383,7 +381,6 @@ void ServerManager::addClientToMap(int clientFd, int serverFd) {
 void	ServerManager::manageEpollEvent(const struct epoll_event& currEvent) {
 
 	int	fd = currEvent.data.fd;
-	std::cout << "Epoll event on fd: " << fd << " with events: " << currEvent.events << "\n";
 	if (isListeningSocket(fd)) {
 		manageListenSocketEvent(currEvent);
 	}
@@ -399,7 +396,6 @@ void	ServerManager::manageEpollEvent(const struct epoll_event& currEvent) {
 
 const std::vector<const vServer*> ServerManager::findServerConfigsByFd(int fd) const{
 
-	std::cout<<"Looking for server config by fd"<<"\n";
 	for( const Server& server : _servers) {
 
 		if (server.getSocketFd() == fd) 
@@ -443,9 +439,6 @@ const Location*	ServerManager::findDefaultLocationBlock(const std::map<std::stri
 
 const Location*	ServerManager::findLocationBlockByUri(const vServer& serverConfig, const std::string& uri) const {
 	const std::map<std::string, Location>& locations = serverConfig.getServerLocations();
-
-	if (locations.find("/") != locations.end())
-		std::cout << "))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))" << "\n";
 
 	size_t longestMatchLen = 0;
 	const Location* bestMatchLocation = nullptr;

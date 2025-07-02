@@ -6,7 +6,7 @@
 /*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/06/30 12:13:01 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/07/02 16:25:50 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/07/02 17:03:57 by vshkonda      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -210,10 +210,6 @@ std::vector<char> CGIHandler::executeScript(const Request& req) {
 		}
 	std::cout << "=== END ===" << std::endl;
 	//send request body to script stdin (for POST)
-	
-	std::cerr << "=== CGI Input Body ===" << std::endl;
-	std::cerr << _bodyInput << std::endl;
-	std::cerr << "=== END OF Body ===" << std::endl;
 
     if (req.getMethod() == "POST") {
         if (!_bodyInput.empty()) {
@@ -311,7 +307,6 @@ std::string CGIHandler::parseOutput(const std::vector<char>& output) {
     rawResponse += startLine;
 
     std::string outputStr(output.begin(), output.end());
-	std::cout << "Received CGI output: " << outputStr << std::endl;
     // separate any headers that might be in the output
     std::string headers;
     //find separator between headers and body
@@ -336,7 +331,7 @@ std::string CGIHandler::parseOutput(const std::vector<char>& output) {
     headers += "\r\nContent-Length: " + std::to_string(body.size()) + "\r\n";
     rawResponse += headers + "\r\n";
 	rawResponse += body;
-    
+
     return rawResponse;
 }
 

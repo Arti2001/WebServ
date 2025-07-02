@@ -98,8 +98,6 @@ bool Client::bodyComplete(const std::string& body) const {
 	auto it = _request.getHeaders().find("Content-Length");
 	if (it != _request.getHeaders().end()) {
 		int contentLength = std::stoi(it->second);
-		std::cout << "Content-Length: " << contentLength << std::endl;
-		std::cout << "Body size: " << body.size() << std::endl;
 		return body.size() >= static_cast<size_t>(contentLength);
 	}
 	if (_request.getIsChunked()) {
@@ -122,7 +120,6 @@ void    Client::handleRequest (int clientFd) {
     if (bytesRead > 0)
     {
 		std::string incomingData(requestBuffer, bytesRead);
-		std::cout << "Received data: " << incomingData << std::endl;
 		if (!_headersParsed) {
 			_startLineAndHeadersBuffer += incomingData;
 			if (!headersComplete(_startLineAndHeadersBuffer)) {
@@ -148,13 +145,10 @@ void    Client::handleRequest (int clientFd) {
 
 		if (_headersParsed && _request.getBodyExpected())
 		{
-			std::cout << "Request body expected, processing body..." << std::endl;
 			_bodyBuffer += incomingData.substr(_bodyStart); // we append the chunk that may have been read with headers
 			_bodyStart = 0;
-			std::cout << "Current body buffer size: " << _bodyBuffer.size() << std::endl;
 			if (bodyComplete(_bodyBuffer)) {
 				_request.setBody(_bodyBuffer);
-				std::cout << "Body is complete, parsing body..." <<  _request.getBody() << std::endl;
 				_request.parseBody();
 				_bodyBuffer.clear(); // Clear the body buffer after parsing
 				
@@ -182,7 +176,6 @@ void    Client::handleRequest (int clientFd) {
 
 void	Client::handleResponse(int clientFd) {
 	if (_clientResponse.empty()) {
-		std::cout << "Preparing response for client: " << clientFd << std::endl;
 		_clientResponse = this->prepareResponse();
 		if (_clientResponse.empty()) {
 			std::cerr << "Error: Response is empty, closing client connection." << std::endl;
@@ -193,12 +186,9 @@ void	Client::handleResponse(int clientFd) {
 		std::cout << "Response prepared successfully." << std::endl;
 		// Set the epoll event to EPOLLOUT to send the response		
 		}
-	std::cout << "Response prepared: " << _clientResponse << std::endl;
 	const char*	servResp = _clientResponse.c_str();
 	size_t		responseSize = _clientResponse.size();
-	std::cout << "Response size: " << responseSize << std::endl;
 	ssize_t		bytesSent = send(clientFd, servResp + _clientBytesSent, responseSize - _clientBytesSent, 0);
-	std::cout << "Bytes sent: " << bytesSent << std::endl;
 	if (bytesSent == -1) {
 		_serverManager->setEpollCtl(clientFd, EPOLLOUT, EPOLL_CTL_MOD);
 		return;
