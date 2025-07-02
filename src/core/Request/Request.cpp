@@ -184,6 +184,7 @@ void Request::parseHeaders() {
                 return this->setStatusCode(400); // Bad Request, invalid header
             }
             _headers[headerName] = headerValue;
+			std::cout << "Parsed header: " << headerName << ": " << headerValue << std::endl;
         } else {
             std::cerr << "Invalid header format: " << line << std::endl;
             return this->setStatusCode(400); // Bad Request, invalid header format

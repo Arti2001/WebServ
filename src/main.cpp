@@ -1,6 +1,5 @@
 #include "core/Server.hpp"
 #include "core/Request/Request.hpp"
-#include "core/Request/RequestParser.hpp"
 #include "core/Response/Response.hpp"
 #include "core/Utils.hpp"
 #include "core/ServerManager.hpp"
@@ -28,6 +27,7 @@ int main(int argc, char *argv[]) {
 	try{
 		ServerManager serverManager(argv[1], EPOLL_CAPACITY);
 		signal(SIGINT, signalHandler);
+		signal(SIGPIPE, SIG_IGN);
 		
 		serverManager.parsConfigFile(serverManager.getVirtualServers());
 		std::cout << "Configuration file parsed successfully." << "\n";
