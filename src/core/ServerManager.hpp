@@ -36,7 +36,7 @@ class ServerManager {
 	
 	public:
 		//constructors
-		ServerManager(std::string& ConfigFileName, int epollSize);
+		ServerManager(char* ConfigFileName, int epollSize);
 		~ServerManager();
 
 		//getters
@@ -58,28 +58,29 @@ class ServerManager {
 
 
 		//methods
-		void								parsConfigFile(std::vector<vServer>& _vServers);
-		void								runServers( void );
-		int									bindSocket(addrinfo* addrList);
-		void								groupServers(const std::vector<vServer>& _vServers);
-		void								manageListenSocketEvent(const struct epoll_event& epollEvents);
-		void								manageEpollEvent(const struct epoll_event& epollEvents);
+		void					parsConfigFile(std::vector<vServer>& _vServers);
+		void					runServers( void );
+		int						bindSocket(addrinfo* addrList);
+		void					groupServers(const std::vector<vServer>& _vServers);
+		void					manageListenSocketEvent(const struct epoll_event& epollEvents);
+		void					manageEpollEvent(const struct epoll_event& epollEvents);
 		
 		
-		void								addClientToMap(int clientFd, int serverFd);
+		void					addClientToMap(int clientFd, int serverFd);
+		void					createDefaultConfig(void);
 		
-		bool								isListeningSocket(int fd);
-		bool								isClientSocket(int fd);
-		bool								isDefaultLocationExist(const std::vector<Location>& locations);
+		bool					isListeningSocket(int fd);
+		bool					isClientSocket(int fd);
+		bool					isDefaultLocationExist(const std::vector<Location>& locations);
 
 		//void								closeIdleConnections();
-		void								closeClientFd(int clientfFd);
-		void								closeAllSockets();
+		void					closeClientFd(int clientfFd);
+		void					closeAllSockets();
 
-		const	vServer*							findServerConfigByName(const std::vector<const vServer*>& subConfigs, std::string serverName) const;
-		const	std::vector<const vServer*>			findServerConfigsByFd(int serverFd) const;
-		const	Location*							findLocationBlockByUri(const vServer& serverConfig, const std::string& url) const;
-		const	Location*							findDefaultLocationBlock(const std::map<std::string, Location>& locations) const;
+		const	vServer*						findServerConfigByName(const std::vector<const vServer*>& subConfigs, std::string serverName) const;
+		const	std::vector<const vServer*>		findServerConfigsByFd(int serverFd) const;
+		const	Location*						findLocationBlockByUri(const vServer& serverConfig, const std::string& url) const;
+		const	Location*						findDefaultLocationBlock(const std::map<std::string, Location>& locations) const;
 
 
 
