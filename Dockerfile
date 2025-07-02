@@ -3,7 +3,7 @@ FROM ubuntu:22.04
 
 # Install build tools
 RUN apt-get update && \
-    apt-get install -y g++ make curl uuid-dev
+    apt-get install -y g++ make curl uuid-dev python3
 
 # Create app directory
 WORKDIR /app

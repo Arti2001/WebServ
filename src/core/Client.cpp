@@ -11,6 +11,13 @@ Client::Client(int serverFd, ServerManager* serverManager) : _headersParsed(fals
 Client::~Client() {
 }
 
+Client::Client(const Client& other) : _request(other._request), _startLineAndHeadersBuffer(other._startLineAndHeadersBuffer),
+	_bodyBuffer(other._bodyBuffer), _headersParsed(other._headersParsed), _bodyStart(other._bodyStart),
+	_clientBytesSent(other._clientBytesSent), _clientResponse(other._clientResponse), _serverFd(other._serverFd),
+	_serverManager(other._serverManager), _lastActiveTime(other._lastActiveTime), _closeAfterResponse(other._closeAfterResponse) {
+	std::cout << "Copy constructor called for Client" << std::endl;
+}
+
 //Setters
 void	Client::setLastActiveTime( std::time_t timeStamp) {
 	this->_lastActiveTime = timeStamp;
@@ -91,6 +98,8 @@ bool Client::bodyComplete(const std::string& body) const {
 	auto it = _request.getHeaders().find("Content-Length");
 	if (it != _request.getHeaders().end()) {
 		int contentLength = std::stoi(it->second);
+		std::cout << "Content-Length: " << contentLength << std::endl;
+		std::cout << "Body size: " << body.size() << std::endl;
 		return body.size() >= static_cast<size_t>(contentLength);
 	}
 	if (_request.getIsChunked()) {
@@ -120,6 +129,7 @@ void    Client::handleRequest (int clientFd) {
 				std::cout << "Request is still incomplete, waiting for more data..." << std::endl;
 				return;
 			}
+			_request.reset();
 			_request = Request(_startLineAndHeadersBuffer);
 			std::cout << "Trying to parse request for " << clientFd << std::endl;
 			try {
@@ -131,31 +141,32 @@ void    Client::handleRequest (int clientFd) {
 				return;
 			}
 			_headersParsed = true;
-			// _startLineAndHeadersBuffer.clear(); // Clear the buffer after parsing headers
 		}
 		// If headers are parsed, we can now check for the body. It is optional depending on request type, 
 		// so it is separated from the headers parsing logic.
 		std::cout << "Is body expected? " << (_request.getBodyExpected() ? "Yes" : "No") << std::endl;
+
 		if (_headersParsed && _request.getBodyExpected())
 		{
 			std::cout << "Request body expected, processing body..." << std::endl;
-			if (_bodyBuffer.empty()) {
-				// Capture the initial body segment from the combined header+body buffer
-				_bodyBuffer = _startLineAndHeadersBuffer.substr(_bodyStart);
-			} else {
-				// Append subsequent chunks directly
-				_bodyBuffer += incomingData;
-			}
+			_bodyBuffer += incomingData.substr(_bodyStart); // we append the chunk that may have been read with headers
+			_bodyStart = 0;
+			std::cout << "Current body buffer size: " << _bodyBuffer.size() << std::endl;
 			if (bodyComplete(_bodyBuffer)) {
 				_request.setBody(_bodyBuffer);
 				std::cout << "Body is complete, parsing body..." <<  _request.getBody() << std::endl;
 				_request.parseBody();
 				_bodyBuffer.clear(); // Clear the body buffer after parsing
+				
+			} else {
+				std::cout << "Body is not complete, waiting for more data..." << std::endl;
+				return;
 			}
 		}
 		std::cout << "Request parsed successfully." << std::endl;
 		_serverManager->setEpollCtl(clientFd, EPOLLOUT, EPOLL_CTL_MOD);
         return ;
+		
     }
     else if (bytesRead == 0){
         std::cout << "Client disconnected: Clean up!" << std::endl;
@@ -195,8 +206,8 @@ void	Client::handleResponse(int clientFd) {
 	_clientBytesSent += bytesSent;
 	if (_clientBytesSent == responseSize) {
 		std::cout << "All data sent" << "\n";
-		_serverManager->closeClientFd(clientFd);
 		_clientBytesSent = 0;
+		_serverManager->closeClientFd(clientFd);	
 	}
 }
 

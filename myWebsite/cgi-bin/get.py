@@ -52,10 +52,10 @@ try:
     content_type = "application/octet-stream"
 
     # Output headers
-    print(f"Content-Type: {content_type}")
-    print(f"Content-Length: {file_size}")
-    print(f"Content-Disposition: attachment; filename=\"{filename}\"")
-    print("") # Empty line to separate headers from body
+    # print(f"Content-Type: {content_type}")
+    # print(f"Content-Length: {file_size}")
+    # print(f"Content-Disposition: attachment; filename=\"{filename}\"")
+    # print("") # Empty line to separate headers from body
 
     # Output file content
     with open(filepath, 'rb') as f:

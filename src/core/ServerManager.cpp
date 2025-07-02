@@ -1,6 +1,4 @@
 #include "ServerManager.hpp"
-#include <tuple>
-#include <utility>
 
 //constructors
 ServerManager::ServerManager(char* fileName, int epollSize) {
@@ -374,8 +372,8 @@ void ServerManager::addClientToMap(int clientFd, int serverFd) {
 		throw ServerManagerException("Failed to set the acceptedSocket to a NON-BLOCKING mode.");
 	}
 	setEpollCtl(clientFd, EPOLLIN, EPOLL_CTL_ADD);
-	// _fdClientMap.emplace(clientFd, Client(serverFd, this));
-	_fdClientMap.emplace(std::piecewise_construct, std::forward_as_tuple(clientFd), std::forward_as_tuple(serverFd, this));
+	_fdClientMap.emplace(clientFd, Client(serverFd, this));
+	// _fdClientMap.emplace(std::piecewise_construct, std::forward_as_tuple(clientFd), std::forward_as_tuple(serverFd, this));
 
 }
 

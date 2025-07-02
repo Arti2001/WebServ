@@ -6,7 +6,7 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:04:57 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/06/22 14:51:17 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/06/29 15:01:10 by vshkonda      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,6 +56,7 @@ class Response {
             {500, "Internal Server Error"},
             {505, "HTTP Version Not Supported"}
         };
+		std::string _cgiIndexFile; // CGI index file for the location, if applicable
 
         void createStartLine(); // Create the start line of the HTTP response
         void createHeaders(); // Create the headers for the HTTP response
@@ -77,9 +78,8 @@ class Response {
         bool fileExists(const std::string &path); // Check if the file exists
         bool isLargeFile(const std::string &path); // Check if the file is larger than a certain threshold
         std::string generateDirectoryListing(const std::string& fsPath, const std::string& urlPath);
-        bool isCgiRequest() const; // Check if the request is a CGI request
+        bool isCgiRequest(); // Check if the request is a CGI request
         std::string resolveRelativePath(const std::string &path, const std::string &locationPath) const; // Resolve relative path based on location path
-        std::string getMimeType(const std::string &path) const; // Get the MIME type based on the file extension
         std::string createUploadFile();
         std::string generateUUID();
         
@@ -107,6 +107,8 @@ class Response {
         std::string urlEncode(const std::string& value);
 
         void generateResponse(); // Generate the full HTTP response string
+        static    std::string getMimeType(const std::string &path); // Get the MIME type based on the file extension
+
 };
 
 #endif
