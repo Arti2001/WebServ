@@ -6,7 +6,7 @@
 /*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/06/30 12:13:01 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/07/01 21:10:51 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/07/01 22:10:27 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -299,24 +299,44 @@ std::vector<char> CGIHandler::readFromPipes(int stdout_fd, int stderr_fd, pid_t 
         }
         throw CGIException(errorMsg);
     }
-	std::cerr << "STDOUT:\n" << std::string(output.begin(), output.end()) << "\n";
-	std::cerr << "STDERR:\n" << std::string(errorOutput.begin(), errorOutput.end()) << "\n";
-
+    
     return output;
 }
 
 std::string CGIHandler::parseOutput(const std::vector<char>& output) {
     std::string rawResponse;
-
-    rawResponse += "HTTP/1.1 200 OK\r\n";
-
+    std::string startLine = "HTTP/1.1 200 OK\r\n";
     if (output.empty()) {
+        startLine = "HTTP/1.1 204 No Content\r\n";
+        return startLine + "Content-Length: 0\r\n\r\n";
+    }
+    rawResponse += startLine;
+
+    std::string outputStr(output.begin(), output.end());
+    // separate any headers that might be in the output
+    std::string headers;
+    //find separator between headers and body
+    size_t headerEnd = outputStr.find("\r\n\r\n");
+    if (headerEnd == std::string::npos) {
+       //no headers, treat output as body
+       headers += "Content-Type: text/html\r\n";
+       headers += "Content-Length: " + std::to_string(output.size()) + "\r\n";
+       rawResponse += headers + "\r\n";
+       rawResponse += outputStr;
+       return rawResponse;
+    }
+    //extract headers
+    headers = outputStr.substr(0, headerEnd);
+    //extract body
+    std::string body = outputStr.substr(headerEnd + 4); // +4 to skip the \r\n\r\n
+    if (body.empty()) {
+        rawResponse += headers + "\r\n";
         rawResponse += "Content-Length: 0\r\n\r\n";
         return rawResponse;
     }
-    rawResponse += "Content-Length: " + std::to_string(output.size()) + "\r\n\r\n";
-    rawResponse.append(output.begin(), output.end());
-	
+    headers += "Content-Length: " + std::to_string(body.size()) + "\r\n";
+    rawResponse += headers + "\r\n";
+    
     return rawResponse;
 }
 
