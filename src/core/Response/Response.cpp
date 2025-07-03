@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>                +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/07/02 16:38:41 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/07/03 15:54:12 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -236,7 +236,8 @@ bool Response::isCgiRequest() {
 void Response::handleCGIRequest() {
     // Handle CGI request logic here
     std::cout << "Handling CGI request" << std::endl;
-    if (!isMethodAllowed("GET") && !isMethodAllowed("POST")) {
+    std::cout << "Request method: " << _request->getMethod() << std::endl;
+    if (!isMethodAllowed(_request->getMethod())) {
         setStatusCode(405); // Method Not Allowed
         return generateErrorResponse();
     }
@@ -511,6 +512,12 @@ std::string Response::resolveRelativePath(const std::string &path, const std::st
 
 bool Response::isMethodAllowed(const std::string &method) const {
     const std::unordered_set<std::string>& allowedMethods = _locationConfig->getLocationAllowedMethods();
+    std::cout << "Checking if method " << method << " is allowed." << std::endl;
+    std::cout << "Allowed methods: ";
+    for (const auto &allowedMethod : allowedMethods) {
+        std::cout << allowedMethod << " ";
+    }
+    std::cout << std::endl;
     return (allowedMethods.count(method));
 }
 
