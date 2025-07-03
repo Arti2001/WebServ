@@ -1,6 +1,6 @@
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
-#define REQUEST_READ_BUFFER			8192
+#define REQUEST_READ_BUFFER			15000
 
 
 #include "Request/Request.hpp"
@@ -39,7 +39,7 @@ class Client{
 
 		// Copy constructor is deleted to prevent copying of Client instances,
 		// as each Client should have a unique server file descriptor and state.
-				Client(const Client&) = delete;
+		Client(const Client&);
 		// Disable assignment operator to prevent unintended behavior or resource management issues
 		Client& operator=(const Client&) = delete;
 

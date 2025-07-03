@@ -17,6 +17,7 @@
 #include <cerrno>
 #include <cstring> 
 #include "CGIHandler/CGIHandler.hpp"
+#include <map>
 
 
 extern volatile sig_atomic_t running;

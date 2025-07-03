@@ -6,7 +6,7 @@ Location::Location() {
 Location::Location(const vServer& serv) {
 
 	_locationPath = "/";
-	_locationUploadPath = serv.getServerRoot() + "uploads/";
+	_locationUploadPath = "uploads/";
 	_locationReturnPages = {0, ""};
 	_locationRoot= serv.getServerRoot();
 	_locationIndex = serv.getServerIndex();
@@ -135,7 +135,7 @@ std::pair<int, std::string> Location::setLocationReturnPages(std::vector<std::st
 	std::string					path = "";
 	std::pair<int, std::string>	codePathPair;
 
-	if (redirVector.size() > MAX_ARG_ERROR_PAGE) {
+	if (redirVector.size() > MAX_ARG_ERROR_PAGE) { // same as in cgi directive
 		throw ParseConfig::ConfException("Invalid return directive: too many arguments!");
 	}
 
@@ -196,7 +196,7 @@ void	Location::validateAllowedMethodsDirective(const std::vector<std::string>& m
 
 void Location::validateAllowedCgiDirective(const std::vector<std::string>& cgiVector) {
 
-	if (cgiVector.size() != MAX_ARG_ERROR_PAGE) {
+	if (cgiVector.size() != MAX_ARG_ERROR_PAGE) { // better to use a number instead of a macro that has an ambiguous name
 		throw ParseConfig::ConfException("Invalid allowed_cgi directive: Invalid amount of arguments.");
 	}
 	const std::string& ext = cgiVector.at(0);

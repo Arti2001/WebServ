@@ -4,10 +4,6 @@ import os
 import sys
 import datetime
 
-# Print the HTTP headers
-print("Content-Type: text/html")
-print("") # Empty line to separate headers from body
-
 # Print the HTML page
 print("""<!DOCTYPE html>
 <html>

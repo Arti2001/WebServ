@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Upload File - Webserv</title>
+    <title>Delete File - Webserv</title>
     <style>
       /* Base styles */
       :root {
@@ -469,52 +469,45 @@
     <main>
       <section class="features">
         <div class="container">
-          <h1>Upload a File</h1>
-          <p>Select a file from your computer and upload it to the server.</p>
+          <h1>Delete a File</h1>
+          <p>Enter the name of the file you want to remove from the server.</p>
           <form
-            action="/cgi-bin/yo.py"
-            method="POST"
-            enctype="multipart/form-data"
-            class="upload-form"
-            id="uploadForm"
-          >
-            <input type="file" name="uploadFile" id="uploadFile" required />
-			<!-- <a href="../cgi-bin/upload.py" type="submit" class="btn primary-btn">Upload</a> -->
-            <button type="submit" class="btn primary-btn">Upload</button>
-          </form>
+			action="/cgi-bin/delete.py"
+			method="DELETE"
+			class="upload-form"
+			id="deleteForm"
+			>
+			<select name="filename" id="filename" required>
+				<option value="">-- Select a file to delete --</option>
+			</select>
+			<button type="submit" class="btn primary-btn">Delete File</button>
+			</form>
+
           <div id="response" style="margin-top: 20px; display: none"></div>
 
-          <!--<script>
-            document.getElementById("uploadForm").onsubmit = function (e) {
-              e.preventDefault();
-
-              var formData = new FormData(this);
-
-              fetch(this.action, {
-                method: "POST",
-                body: formData,
-              })
-                .then((response) => response.json())
-                .then((data) => {
-                  var responseDiv = document.getElementById("response");
-                  responseDiv.style.display = "block";
-                  responseDiv.innerHTML = `<div class="${
-                    data.status === "success" ? "success" : "error"
-                  }-message" style="padding: 10px; border-radius: 5px; ${
-                    data.status === "success"
-                      ? "background-color: #d4edda; color: #155724;"
-                      : "background-color: #f8d7da; color: #721c24;"
-                  }">${data.message}</div>`;
-                })
-                .catch((error) => {
-                  document.getElementById(
-                    "response"
-                  ).innerHTML = `<div class="error-message" style="padding: 10px; border-radius: 5px; background-color: #f8d7da; color: #721c24;">Error: ${error.message}</div>`;
-                });
-            };
-          </script>-->
+          <script>
+            window.onload = function () {
+			fetch("/cgi-bin/list_files.py")
+				.then((response) => response.json())
+				.then((data) => {
+				if (data.status === "success") {
+					const select = document.getElementById("filename");
+					data.files.forEach((file) => {
+					const option = document.createElement("option");
+					option.value = file;
+					option.textContent = file;
+					select.appendChild(option);
+					});
+				} else {
+					alert("Error fetching files: " + data.message);
+				}
+				})
+				.catch((error) => {
+				alert("Fetch error: " + error.message);
+				});
+			};
+          </script>
         </div>
-      </section>
     </main>
 
     <footer>

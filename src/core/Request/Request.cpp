@@ -48,6 +48,23 @@ Request::~Request() {
     // Destructor
 }
 
+void Request::reset() {
+    _rawRequest.clear();
+    _currentPosition = 0;
+    _method.clear();
+    _path.clear();
+    _httpVersion.clear();
+    _headers.clear();
+    _body.clear();
+    _query.clear();
+    _timeout = REQUEST_DEFAULT_TIMEOUT;
+    _statusCode = REQUEST_DEFAULT_STATUS_CODE;
+    _bodySize = REQUEST_DEFAULT_MAX_BODY_SIZE;
+    _isChunked = false;
+    // Note: don't clear _supportedMethods as it's constant
+}
+
+
 void Request::parseRequest() {
     // Parse start line
     parseStartLine();
@@ -60,6 +77,8 @@ void Request::parseRequest() {
     if (_bodyExpected && _headers.find("Content-Length") != _headers.end()) {
         _bodySize = std::stoi(_headers["Content-Length"]);
     }  
+	if (!_bodyExpected)
+		_bodySize = 0;
 }
 
 bool Request::checkBodyRelatedHeaders() {
@@ -88,11 +107,9 @@ void Request::parseStartLine() {
     while (_currentPosition < _rawRequest.size() && _rawRequest[_currentPosition] != '\n') {
         startLine += _rawRequest[_currentPosition++];
     }
-    std::cout << "Start line: " << startLine << std::endl;
     std::istringstream ss(startLine);
     std::string method, uri, httpVersion;
     ss >> method >> uri >> httpVersion;
-    std::cout << "Parsing start line: " << method << " " << uri << " " << httpVersion << std::endl;
     parseMethod(method);
     parseUri(uri);
     parseHttpVersion(httpVersion);
@@ -166,7 +183,6 @@ void Request::parseHeaders() {
                 std::cerr << "Invalid header: " << line << std::endl;
                 return this->setStatusCode(400); // Bad Request, invalid header
             }
-            std::cout << "Parsed header:" << headerName << ": " << headerValue << std::endl;
             _headers[headerName] = headerValue;
         } else {
             std::cerr << "Invalid header format: " << line << std::endl;

@@ -4,7 +4,11 @@ import cgi
 import json
 
 # Configuration
-UPLOAD_DIR = "uploads"  # Directory where files are stored
+SCRIPT_DIR   = os.path.dirname(os.path.realpath(__file__))
+UPLOAD_DIR = os.path.join(
+    SCRIPT_DIR, 
+    os.environ.get("UPLOAD_DIR")
+)
 
 def send_response(status, message):
     print("Content-Type: application/json")

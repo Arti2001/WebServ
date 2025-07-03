@@ -6,16 +6,16 @@ sys.stderr.write(f"CGI got {os.environ.get('CONTENT_LENGTH')} bytes, "
 
 # Show trace-backs in the browser during debugging
 cgitb.enable()
-print(os.environ, file=sys.stderr)
+# Optionally, print the content of stdin
+# sys.stderr.write("First 200 bytes of stdin: " + sys.stdin.read(200) + "\n")
 # --- configuration ----------------------------------------------------------
 SCRIPT_DIR   = os.path.dirname(os.path.realpath(__file__))
-UPLOAD_DIR   = os.path.join(SCRIPT_DIR, "uploads")   # absolute path is safer
+UPLOAD_DIR = os.path.join(SCRIPT_DIR, os.environ.get("UPLOAD_DIR"))   # absolute path is safer
 MAX_BYTES    = 50 * 1024 * 1024                     # 50 MiB
 # ---------------------------------------------------------------------------
 
 def reply(status: str, message: str, http_code: str = "200 OK"):
     """Send a small JSON response and exit."""
-    sys.stdout.write(f"Status: {http_code}\r\n")
     sys.stdout.write("Content-Type: application/json\r\n\r\n")
     sys.stdout.write(json.dumps({"status": status, "message": message}))
     sys.exit(0)
@@ -39,9 +39,10 @@ def main():
 
     # Parse multipart/form-data
     form = cgi.FieldStorage()
+    # reply("keys form", list(form.keys()))
 
     if "uploadFile" not in form:
-        reply("error", "No form part named 'uploadFile' found")
+        reply("error", f"No form part named 'uploadFile' found. Form is {form}")
 
     filepart = form["uploadFile"]
     if not filepart.filename:

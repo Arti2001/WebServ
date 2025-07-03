@@ -1,419 +1,350 @@
-// #include "CGIHandler.hpp"
-// #include <sys/select.h>
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        ::::::::            */
+/*   CGIHandler.cpp                                     :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/06/30 12:13:01 by vshkonda      #+#    #+#                 */
+/*   Updated: 2025/07/02 17:03:57 by vshkonda      ########   odam.nl         */
+/*                                                                            */
+/* ************************************************************************** */
 
-// Response CGIHandler::handle(const Request& req) {
-//     try {
-//         if (!isCGIRequest(req.getUri())) {
-//             throw CGIException("Not a CGI request");
-//         }
+#include "CGIHandler.hpp"
 
-//         //resolve script path
-//         std::string scriptPath = resolveScriptPath(req.getUri());
 
-//         //execute script
-//         std::vector<char> output = executeScript(req, scriptPath);
+CGIHandler::CGIHandler(const Request &request, const Location &location, std::string cgiIndexFile) 
+    : _request(request), _envp(nullptr), _interpreter("") , _cgiPath(""), _queryString(""), _bodyInput(""), _cgiUploadPath("") {
+    // Initialize the CGI handler with the response
+    // This constructor can be used to set up any initial state if needed
+    _scriptPath = resolveScriptPath(location.getLocationRoot(), request.getUri(), cgiIndexFile);
+    _cgiPath = getInterpreter(_scriptPath);
+    std::cout << "script path is " << _scriptPath << std::endl;
+    std::cout << "cgi path is " << _cgiPath << std::endl;
+    if (_cgiPath.empty()) {
+        throw CGIException("No interpreter found for script: " + _scriptPath);
+    }
+    if (location.getLocationAllowedCgi().find(_interpreter) == location.getLocationAllowedCgi().end()) {
+        throw CGIException("Selected interpreter unavailable for this location: " + _scriptPath);
+    }
+    _queryString = request.getQuery();
+	std::cout << "query is " << _queryString << std::endl;
+    _bodyInput = request.getBody();
+	_cgiUploadPath = location.getLocationUploadPath();
+    std::cout << "creating env vars" << std::endl;
+	std::unordered_map<std::string, std::string> envVariables = initEnvironmentVars(request);
+	std::cout << "building env vars" << std::endl;
+    _envp = buildEnvironmentArray(envVariables);
+    }
 
-//         //parse output
-//         return parseOutput(output);
-//     } catch (const CGIException& e) {
-//         //create an error response
-//         Response errorResponse;
-//         errorResponse.setStatusCode(500);
-//         errorResponse.setReasonPhrase("Internal Server Error");
+CGIHandler::~CGIHandler()
+{
+	freeEnvironmentArray();
+}
+	
+std::string CGIHandler::resolveScriptPath(const std::string& rootPath, const std::string& uri, const std::string& cgiIndexFile)
+{
+    std::string scriptPath;
+    scriptPath = joinPaths(rootPath, uri);
+    if (!cgiIndexFile.empty())
+        scriptPath = joinPaths(scriptPath, cgiIndexFile);
 
-//         std::string errorMsg = "CGI Error: " + std::string(e.what());
-//         std::vector<char> body(errorMsg.begin(), errorMsg.end());
-//         errorResponse.setBody(body);
+    struct stat fileStat;
+    if (stat(scriptPath.c_str(), &fileStat) < 0) {
+        throw CGIException("Script file not found: " + scriptPath);
+    }
 
-//         return errorResponse;
-//     }
-// }
+    // check if the file is executable
+    if ((fileStat.st_mode & S_IXUSR) == 0) {
+        throw CGIException("Script file is not executable: " + scriptPath);
+    }
+    return scriptPath;
+}
 
-// bool CGIHandler::isCGIRequest(const std::string& uri) {
-//     return uri.find("/cgi-bin/") != std::string::npos;
-// }
+ std::string CGIHandler::process() {
+    std::cout << "starting script execution" << std::endl;	
+    std::vector<char> output = executeScript(_request);
+    std::string result = parseOutput(output);
+	return result;
+}
 
-// std::string CGIHandler::resolveScriptPath(const std::string& uri) {
-//     // extract the script path from uri
-//     std::string scriptPath = uri;
-
-//     // remove any query parameters
-//     size_t questionMarkPos = scriptPath.find('?');
-//     if (questionMarkPos != std::string::npos) {
-//         scriptPath = scriptPath.substr(0, questionMarkPos);
-//     }
-
-//     //for now convert /cgi-bin/script.py to ./myWebsite/cgi-bin/script.py
-//     // might need to adjust this later TODO
-//     if (scriptPath.find("/cgi-bin/") == 0) {
-//         scriptPath = "myWebsite" + scriptPath;
-//     }
+std::unordered_map<std::string, std::string> CGIHandler::initEnvironmentVars(const Request& request) {
     
-//     // check if the file exists
-//     struct stat fileStat;
-//     if (stat(scriptPath.c_str(), &fileStat) < 0) {
-//         throw CGIException("Script file not found: " + scriptPath);
-//     }
+    std::unordered_map<std::string, std::string> envVariables;
+    // Initialize environment variables for CGI execution
+    envVariables["REQUEST_METHOD"] = request.getMethod();
+    envVariables["SCRIPT_NAME"] = _scriptPath;
+    envVariables["QUERY_STRING"] = _queryString;
+	auto it = request.getHeaders().find("Content-Type");
+	envVariables["CONTENT_TYPE"] = (it != request.getHeaders().end()) ? it->second : Response::getMimeType(_scriptPath);
+    envVariables["CONTENT_LENGTH"] = std::to_string(request.getBodySize());
+    envVariables["SERVER_NAME"] = request.getHeaders().at("Host");
+    envVariables["SERVER_PROTOCOL"] = request.getHttpVersion();
+    envVariables["GATEWAY_INTERFACE"] = "CGI/1.1";
+	envVariables["UPLOAD_DIR"] = _cgiUploadPath;
+    // Add more environment variables as needed
+    return envVariables;
+}
 
-//     // check if the file is executable
-//     if ((fileStat.st_mode & S_IXUSR) == 0) {
-//         throw CGIException("Script file is not executable: " + scriptPath);
-//     }
+char** CGIHandler::buildEnvironmentArray(const std::unordered_map<std::string, std::string>& envVariables) {
+    char** envp = new char*[envVariables.size() + 1];
+    
+    size_t i = 0;
+    try {
+        for (const auto &pair : envVariables) {
+            std::string envVar = pair.first + "=" + pair.second;
+            // Allocate each string with new[]
+            envp[i] = new char[envVar.length() + 1];
+            // Copy string data
+            std::strcpy(envp[i], envVar.c_str());
+            ++i;
+        }
+        envp[i] = nullptr; // Null-terminate array
+    } catch (...) {
+        // Cleanup if any allocation fails
+        for (size_t j = 0; j < i; ++j) {
+            delete[] envp[j];
+        }
+        delete[] envp;
+        throw std::runtime_error("Failed to allocate memory for environment variables");
+    }
+    return envp;
+}
 
-//     return scriptPath;
-// }
+void CGIHandler::freeEnvironmentArray() {
+    if (!_envp) return;
 
-// std::pair<std::string, std::string> CGIHandler::extractScriptNameAndPathInfo(const std::string& uri) {
-//     // split the URI into script name and PATH_INFO
-//     size_t cgiPos = uri.find("/cgi-bin/");
-//     if (cgiPos == std::string::npos) {
-//         return std::make_pair(uri, "");
-//     }
+    for (size_t i = 0; _envp[i] != nullptr; i++) {
+        delete[] _envp[i];
+    }
+    
+    delete[] _envp;
+    _envp = nullptr; 
+}
 
-//     // find the start of PATH_INFO
-//     size_t scriptStart = cgiPos + 9;
-//     size_t scriptEnd = uri.find('/', scriptStart);
 
-//     std::string scriptName;
-//     std::string pathInfo = "";
+std::string CGIHandler::getInterpreter(const std::string& scriptPath) {
+    size_t dot = scriptPath.find_last_of('.');
+    if (dot == std::string::npos) return "";
+    // check if i actually need all of these TODO
+    std::string extension = scriptPath.substr(dot);
+    _interpreter = extension;
+    if (extension == ".py") return "/usr/bin/python3"; // for macOS is /opt/homebrew/bin/python3 for linux is /usr/bin/python3
+    if (extension == ".pl") return "/usr/bin/perl";
+    if (extension == ".rb") return "/usr/bin/ruby";
+    if (extension == ".sh") return "/bin/bash";
+    if (extension == ".js") return "/usr/bin/node";
+    if (extension == ".php") return "/usr/bin/php";
+    return "";
+}
 
-//     if (scriptEnd == std::string::npos) {
-//         scriptName = uri;
-//     } else {
-//         scriptName = uri.substr(0, scriptEnd);
-//         pathInfo = uri.substr(scriptEnd);
-//     }
+std::vector<char> CGIHandler::executeScript(const Request& req) {
+    //setup pipes for communication
+    int stdin_pipe[2];
+    int stdout_pipe[2];
+    int stderr_pipe[2];
 
-//     // remove query string from scriptName
-//     size_t questionMarkPos = scriptName.find('?');
-//     if (questionMarkPos != std::string::npos) {
-//         scriptName = scriptName.substr(0, questionMarkPos);
-//     }
+    if (pipe(stdin_pipe) < 0 || pipe(stdout_pipe) < 0 || pipe(stderr_pipe) < 0) {
+        throw CGIException("Failed to create pipes");
+    }
+	pid_t pid = fork();
+    if (pid < 0) {
+        //fork failed
+        close(stdin_pipe[0]);
+        close(stdin_pipe[1]);
+        close(stdout_pipe[0]);
+        close(stdout_pipe[1]);
+        close(stderr_pipe[0]);
+        close(stderr_pipe[1]);
+        throw CGIException("Failed to fork");
+    }
+    if (pid == 0) {
+		std::string scriptName;
+        //child process
+        //redirect stdin/stdout/stderr
+        dup2(stdin_pipe[0], STDIN_FILENO);
+        dup2(stdout_pipe[1], STDOUT_FILENO);
+        dup2(stderr_pipe[1], STDERR_FILENO);
+        
+        // Close all original pipe file descriptors as they are duplicated now
+        close(stdin_pipe[0]);
+        close(stdin_pipe[1]);
+        close(stdout_pipe[0]);
+        close(stdout_pipe[1]);
+        close(stderr_pipe[0]);
+        close(stderr_pipe[1]);
+        
+        // Change to script directory
+        size_t lastSlash = _scriptPath.find_last_of('/');
+        if (lastSlash != std::string::npos) {
+            std::string scriptDir = _scriptPath.substr(0, lastSlash);
+            if (chdir(scriptDir.c_str()) != 0) {
+                perror("CGI chdir failed");
+                exit(1);
+            }
+        }
 
-//     return std::make_pair(scriptName, pathInfo);
-// }
+        // Extract script filename
+    	if (lastSlash != std::string::npos) 
+    	     scriptName = _scriptPath.substr(lastSlash + 1);
+        if (!_cgiPath.empty()) {
+    		const char* args[] = {_cgiPath.c_str(), scriptName.c_str(), nullptr};
+    		execve(_cgiPath.c_str(), const_cast<char* const*>(args), _envp);
+		} else {
+    		const char* args[] = {scriptName.c_str(), nullptr};
+    		execve(scriptName.c_str(), const_cast<char* const*>(args), _envp);
+		}
+		
+        //execve failed if we get here
+        perror("CGI execve failed for script");
+        exit(1);
+    }
+    
+    //close unused pipes
+    close(stdin_pipe[0]);
+    close(stdout_pipe[1]);
+    close(stderr_pipe[1]);
+	std::cout << "=== CGI Environment Variables ===" << std::endl;
+		for (size_t i = 0; _envp[i] != nullptr; ++i) {
+			std::cout << _envp[i] << std::endl;
+		}
+	std::cout << "=== END ===" << std::endl;
+	//send request body to script stdin (for POST)
 
-// std::vector<std::string> CGIHandler::buildEnvironmentStrings(const Request& req, const std::string& scriptPath) {
-//     std::vector<std::string> envStrings;
-//     std::string uri = req.getUri();
-//     (void) scriptPath;
+    if (req.getMethod() == "POST") {
+        if (!_bodyInput.empty()) {
+            write(stdin_pipe[1], _bodyInput.c_str(), _bodyInput.length());
+        }
+    }
+    //close stdin to signal EOF
+    close(stdin_pipe[1]);
+    // Read output from the child process
+    return readFromPipes(stdout_pipe[0], stderr_pipe[0], pid);
+}
 
-//     auto [scriptName, pathInfo] = extractScriptNameAndPathInfo(uri);
+std::vector<char> CGIHandler::readFromPipes(int stdout_fd, int stderr_fd, pid_t pid) {
+    std::vector<char> output;
+    std::vector<char> errorOutput;
+    char buffer[4096];
+    ssize_t bytesRead;
 
-//     std::string queryString = "";
-//     size_t questionMarkPos = uri.find('?');
-//     if (questionMarkPos != std::string::npos) {
-//         queryString = uri.substr(questionMarkPos + 1);
-//     }
+    fd_set read_fds;
+    struct timeval timeout;
 
-//     envStrings.push_back("GATEWAY_INTERFACE=CGI/1.1");
-//     envStrings.push_back("SERVER_PROTOCOL=" + req.getHttpVersion());
-//     envStrings.push_back("REQUEST_METHOD=" + req.getMethod());
-//     envStrings.push_back("SCRIPT_NAME=" + scriptName);
-//     envStrings.push_back("PATH_INFO=" + pathInfo);
-//     envStrings.push_back("QUERY_STRING=" + queryString);
-//     envStrings.push_back("SERVER_SOFTWARE=webserv/1.0");
-//     envStrings.push_back("REMOTE_ADDR=127.0.0.1"); //simplified for now, TODO
+    while (stdout_fd != -1 || stderr_fd != -1) {
+        FD_ZERO(&read_fds);
+        if (stdout_fd != -1) FD_SET(stdout_fd, &read_fds);
+        if (stderr_fd != -1) FD_SET(stderr_fd, &read_fds);
 
-//     //content related headers
-//     auto headers = req.getHeaders();
-//     if (headers.find("Content-Type") != headers.end()) {
-//         envStrings.push_back("CONTENT_TYPE=" + headers.at("Content-Type"));
-//     }
+        int max_fd = 0;
+        if (stdout_fd != -1) max_fd = std::max(max_fd, stdout_fd);
+        if (stderr_fd != -1) max_fd = std::max(max_fd, stderr_fd);
 
-//     if (headers.find("Content-Length") != headers.end()) {
-//         envStrings.push_back("CONTENT_LENGTH=" + headers.at("Content-Length"));
-//     }
+        timeout.tv_sec = TIMEOUT_SECONDS;
+        timeout.tv_usec = 0;
 
-//     //HTTP headers as HTTP_
-//     for (const auto& header : headers) {
-//         std::string name = header.first;
-//         if (name != "Content-Type" && name != "Content-Length") {
-//             std::string envName = "HTTP_";
-//             for (char c : name) {
-//                 if (c == '-') {
-//                     envName += '_';
-//                 } else {
-//                     envName += std::toupper(c);
-//                 }
-//             }
-//             envStrings.push_back(envName + "=" + header.second);
-//         }
-//     }
-//     return envStrings;
-// }
+        int activity = select(max_fd + 1, &read_fds, nullptr, nullptr, &timeout);
 
-// char** CGIHandler::buildEnvironmentArray(const std::vector<std::string>& envStrings) {
-//     char** envArray = new char*[envStrings.size() + 1];
-//     for (size_t i = 0; i < envStrings.size(); i++) {
-//         envArray[i] = strdup(envStrings[i].c_str());
-//     }
-//     envArray[envStrings.size()] = nullptr;
-//     return envArray;
-// }
+        if (activity < 0) {
+            if (stdout_fd != -1) close(stdout_fd);
+            if (stderr_fd != -1) close(stderr_fd);
+            throw CGIException("select() failed");
+        }
 
-// void CGIHandler::freeEnvironmentArray(char** envArray) {
-//     if (!envArray) return;
+        if (activity == 0) {
+            kill(pid, SIGKILL);
+            waitpid(pid, NULL, 0);
+            if (stdout_fd != -1) close(stdout_fd);
+            if (stderr_fd != -1) close(stderr_fd);
+            throw CGIException("CGI script timed out");
+        }
 
-//     for (size_t i = 0; envArray[i] != NULL; i++) {
-//         free(envArray[i]);
-//     }
-//     delete[] envArray;
-// }
+        if (stdout_fd != -1 && FD_ISSET(stdout_fd, &read_fds)) {
+            bytesRead = read(stdout_fd, buffer, sizeof(buffer));
+            if (bytesRead > 0) {
+                output.insert(output.end(), buffer, buffer + bytesRead);
+                if (output.size() > MAX_OUTPUT_SIZE) {
+                    kill(pid, SIGTERM);
+                    close(stdout_fd);
+                    close(stderr_fd);
+                    throw CGIException("Max output size exceeded");
+                }
+            } else {
+                close(stdout_fd);
+                stdout_fd = -1;
+            }
+        }
 
-// std::string CGIHandler::getInterpreter(const std::string& scriptPath) {
-//     size_t dot = scriptPath.find_last_of('.');
-//     if (dot == std::string::npos) return "";
+        if (stderr_fd != -1 && FD_ISSET(stderr_fd, &read_fds)) {
+            bytesRead = read(stderr_fd, buffer, sizeof(buffer));
+            if (bytesRead > 0) {
+                errorOutput.insert(errorOutput.end(), buffer, buffer + bytesRead);
+            } else {
+                close(stderr_fd);
+                stderr_fd = -1;
+            }
+        }
+    }
 
-//     // check if i actually need all of these TODO
-//     std::string extension = scriptPath.substr(dot);
-//     if (extension == ".py") return "/usr/bin/python3";
-//     if (extension == ".pl") return "/usr/bin/perl";
-//     if (extension == ".rb") return "/usr/bin/ruby";
-//     if (extension == ".sh") return "/bin/bash";
-//     if (extension == ".js") return "/usr/bin/node";
-//     if (extension == ".php") return "/usr/bin/php";
-//     return "";
-// }
+    int status;
+    waitpid(pid, &status, 0);
 
-// std::vector<char> CGIHandler::executeScript(const Request& req, const std::string& scriptPath) {
-//     //setup pipes for communication
-//     int stdin_pipe[2];
-//     int stdout_pipe[2];
-//     int stderr_pipe[2];
+    if (WIFEXITED(status) && WEXITSTATUS(status) != 0) {
+        //script exited with non-zero status
+        std::string errorMsg = "CGI exited with non-zero status " + std::to_string(WEXITSTATUS(status));
+        if (!errorOutput.empty()) {
+            errorMsg += ". Stderr: " + std::string(errorOutput.begin(), errorOutput.end());
+        }
+        throw CGIException(errorMsg);
+    }
+    
+    return output;
+}
 
-//     if (pipe(stdin_pipe) < 0 || pipe(stdout_pipe) < 0 || pipe(stderr_pipe) < 0) {
-//         throw CGIException("Failed to create pipes");
-//     }
+std::string CGIHandler::parseOutput(const std::vector<char>& output) {
+    std::string rawResponse;
+    std::string startLine = "HTTP/1.1 200 OK\r\n";
+    rawResponse += startLine;
 
-//     pid_t pid = fork();
+    std::string outputStr(output.begin(), output.end());
+    // separate any headers that might be in the output
+    std::string headers;
+    //find separator between headers and body
+    size_t headerEnd = outputStr.find("\r\n\r\n");
+    if (headerEnd == std::string::npos) {
+       //no headers, treat output as body
+       headers += "Content-Type: text/html\r\n";
+       headers += "\r\nContent-Length: " + std::to_string(output.size()) + "\r\n";
+       rawResponse += headers + "\r\n";
+       rawResponse += outputStr;
+       return rawResponse;
+    }
+    //extract headers
+    headers = outputStr.substr(0, headerEnd);
+    //extract body
+    std::string body = outputStr.substr(headerEnd + 4); // +4 to skip the \r\n\r\n
+    if (body.empty()) {
+        rawResponse += headers + "\r\n";
+        rawResponse += "Content-Length: 0\r\n\r\n";
+        return rawResponse;
+    }
+    headers += "\r\nContent-Length: " + std::to_string(body.size()) + "\r\n";
+    rawResponse += headers + "\r\n";
+	rawResponse += body;
 
-//     if (pid < 0) {
-//         //fork failed
-//         close(stdin_pipe[0]);
-//         close(stdin_pipe[1]);
-//         close(stdout_pipe[0]);
-//         close(stdout_pipe[1]);
-//         close(stderr_pipe[0]);
-//         close(stderr_pipe[1]);
-//         throw CGIException("Failed to fork");
-//     }
+    return rawResponse;
+}
 
-//     if (pid == 0) {
-//         //child process
-//         //redirect stdin/stdout/stderr
-//         dup2(stdin_pipe[0], STDIN_FILENO);
-//         dup2(stdout_pipe[1], STDOUT_FILENO);
-//         dup2(stderr_pipe[1], STDERR_FILENO);
 
-//         // Close all original pipe file descriptors as they are duplicated now
-//         close(stdin_pipe[0]);
-//         close(stdin_pipe[1]);
-//         close(stdout_pipe[0]);
-//         close(stdout_pipe[1]);
-//         close(stderr_pipe[0]);
-//         close(stderr_pipe[1]);
-
-//         std::string scriptDir = scriptPath.substr(0, scriptPath.find_last_of('/'));
-//         if (chdir(scriptDir.c_str()) != 0) {
-//             perror("CGI chdir failed");
-//             exit(1);
-//         }
-
-//         std::string scriptName = scriptPath.substr(scriptPath.find_last_of('/') + 1);
-
-//         //prepare environment
-//         std::vector<std::string> envStrings = buildEnvironmentStrings(req, scriptPath);
-//         char** envArray = buildEnvironmentArray(envStrings);
-
-//         std::string interpreter = getInterpreter(scriptPath);
-
-//         //execute script using execve
-//         if (!interpreter.empty()) {
-//             char* args[] = {const_cast<char*>(interpreter.c_str()), const_cast<char*>(scriptName.c_str()), nullptr};
-//             execve(interpreter.c_str(), args, envArray);
-//         } else {
-//             char* args[] = {const_cast<char*>(scriptName.c_str()), nullptr};
-//             execve(scriptName.c_str(), args, envArray);
-//         }
-//         //execve failed if we get here
-//         perror("CGI execve failed");
-//         exit(1);
-//     }
-
-//     //parent process
-//     //close unused pipes
-//     close(stdin_pipe[0]);
-//     close(stdout_pipe[1]);
-//     close(stderr_pipe[1]);
-
-//     //send request body to script stdin (for POST)
-//     if (req.getMethod() == "POST") {
-//         std::string body = req.getBody();
-//         if (!body.empty()) {
-//             write(stdin_pipe[1], body.c_str(), body.length());
-//         }
-//     }
-
-//     //close stdin to signal EOF
-//     close(stdin_pipe[1]);
-
-//     //read output from stdout_pipe[0] and stderr_pipe[0] using select()
-//     std::vector<char> output;
-//     std::vector<char> errorOutput;
-//     char buffer[4096];
-//     ssize_t bytesRead;
-
-//     fd_set read_fds;
-//     struct timeval timeout;
-//     int stdout_fd = stdout_pipe[0];
-//     int stderr_fd = stderr_pipe[0];
-
-//     while (stdout_fd != -1 || stderr_fd != -1) {
-//         FD_ZERO(&read_fds);
-//         if (stdout_fd != -1) FD_SET(stdout_fd, &read_fds);
-//         if (stderr_fd != -1) FD_SET(stderr_fd, &read_fds);
-
-//         int max_fd = 0;
-//         if (stdout_fd != -1) max_fd = std::max(max_fd, stdout_fd);
-//         if (stderr_fd != -1) max_fd = std::max(max_fd, stderr_fd);
-
-//         timeout.tv_sec = TIMEOUT_SECONDS;
-//         timeout.tv_usec = 0;
-
-//         int activity = select(max_fd + 1, &read_fds, nullptr, nullptr, &timeout);
-
-//         if (activity < 0) {
-//             if (stdout_fd != -1) close(stdout_fd);
-//             if (stderr_fd != -1) close(stderr_fd);
-//             throw CGIException("select() failed");
-//         }
-
-//         if (activity == 0) {
-//             kill(pid, SIGKILL);
-//             waitpid(pid, NULL, 0);
-//             if (stdout_fd != -1) close(stdout_fd);
-//             if (stderr_fd != -1) close(stderr_fd);
-//             throw CGIException("CGI script timed out");
-//         }
-
-//         if (stdout_fd != -1 && FD_ISSET(stdout_fd, &read_fds)) {
-//             bytesRead = read(stdout_fd, buffer, sizeof(buffer));
-//             if (bytesRead > 0) {
-//                 output.insert(output.end(), buffer, buffer + bytesRead);
-//                 if (output.size() > MAX_OUTPUT_SIZE) {
-//                     kill(pid, SIGTERM);
-//                     close(stdout_fd);
-//                     close(stderr_fd);
-//                     throw CGIException("Max output size exceeded");
-//                 }
-//             } else {
-//                 close(stdout_fd);
-//                 stdout_fd = -1;
-//             }
-//         }
-
-//         if (stderr_fd != -1 && FD_ISSET(stderr_fd, &read_fds)) {
-//             bytesRead = read(stderr_fd, buffer, sizeof(buffer));
-//             if (bytesRead > 0) {
-//                 errorOutput.insert(errorOutput.end(), buffer, buffer + bytesRead);
-//             } else {
-//                 close(stderr_fd);
-//                 stderr_fd = -1;
-//             }
-//         }
-//     }
-
-//     int status;
-//     waitpid(pid, &status, 0);
-
-//     if (WIFEXITED(status) && WEXITSTATUS(status) != 0) {
-//         //script exited with non-zero status
-//         std::string errorMsg = "CGI exited with non-zero status " + std::to_string(WEXITSTATUS(status));
-//         if (!errorOutput.empty()) {
-//             errorMsg += ". Stderr: " + std::string(errorOutput.begin(), errorOutput.end());
-//         }
-//         throw CGIException(errorMsg);
-//     }
-
-//     return output;
-// }
-
-// Response CGIHandler::parseOutput(const std::vector<char>& output) {
-//     Response response;
-
-//     response.setStatusCode(200);
-//     response.setReasonPhrase("OK");
-
-//     if (output.empty()) {
-//         response.setStatusCode(204);
-//         response.setReasonPhrase("No Content");
-//         return response;
-//     }
-
-//     //convert output to string for easier parsing
-//     std::string outputStr(output.begin(), output.end());
-
-//     //find separator between headers and body
-//     size_t headerEnd = outputStr.find("\r\n\r\n");
-//     if (headerEnd == std::string::npos) {
-//        //no headers, treat output as body
-//        response.setBody(output);
-//        response.addHeader("Content-Type", "text/html");
-//        response.addHeader("Content-Lenght", std::to_string(output.size()));
-//        return response;
-//     }
-
-//     //extract headers
-//     std::string headersStr = outputStr.substr(0, headerEnd);
-//     std::istringstream headerStream(headersStr);
-//     std::string line;
-
-//     //parse each header line
-//     while (std::getline(headerStream, line)) {
-//         if (line.empty() || line == "\r") continue;
-
-//         //remove trailing \r if present
-//         if (!line.empty() && line[line.length() -1] == '\r') {
-//             line.erase(line.length() - 1);
-//         }
-//         //find the colon separator
-//         size_t colonPos = line.find(':');
-//         if (colonPos != std::string::npos) {
-//             std::string name = line.substr(0, colonPos);
-//             std::string value = line.substr(colonPos + 1);
-
-//             //trim whitespace
-//             value.erase(0, value.find_first_not_of(" \t"));
-
-//             //check for status header
-//             if (name == "Status") {
-//                 size_t spacePos = value.find(' ');
-//                 if (spacePos != std::string::npos) {
-//                     int statusCode = std::stoi(value.substr(0, spacePos));
-//                     std::string reasonPhrase = value.substr(spacePos + 1);
-//                     response.setStatusCode(statusCode);
-//                     response.setReasonPhrase(reasonPhrase);
-//                 }
-//             } else {
-//                 response.addHeader(name, value);
-//             }
-//         }
-//     }
-
-//     //extract body
-//     std::vector<char> body(output.begin() + headerEnd + 4, output.end());
-//     response.setBody(body);
-
-//     //if content type not set, default to text/html
-//     if (response.getHeaders().find("Content-Type") == response.getHeaders().end()) {
-//         response.addHeader("Content-Type", "text/html");
-//     }
-
-//     //set content length header if not set
-//     if (response.getHeaders().find("Content-Length") == response.getHeaders().end()) {
-//         response.addHeader("Content-Length", std::to_string(response.getBody().size()));
-//     }
-
-//     return response;
-// }
+std::string CGIHandler::joinPaths(const std::string& path1, const std::string& path2) {
+    if (path1.empty()) return path2;
+    if (path2.empty()) return path1;
+    
+    if (path1.back() == '/' && path2.front() == '/') {
+        return path1 + path2.substr(1);
+    } else if (path1.back() == '/' || path2.front() == '/') {
+        return path1 + path2;
+    } else {
+        return path1 + "/" + path2;
+    }
+}

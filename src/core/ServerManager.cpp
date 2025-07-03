@@ -1,4 +1,5 @@
 #include "ServerManager.hpp"
+
 #include <filesystem>	
 #include <utility>
 
@@ -330,13 +331,11 @@ void	ServerManager::runServers(void) {
 	while (running) {
 		int timeout = 1000;
 		int readyFds = epoll_wait(_epollFd, epollEvents, EPOLL_CAPACITY, timeout);
-		std::cout << "Epoll wait returned with " << readyFds << " ready file descriptors.\n";
 		if (readyFds == -1) {
 			int err = errno;
 			throw ServerManagerException("epol_wait(): " + std::string(strerror(err)));
 		}
 		for (int i = 0; i < readyFds; i++) {
-			std::cout << "Epoll event on fd: " << epollEvents[i].data.fd << " with events: " << epollEvents[i].events << "\n";
 			manageEpollEvent(epollEvents[i]);
 		}
 	}
@@ -370,8 +369,8 @@ void ServerManager::addClientToMap(int clientFd, int serverFd) {
 
 	setNonBlocking(clientFd);
 	setEpollCtl(clientFd, EPOLLIN, EPOLL_CTL_ADD);
-	// _fdClientMap.emplace(clientFd, Client(serverFd, this));
-	_fdClientMap.emplace(std::piecewise_construct, std::forward_as_tuple(clientFd), std::forward_as_tuple(serverFd, this));
+	_fdClientMap.emplace(clientFd, Client(serverFd, this));
+	// _fdClientMap.emplace(std::piecewise_construct, std::forward_as_tuple(clientFd), std::forward_as_tuple(serverFd, this));
 
 }
 
@@ -381,7 +380,6 @@ void ServerManager::addClientToMap(int clientFd, int serverFd) {
 void	ServerManager::manageEpollEvent(const struct epoll_event& currEvent) {
 
 	int	fd = currEvent.data.fd;
-	std::cout << "Epoll event on fd: " << fd << " with events: " << currEvent.events << "\n";
 	if (isListeningSocket(fd)) {
 		manageListenSocketEvent(currEvent);
 	}
@@ -397,7 +395,6 @@ void	ServerManager::manageEpollEvent(const struct epoll_event& currEvent) {
 
 const std::vector<const vServer*> ServerManager::findServerConfigsByFd(int fd) const{
 
-	std::cout<<"Looking for server config by fd"<<"\n";
 	for( const Server& server : _servers) {
 
 		if (server.getSocketFd() == fd) 
