@@ -7,7 +7,7 @@ vServer::vServer() {
 	_vServerPort = "8080";
 	_vServerIpPort = "0.0.0.0:8080";
 	_vServerNames = {"localhost"};
-	_vServerRoot = "default_root/";
+	_vServerRoot = "root/";
 	_vServerIndex = {"index.html"};
 	_vServerAutoIndex = false;
 	_vServerClientMaxSize = 1024 * 1024 * 10;

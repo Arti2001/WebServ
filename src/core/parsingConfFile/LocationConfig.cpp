@@ -20,6 +20,10 @@ Location::Location(const Location& other) {
 	*this = other;
 }
 
+
+Location::~Location() {
+}
+
 const Location&	Location::operator=(const Location& other) {
 	if (this != &other) {
 		this->_locationPath = other._locationPath;

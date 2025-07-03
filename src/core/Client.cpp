@@ -131,7 +131,6 @@ void    Client::handleRequest (int clientFd) {
 				return;
 			}
 			_headersParsed = true;
-			// _startLineAndHeadersBuffer.clear(); // Clear the buffer after parsing headers
 		}
 		// If headers are parsed, we can now check for the body. It is optional depending on request type, 
 		// so it is separated from the headers parsing logic.

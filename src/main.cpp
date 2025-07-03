@@ -33,16 +33,16 @@ int main(int argc, char *argv[]) {
 		serverManager.parsConfigFile(serverManager.getVirtualServers());
 		std::cout << "Configuration file parsed successfully." << "\n";
 		serverManager.groupServers(serverManager.getVirtualServers());
+		
 		serverManager.setServers();
 	
 		serverManager.runServers();
 		serverManager.closeAllSockets();
-		
 	}
 	catch(ServerManager::ServerManagerException& ex) {
 
 		std::cerr << "ServerManager::Error: " << ex.what()<< "\n";
-		return (1);
+		return (-1);
 	}
 
 	return 0;

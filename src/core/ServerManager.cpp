@@ -1,10 +1,13 @@
 #include "ServerManager.hpp"
-#include <tuple>
+#include <filesystem>	
 #include <utility>
 
 //constructors
 ServerManager::ServerManager(char* fileName, int epollSize) {
 	std::string fileNameStr;
+
+	if (std::filesystem::path(fileName).extension() != ".conf")
+		throw ServerManagerException("Invalid file name: use .conf extention");
 
 	if (fileName) {
 		fileNameStr = fileName;
@@ -87,7 +90,7 @@ void	ServerManager::parsConfigFile(std::vector<vServer>& _vServers) {
 		parser.parseConfigFileTokens(_vServers);
 		
 	}catch(ParseConfig::ConfException& ex){
-		std::cerr << "Error: " << ex.what()<< "\n";
+		std::cerr << "ConfigParser::Error: " << ex.what()<< "\n";
 		exit(EXIT_FAILURE);
 	}
 }
@@ -152,12 +155,12 @@ int	ServerManager::getSocketFd(const std::string& host, const std::string& port)
 	addrinfo*	addrList = getAddrList(host, port);
 	int			socketFd = bindSocket(addrList);
 	
-	if (!setNonBlocking(socketFd))
-		throw ServerManagerException("Failed to set a file descriptor to a non-blocking mode");
+	setNonBlocking(socketFd);
 	if (listen(socketFd, QUEUE_LENGTH) == -1)
 	{
 		close(socketFd);
-		throw ServerManagerException("Failed to  listen on a file descriptor");
+		int err = errno;
+		throw ServerManagerException("listen(): " + std::string(strerror(err)));
 	}
 	return (socketFd);
 }
@@ -178,7 +181,7 @@ addrinfo* ServerManager::getAddrList(const std::string& currHost, const std::str
 	
 	infoRet = getaddrinfo(currHost.c_str(), currPort.c_str(), &hints, &addrList);
 	if (infoRet != 0 ) {
-		throw ServerManagerException(std::string("getaddrinfo failed: ") + gai_strerror(infoRet));
+		throw ServerManagerException(std::string("getaddrinfo(): ") + gai_strerror(infoRet));
 	}
 	return (addrList);
 }
@@ -203,11 +206,11 @@ int	ServerManager::bindSocket(addrinfo* addrList) {
 		}
 		int _switch = ENABLE;
 		if (setsockopt(socketFd, SOL_SOCKET, SO_REUSEADDR, &_switch, sizeof(_switch)) == -1){
-			close(socketFd);
-			throw ServerManagerException("Failed to set socket.");
+			int err = errno;
+			throw ServerManagerException("setsockopt(): " + std::string(strerror(err)));
 		}
 		if (bind(socketFd, cpList->ai_addr, cpList->ai_addrlen) == 0) {
-			std::cerr << "Successfully binded" << "\n";
+			std::cout<< "Successfully binded" << "\n";
 			break;
 		}
 		close(socketFd);
@@ -215,7 +218,8 @@ int	ServerManager::bindSocket(addrinfo* addrList) {
 	}
 	freeaddrinfo(addrList);
 	if (socketFd == -1) {
-		throw ServerManagerException("Failed to bind socket to any address");
+		int err = errno;
+		throw ServerManagerException("socket(): " + std::string(strerror(err)));
 	}
 	return (socketFd);
 }
@@ -223,19 +227,19 @@ int	ServerManager::bindSocket(addrinfo* addrList) {
 
 
 
-bool	ServerManager::setNonBlocking(int fd) {
+void	ServerManager::setNonBlocking(int fd) {
 
+	int err = 0;
 	int prevFlags  = fcntl(fd, F_GETFL);
 
 	if (prevFlags == -1) {
-		std::cerr << " Error: fctl(): Failed to get the fd's flags!"<< "\n";
-		return (false);
+		err = errno;
+		throw ServerManagerException("fctl(F_GETFL): " + std::string(strerror(err)));
 	}
 	if (fcntl(fd, F_SETFL, prevFlags | O_NONBLOCK) == -1) {
-		std::cerr << " Error: fctl(): Failed to set the fd's flags!"<< "\n";
-		return (false);
+		err = errno;
+		throw ServerManagerException("fctl( F_SETFL): " + std::string(strerror(err)));
 	}
-	return (true);
 }
 
 
@@ -327,13 +331,9 @@ void	ServerManager::runServers(void) {
 		int timeout = 1000;
 		int readyFds = epoll_wait(_epollFd, epollEvents, EPOLL_CAPACITY, timeout);
 		std::cout << "Epoll wait returned with " << readyFds << " ready file descriptors.\n";
-		//if (readyFds == 0)
-		//{
-		//	closeIdleConnections();
-		//	continue;
-		//}
 		if (readyFds == -1) {
-			throw ServerManagerException("epoll_wait() failed");
+			int err = errno;
+			throw ServerManagerException("epol_wait(): " + std::string(strerror(err)));
 		}
 		for (int i = 0; i < readyFds; i++) {
 			std::cout << "Epoll event on fd: " << epollEvents[i].data.fd << " with events: " << epollEvents[i].events << "\n";
@@ -368,11 +368,7 @@ void	ServerManager::manageListenSocketEvent(const struct epoll_event& currEvent)
 void ServerManager::addClientToMap(int clientFd, int serverFd) {
 	//callback function
 
-	if (!setNonBlocking(clientFd)) {
-		
-		close(clientFd);
-		throw ServerManagerException("Failed to set the acceptedSocket to a NON-BLOCKING mode.");
-	}
+	setNonBlocking(clientFd);
 	setEpollCtl(clientFd, EPOLLIN, EPOLL_CTL_ADD);
 	// _fdClientMap.emplace(clientFd, Client(serverFd, this));
 	_fdClientMap.emplace(std::piecewise_construct, std::forward_as_tuple(clientFd), std::forward_as_tuple(serverFd, this));
@@ -446,9 +442,6 @@ const Location*	ServerManager::findDefaultLocationBlock(const std::map<std::stri
 const Location*	ServerManager::findLocationBlockByUri(const vServer& serverConfig, const std::string& uri) const {
 	const std::map<std::string, Location>& locations = serverConfig.getServerLocations();
 
-	if (locations.find("/") != locations.end())
-		std::cout << "))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))" << "\n";
-
 	size_t longestMatchLen = 0;
 	const Location* bestMatchLocation = nullptr;
 
@@ -460,28 +453,20 @@ const Location*	ServerManager::findLocationBlockByUri(const vServer& serverConfi
 			longestMatchLen = locationPath.length();
 		}
 	}
-
 	if (bestMatchLocation) {
 		return (bestMatchLocation);
 	}
-		const Location* defaultLocation = findDefaultLocationBlock(locations);
-		if (!defaultLocation) {
-			std::cout<< "No location block found, no  default location block found " << "\n";
-			return (nullptr); // better to return nullptr if no default location is found as it inicates that something went wrogn with creation of default location
-			
-		}
+	const Location* defaultLocation = findDefaultLocationBlock(locations);
+	if (!defaultLocation) {
+		std::cout<< "No location block found, no  default location block found " << "\n";
+		return (nullptr); // better to return nullptr if no default location is found as it inicates that something went wrogn with creation of default location
 		
-		std::cout<< "No  location block found, fell back to default location block " << "\n";
+	}
+		
+	std::cout<< "No  location block found, fell back to default location block " << "\n";
 	return (defaultLocation);
 }
 
-
-bool ServerManager::isDefaultLocationExist(const std::vector<Location>& locations) {
-
-	if (locations.empty())
-		throw ServerManagerException("A configuration file must have atleast a default location block");
-	return (true);
-}
 
 void ServerManager::closeAllSockets() {
 
