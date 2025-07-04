@@ -3,17 +3,20 @@ import os
 import cgi
 import mimetypes
 import json
+import sys
 
 # Configuration
 UPLOAD_DIR = "uploads"  # Directory where files are stored
 
 def send_error(message):
-    print("Content-Type: application/json")
-    print("")
-    print(json.dumps({
+    body = json.dumps({
         "status": "error",
         "message": message
-    }))
+    }).encode('utf-8')
+    sys.stdout.buffer.write(b"Content-Type: application/json\r\n")
+    sys.stdout.buffer.write(b"Content-Length: %d\r\n" % len(body))
+    sys.stdout.buffer.write(b"\r\n")
+    sys.stdout.buffer.write(body)
 
 try:
     # Parse query parameters
@@ -52,10 +55,10 @@ try:
     content_type = "application/octet-stream"
 
     # Output headers
-    # print(f"Content-Type: {content_type}")
-    # print(f"Content-Length: {file_size}")
-    # print(f"Content-Disposition: attachment; filename=\"{filename}\"")
-    # print("") # Empty line to separate headers from body
+    sys.stdout.buffer.write(f"Content-Type: {content_type}\r\n".encode("ascii"))
+    sys.stdout.buffer.write(f"Content-Length: {file_size}\r\n".encode("ascii"))
+    sys.stdout.buffer.write(f"Content-Disposition: attachment; filename=\"{filename}\"\r\n".encode("ascii"))
+    sys.stdout.buffer.write(b"\r\n") # Empty line to separate headers from body
 
     # Output file content
     with open(filepath, 'rb') as f:
@@ -63,7 +66,7 @@ try:
             chunk = f.read(8192)
             if not chunk:
                 break
-            os.write(1, chunk)
+            sys.stdout.buffer.write(chunk)
 
 except Exception as e:
-    send_error(f"Error retrieving file: {str(e)}") 
+    send_error(f"Error retrieving file: {str(e)}")
