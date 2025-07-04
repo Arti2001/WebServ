@@ -6,7 +6,7 @@
 /*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/06/30 12:13:01 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/07/04 12:47:33 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/07/04 13:50:15 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,10 +20,10 @@ CGIHandler::CGIHandler(const Request &request, const Location &location, std::st
     _scriptPath = resolveScriptPath(location.getLocationRoot(), request.getUri(), cgiIndexFile);
     _cgiPath = getInterpreter(_scriptPath);
     if (_cgiPath.empty()) {
-        throw CGIException("No interpreter found for script: " + _scriptPath);
+        throw CGIException("No interpreter found for script: " + _scriptPath, 500);
     }
     if (location.getLocationAllowedCgi().find(_interpreter) == location.getLocationAllowedCgi().end()) {
-        throw CGIException("Selected interpreter unavailable for this location: " + _scriptPath);
+        throw CGIException("Selected interpreter unavailable for this location: " + _scriptPath, 500);
     }
     _queryString = request.getQuery();
     _bodyInput = request.getBody();
@@ -47,12 +47,12 @@ std::string CGIHandler::resolveScriptPath(const std::string& rootPath, const std
 
     struct stat fileStat;
     if (stat(scriptPath.c_str(), &fileStat) < 0) {
-        throw CGIException("Script file not found: " + scriptPath);
+        throw CGIException("Script file not found: " + scriptPath, 404);
     }
 
     // check if the file is executable
     if ((fileStat.st_mode & S_IXUSR) == 0) {
-        throw CGIException("Script file is not executable: " + scriptPath);
+        throw CGIException("Script file is not executable: " + scriptPath, 403);
     }
     return scriptPath;
 }
@@ -103,7 +103,7 @@ char** CGIHandler::buildEnvironmentArray(const std::unordered_map<std::string, s
             delete[] envp[j];
         }
         delete[] envp;
-        throw std::runtime_error("Failed to allocate memory for environment variables");
+        throw CGIException("Failed to allocate memory for environment variables", 500);
     }
     return envp;
 }
@@ -142,7 +142,7 @@ std::vector<char> CGIHandler::executeScript(const Request& req) {
     int stderr_pipe[2];
 
     if (pipe(stdin_pipe) < 0 || pipe(stdout_pipe) < 0 || pipe(stderr_pipe) < 0) {
-        throw CGIException("Failed to create pipes");
+        throw CGIException("Failed to create pipes", 500);
     }
 	pid_t pid = fork();
     if (pid < 0) {
@@ -153,7 +153,7 @@ std::vector<char> CGIHandler::executeScript(const Request& req) {
         close(stdout_pipe[1]);
         close(stderr_pipe[0]);
         close(stderr_pipe[1]);
-        throw CGIException("Failed to fork");
+        throw CGIException("Failed to fork", 500);
     }
     if (pid == 0) {
 		std::string scriptName;
@@ -288,7 +288,7 @@ std::vector<char> CGIHandler::readFromPipes(int stdout_fd, int stderr_fd, pid_t 
         if (!errorOutput.empty()) {
             errorMsg += ". Stderr: " + std::string(errorOutput.begin(), errorOutput.end());
         }
-        throw CGIException(errorMsg);
+        throw CGIException(errorMsg, 500);
     }
     
     return output;
