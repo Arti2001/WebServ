@@ -137,8 +137,9 @@ std::ostream& operator<<(std::ostream& os, const vServer& server) {
 	os << "Server Port:                  " << server.getServerPort() << "\n";
 
 	os << "Server Names:                 ";
-	for (size_t i = 0; i < server.getServerNames().size(); i++)
-		os << server.getServerNames()[i] << (i + 1 < server.getServerNames().size() ? ", " : "\n");
+	for (const std::string& name : server.getServerNames())
+		os << name + " ";
+	os<< "\n";
 
 	os << "Client Max Body Size:         " << server.getServerClientMaxSize() << "\n";
 	os << "Root:                         " << server.getServerRoot() << "\n";

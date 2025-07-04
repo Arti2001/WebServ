@@ -99,7 +99,7 @@ std::unordered_map<int, std::string>	vServer::getServerErrorPages( void ) const 
 	return(_vServerErrorPages);
 }
 
-std::vector<std::string>				vServer::getServerNames( void ) const {
+std::unordered_set<std::string>			vServer::getServerNames( void ) const {
 	return (_vServerNames);
 }
 
@@ -189,7 +189,7 @@ void	vServer::validateServerNames(std::vector<std::string>& namesVector) {
 
 		if (std::regex_match(name, namePattern) || (name == "localhost")) {
 			_vServerNames.clear();
-			_vServerNames.push_back(name);
+			_vServerNames.insert(name);
 		}
 		else
 			throw ParseConfig::ConfException("Input does not match 'example.com' format .\n");
