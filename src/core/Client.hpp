@@ -12,7 +12,7 @@
 #include <unistd.h>
 
 class ServerManager;
-class RequestParser;
+class Response;
 
 class Client{
 
@@ -28,6 +28,7 @@ class Client{
 		std::string				_clientResponse;
 		int						_serverFd;
 		ServerManager*			_serverManager;
+		std::unique_ptr<Response> 	_response; // Pointer to the response object, if needed
 		std::time_t				_lastActiveTime;
 		bool					_closeAfterResponse;
 
@@ -54,6 +55,7 @@ class Client{
 		int					getServerFd( void ) const;
 		size_t&				getClientsBytesSent( void );
 		Request&			getRequest( void ) { return (_request); }
+		Response&			getResponse( void ) { return (*_response); };
 
 		//methods
 
@@ -61,7 +63,7 @@ class Client{
 		void					handleRequest( int clientFd );
 		void					handleResponse( int clientFd );
 		
-		std::string				prepareResponse();
+		std::string				prepareResponse(int clientFd);
 		std::string				getCgiResponse(Request &request);
 
 		static std::string				getAnyHeader(std::unordered_map<std::string, std::string> headers, std::string headerName);

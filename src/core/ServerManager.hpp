@@ -35,6 +35,7 @@ class ServerManager {
 		std::map<std::string, std::vector<const vServer*>>	_hostVserverMap;
 		std::vector<Server>									_servers;
 		std::map<int, Client>								_fdClientMap;
+		std::unordered_map<int, Client*>								_cgiFdClientPtrMap; // map to store pointers to Client objects by their file descriptors
 	
 	
 	public:
@@ -70,6 +71,7 @@ class ServerManager {
 		
 		
 		void					addClientToMap(int clientFd, int serverFd);
+		void 					addCgiFdToMap(int cgiFd, int clientFd);
 		//void					createDefaultConfig(void);
 		
 		bool					isListeningSocket(int fd);

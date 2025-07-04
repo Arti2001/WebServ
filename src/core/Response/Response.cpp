@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>                +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/07/04 12:48:21 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/07/04 19:17:48 by vshkonda      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,12 +14,15 @@
 
 Response::Response() {}
 
-Response::Response(Request *request, ServerManager *ServerManager, int clientSocket) : 
+Response::Response(Request *request, ServerManager *ServerManager, int serverFd, int clientFd) : 
     _request(request),
     _serverManager(ServerManager),
     _serverConfig(nullptr),
     _locationConfig(nullptr),
-    _clientSocket(clientSocket),
+    _serverFd(serverFd),
+	_clientFd(clientFd),
+	_isCgi(false),
+	_cgiHandler(nullptr),
     _rawResponse("")
 {
     _statusCode = request->getStatusCode();
@@ -62,7 +65,7 @@ const std::string& Response::getBody() const {
 }
 
 void Response::matchServer() {
-    const std::vector<const vServer*>&	subServConfigs = _serverManager->findServerConfigsByFd(_clientSocket);
+    const std::vector<const vServer*>&	subServConfigs = _serverManager->findServerConfigsByFd(_serverFd);
 	if (subServConfigs.empty()) {
 		std::cerr << "No server configurations found for the connected socket." << std::endl;
 		// Handle the error, e.g., return a 500 Internal Server Error response
@@ -256,8 +259,11 @@ void Response::handleCGIRequest() {
     }
     // after checking the allowed method. We want to move into create an instanoce of cgi handler. it will take the response as tthe argument in its constructor. the attributes we would really care about are the cgi path, script name, environment variables, and the request body if applicable. 
     try {
-        CGIHandler cgiHandler(*_request, *_locationConfig, _cgiIndexFile);
-        _rawResponse = cgiHandler.process(); // Handle the CGI request and get the raw response
+        _cgiHandler = std::make_unique<CGIHandler>(*_request, *_locationConfig, _cgiIndexFile);
+        _cgiHandler->start(); // Handle the CGI request and get the raw response
+		_isCgi = true; // Set the flag to indicate that this is a CGI request
+		_serverManager->addCgiFdToMap(_cgiHandler->getStdoutFd(), _clientFd); // Add the CGI stdout to epoll for reading
+		_serverManager->addCgiFdToMap(_cgiHandler->getStderrFd(), _clientFd); // Add the CGI stderr to epoll for reading
     }
     // if it fails i should set the corresponsing status code and return an error response
     catch (const CGIHandler::CGIException &e) {
@@ -266,6 +272,20 @@ void Response::handleCGIRequest() {
         return generateErrorResponse();
     }
 }
+
+void Response::sendCGIResponse(){
+	_rawResponse = _cgiHandler->finalize(); // Get the final response from the CGI handler
+	if (_rawResponse.empty()) {
+		setStatusCode(500); // Internal Server Error
+		return generateErrorResponse();
+	}
+	std::cout << "CGI response generated successfully." << std::endl;
+	addHeader("Content-Type", "text/html"); // Set content type for CGI response
+	addHeader("Connection", "close"); // Close connection after response
+	createStartLine();
+	createHeaders();
+}
+
 
 
 void Response::handleGetRequest() {

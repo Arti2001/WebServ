@@ -69,14 +69,14 @@ size_t& Client::getClientsBytesSent(void) {
 
 
 
-std::string	Client::prepareResponse() {
+std::string	Client::prepareResponse(int clientFd) {
 	std::cout << "Preparing response for client: " << this->getServerFd() << std::endl;
 	int		socketClientConnectedTo = this->getServerFd();
-	Response response(&_request, _serverManager, socketClientConnectedTo);
-	response.generateResponse();
-	if (getAnyHeader(response.getHeaders(), "Connection") == "close")
+	Response _response(&_request, _serverManager, socketClientConnectedTo, clientFd);
+	_response.generateResponse();
+	if (getAnyHeader(_response.getHeaders(), "Connection") == "close")
 		_closeAfterResponse = true;
-	return (response.getRawResponse());
+	return (_response.getRawResponse());
 }
 
 
@@ -176,7 +176,26 @@ void    Client::handleRequest (int clientFd) {
 
 void	Client::handleResponse(int clientFd) {
 	if (_clientResponse.empty()) {
-		_clientResponse = this->prepareResponse();
+		_response =std::make_unique<Response>(&_request, _serverManager, _serverFd, clientFd);
+		_response->generateResponse();
+		if (getAnyHeader(_response->getHeaders(), "Connection") == "close")
+			_closeAfterResponse = true;
+		_clientResponse = _response->getRawResponse();
+		if (_response->getIsCGI()) {
+			if (_response->getCgiHandler()->isDone()) {
+				std::cout << "CGI handler is done, preparing CGI response." << std::endl;
+				_clientResponse = _response->getCgiHandler()->finalize();
+				if (_clientResponse.empty()) {
+					std::cerr << "Error: CGI response is empty, closing client connection." << std::endl;
+					_serverManager->closeClientFd(clientFd);
+					return;
+				}
+				_clientBytesSent = 0; // Reset bytes sent for the new CGI response
+			} else {
+			std::cerr << "CGI response will follow." << std::endl;
+			return;
+		}
+	}
 		if (_clientResponse.empty()) {
 			std::cerr << "Error: Response is empty, closing client connection." << std::endl;
 			_serverManager->closeClientFd(clientFd);
