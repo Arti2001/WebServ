@@ -120,9 +120,19 @@ const char*	ServerManager::ServerManagerException::what() const noexcept {
 
 void	ServerManager::groupServers(const std::vector<vServer>& _vServers) {
 	std::unordered_set<std::string> seenServerNames;
+	bool skipServer = false;
 	for (const vServer& vServer : _vServers) {
 		const std::string& hostPort = vServer.getServerIpPort();
-		_hostVserverMap[hostPort].push_back(&vServer);
+		for(const std::string& name : vServer.getServerNames()) {
+			if (seenServerNames.count(name)) {
+				skipServer = true;
+				break;
+			}
+			seenServerNames.insert(name);
+		}
+		if (!skipServer)
+			_hostVserverMap[hostPort].push_back(&vServer);
+		skipServer = false;
 	}
 	std::cout << "Grouped servers by host and port." << "\n";
 }

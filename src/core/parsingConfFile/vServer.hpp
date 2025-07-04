@@ -28,7 +28,7 @@ class vServer {
 		std::string								_vServerIp;
 		std::string								_vServerPort;
 		std::string								_vServerIpPort;
-		std::vector<std::string>				_vServerNames;
+		std::unordered_set<std::string>			_vServerNames;
 		std::map<std::string, Location>			_vServerLocations;
 		std::string								_vServerRoot;
 		std::vector<std::string>				_vServerIndex;
@@ -47,7 +47,7 @@ class vServer {
 	std::string									getServerIpPort( void ) const;
 	uint64_t									getServerClientMaxSize( void ) const;
 	std::string									getServerRoot( void ) const;
-	std::vector<std::string>					getServerNames( void ) const;
+	std::unordered_set<std::string>				getServerNames( void ) const;
 	std::vector<std::string>					getServerIndex( void ) const;
 	
 
