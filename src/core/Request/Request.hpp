@@ -11,7 +11,7 @@
 #include <vector>
 #include "../Utils.hpp"
 
-#define REQUEST_DEFAULT_TIMEOUT 60 // Default timeout for the request in seconds
+#define REQUEST_DEFAULT_TIMEOUT 10 // Default timeout for the request in seconds
 #define REQUEST_DEFAULT_STATUS_CODE 200 // Default status code for the request
 #define REQUEST_DEFAULT_MAX_BODY_SIZE 1024 * 1024 * 1024 // Maximum body size for the request in bytes (10 MB)
 
