@@ -1,6 +1,5 @@
 #include "core/Server.hpp"
 #include "core/Request/Request.hpp"
-#include "core/Request/RequestParser.hpp"
 #include "core/Response/Response.hpp"
 #include "core/Utils.hpp"
 #include "core/ServerManager.hpp"
