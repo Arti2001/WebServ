@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>                +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/07/03 15:54:12 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/07/04 11:02:00 by vshkonda      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -153,17 +153,30 @@ void Response::generateErrorResponse() {
     _headers.clear();
     _body.clear();
     
-    // Set default headers for error responses
+	// match the error code with the custom html error page if it exists
+	if (_locationConfig->getLocationErrorPages().find(_statusCode) != _locationConfig->getLocationErrorPages().end()) {
+		std::string errorPagePath = _locationConfig->getLocationErrorPages().at(_statusCode);
+		std::string fullPath = _locationConfig->getLocationRoot() + resolveRelativePath(errorPagePath, _locationConfig->getLocationPath());
+		if (fileExists(fullPath)) {
+			std::ifstream file(fullPath);
+			std::ostringstream oss;
+    		oss << file.rdbuf(); // Read the entire file into a string
+    		_body = oss.str(); // Set the body of the response to the file content
+    		file.close();
+		}
+	}
+	else {
+    // Generate a simple HTML body for the error response
+    _body = "<html><body><h1>" + std::to_string(_statusCode) + " " + _statusMessage + "</h1></body></html>";
+	}
+	// Set default headers for error responses
     addHeader("Content-Type", "text/html");
     addHeader("Connection", "close");
     
-    // Generate a simple HTML body for the error response
-    _body = "<html><body><h1>" + std::to_string(_statusCode) + " " + _statusMessage + "</h1></body></html>";
-    
     // Generate the full response
-    createStartLine();
-    createHeaders();
-    createBody();
+    // createStartLine();
+    // createHeaders();
+    // createBody();
 }
 
 void Response::handleRedirectRequest() {
