@@ -479,28 +479,33 @@
             class="upload-form"
             id="getForm"
           >
-            <input
-              type="text"
-              name="filename"
-              id="filename"
-              placeholder="Enter filename"
-              required
-            />
+          <select name="filename" id="filename" required>
+            <option value="" disabled selected>Select a file</option>
+          </select>
+          
             <button type="submit" class="btn primary-btn">Download</button>
           </form>
-          <div id="response" style="margin-top: 20px; display: none"></div>
-
           <script>
-            document.getElementById("getForm").onsubmit = function (e) {
-              var filename = document.getElementById("filename").value;
-              if (!filename) {
-                e.preventDefault();
-                var responseDiv = document.getElementById("response");
-                responseDiv.style.display = "block";
-                responseDiv.innerHTML =
-                  '<div class="error-message" style="padding: 10px; border-radius: 5px; background-color: #f8d7da; color: #721c24;">Please enter a filename</div>';
-              }
-            };
+            window.onload = function () {
+			fetch("/cgi-bin/list_files.py")
+				.then((response) => response.json())
+				.then((data) => {
+				if (data.status === "success") {
+					const select = document.getElementById("filename");
+					data.files.forEach((file) => {
+					const option = document.createElement("option");
+					option.value = file;
+					option.textContent = file;
+					select.appendChild(option);
+					});
+				} else {
+					alert("Error fetching files: " + data.message);
+				}
+				})
+				.catch((error) => {
+				alert("Fetch error: " + error.message);
+				});
+			};
           </script>
         </div>
       </section>
