@@ -469,13 +469,18 @@
     <main>
       <section class="features">
         <div class="container">
-          <h1>Test Error Handling</h1>
+          <h1>Test CGI scripts</h1>
           <p>
-            Click the button below to test the server's timeout error handling.
+            Click the buttons below to test the server's timeout error handling or to print environment variables.
           </p>
           <form action="/cgi-bin/timeout.php" method="GET" class="upload-form">
             <button type="submit" class="btn primary-btn">
               Trigger Timeout
+            </button>
+          </form>
+          <form action="/cgi-bin/test.sh" method="GET" class="upload-form">
+            <button type="submit" class="btn primary-btn">
+              Print Environment Variables
             </button>
           </form>
 
