@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>                +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/07/04 11:02:00 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/07/04 12:48:21 by vshkonda      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -262,7 +262,7 @@ void Response::handleCGIRequest() {
     // if it fails i should set the corresponsing status code and return an error response
     catch (const CGIHandler::CGIException &e) {
         std::cerr << "CGI Exception: " << e.what() << std::endl;
-        setStatusCode(500); // Internal Server Error
+        setStatusCode(e.statusCode()); // Internal Server Error
         return generateErrorResponse();
     }
 }

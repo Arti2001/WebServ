@@ -6,7 +6,7 @@
 /*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/06/30 12:13:01 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/07/03 17:00:20 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/07/04 12:47:33 by vshkonda      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@ CGIHandler::CGIHandler(const Request &request, const Location &location, std::st
 	_cgiUploadPath = location.getLocationUploadPath();
 	std::unordered_map<std::string, std::string> envVariables = initEnvironmentVars(request);
     _envp = buildEnvironmentArray(envVariables);
+	_timeout = request.getTimeout();
     }
 
 CGIHandler::~CGIHandler()
@@ -77,6 +78,7 @@ std::unordered_map<std::string, std::string> CGIHandler::initEnvironmentVars(con
     envVariables["SERVER_PROTOCOL"] = request.getHttpVersion();
     envVariables["GATEWAY_INTERFACE"] = "CGI/1.1";
 	envVariables["UPLOAD_DIR"] = _cgiUploadPath;
+	envVariables["TIMEOUT"] = std::to_string(_timeout);
     // Add more environment variables as needed
     return envVariables;
 }
@@ -230,23 +232,24 @@ std::vector<char> CGIHandler::readFromPipes(int stdout_fd, int stderr_fd, pid_t 
         if (stdout_fd != -1) max_fd = std::max(max_fd, stdout_fd);
         if (stderr_fd != -1) max_fd = std::max(max_fd, stderr_fd);
 
-        timeout.tv_sec = TIMEOUT_SECONDS;
+        timeout.tv_sec = _timeout;
         timeout.tv_usec = 0;
 
         int activity = select(max_fd + 1, &read_fds, nullptr, nullptr, &timeout);
 
+		std::cout << "stdout_fd: " << stdout_fd << ", stderr_fd: " << stderr_fd << std::endl;
         if (activity < 0) {
             if (stdout_fd != -1) close(stdout_fd);
             if (stderr_fd != -1) close(stderr_fd);
-            throw CGIException("select() failed");
+            throw CGIException("select() failed", 500);
         }
-
+		std::cout << "CGI select activity: " << activity << std::endl;
         if (activity == 0) {
             kill(pid, SIGKILL);
             waitpid(pid, NULL, 0);
             if (stdout_fd != -1) close(stdout_fd);
             if (stderr_fd != -1) close(stderr_fd);
-            throw CGIException("CGI script timed out");
+            throw CGIException("CGI script timed out", 504);
         }
 
         if (stdout_fd != -1 && FD_ISSET(stdout_fd, &read_fds)) {
@@ -257,7 +260,7 @@ std::vector<char> CGIHandler::readFromPipes(int stdout_fd, int stderr_fd, pid_t 
                     kill(pid, SIGTERM);
                     close(stdout_fd);
                     close(stderr_fd);
-                    throw CGIException("Max output size exceeded");
+                    throw CGIException("Max output size exceeded", 413);
                 }
             } else {
                 close(stdout_fd);

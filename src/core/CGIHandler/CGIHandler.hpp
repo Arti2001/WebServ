@@ -6,7 +6,7 @@
 /*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/06/30 12:13:08 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/07/02 18:07:03 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/07/04 12:47:08 by vshkonda      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,6 @@
 #include "../Request/Request.hpp"
 #include "../Response/Response.hpp"
 
-#define TIMEOUT_SECONDS 5
 #define MAX_OUTPUT_SIZE  10 * 1024 * 1024 // 10 MB
 #define CHUNK_SIZE 8192 // 8 KB
 
@@ -45,7 +44,11 @@ class CGIHandler {
         std::string process(void);
         class CGIException : public std::runtime_error {
             public:
-                CGIException(const std::string& message) : std::runtime_error(message) {};
+                CGIException(const std::string& message, int statusCode) : std::runtime_error(message), _statusCode(statusCode) {}
+				
+				int statusCode() const { return _statusCode; }
+			private:
+				int _statusCode; // Status code for the CGI error
         };
     
     private:
@@ -75,6 +78,7 @@ class CGIHandler {
         std::string _queryString; // Query string for the CGI script
         std::string _bodyInput; // Body input for the CGI script, if applicable
         std::string _cgiUploadPath; // Output from the CGI script execution
+		time_t _timeout; // Timeout for the CGI script execution
 		
 
 
