@@ -2,6 +2,7 @@
 #include "core/Request/Request.hpp"
 #include "core/Request/RequestParser.hpp"
 #include "core/Response/Response.hpp"
+
 #include "core/Utils.hpp"
 #include "core/ServerManager.hpp"
 
@@ -12,11 +13,11 @@ volatile sig_atomic_t	running = 1;
 
 void signalHandler(int signum)
 {
+	std::cout << " here "<< "\n";
 	std::cout << "\nInterupt signal (" << signum << ") received." << "\n";
 	running = 0;
 	std::cout << "Cleaning up all resources" << "\n";
 	std::cout << "Server shutting down..." << "\n";
-	exit(signum);
 }
 
 

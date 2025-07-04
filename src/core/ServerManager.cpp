@@ -7,9 +7,7 @@
 ServerManager::ServerManager(char* fileName, int epollSize) {
 	std::string fileNameStr;
 
-	if (std::filesystem::path(fileName).extension() != ".conf")
-		throw ServerManagerException("Invalid file name: use .conf extention");
-
+	
 	if (fileName) {
 		fileNameStr = fileName;
 		struct stat s;
@@ -20,6 +18,8 @@ ServerManager::ServerManager(char* fileName, int epollSize) {
 		fileNameStr = "default.conf";
 		createDefaultConfig();
 	}
+	if (std::filesystem::path(fileNameStr).extension() != ".conf")
+		throw ServerManagerException("Invalid file name: use .conf extention");
 
 	_configFileFd.open(fileNameStr);
 	if (!_configFileFd) {
