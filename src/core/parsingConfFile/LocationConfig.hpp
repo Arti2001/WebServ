@@ -18,6 +18,7 @@ class Location {
 	public:
 
 		Location();
+		~Location();
 		Location(const vServer& serv);
 		Location(const Location& other);
 		const Location&	operator=(const Location& other);

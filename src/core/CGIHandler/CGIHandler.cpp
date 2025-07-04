@@ -6,7 +6,7 @@
 /*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/06/30 12:13:01 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/07/02 17:03:57 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/07/03 17:00:20 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,8 +19,6 @@ CGIHandler::CGIHandler(const Request &request, const Location &location, std::st
     // This constructor can be used to set up any initial state if needed
     _scriptPath = resolveScriptPath(location.getLocationRoot(), request.getUri(), cgiIndexFile);
     _cgiPath = getInterpreter(_scriptPath);
-    std::cout << "script path is " << _scriptPath << std::endl;
-    std::cout << "cgi path is " << _cgiPath << std::endl;
     if (_cgiPath.empty()) {
         throw CGIException("No interpreter found for script: " + _scriptPath);
     }
@@ -28,12 +26,9 @@ CGIHandler::CGIHandler(const Request &request, const Location &location, std::st
         throw CGIException("Selected interpreter unavailable for this location: " + _scriptPath);
     }
     _queryString = request.getQuery();
-	std::cout << "query is " << _queryString << std::endl;
     _bodyInput = request.getBody();
 	_cgiUploadPath = location.getLocationUploadPath();
-    std::cout << "creating env vars" << std::endl;
 	std::unordered_map<std::string, std::string> envVariables = initEnvironmentVars(request);
-	std::cout << "building env vars" << std::endl;
     _envp = buildEnvironmentArray(envVariables);
     }
 
@@ -62,9 +57,9 @@ std::string CGIHandler::resolveScriptPath(const std::string& rootPath, const std
 }
 
  std::string CGIHandler::process() {
-    std::cout << "starting script execution" << std::endl;	
     std::vector<char> output = executeScript(_request);
     std::string result = parseOutput(output);
+    std::cout << "CGI output: " << result << std::endl;
 	return result;
 }
 
@@ -204,18 +199,13 @@ std::vector<char> CGIHandler::executeScript(const Request& req) {
     close(stdin_pipe[0]);
     close(stdout_pipe[1]);
     close(stderr_pipe[1]);
-	std::cout << "=== CGI Environment Variables ===" << std::endl;
-		for (size_t i = 0; _envp[i] != nullptr; ++i) {
-			std::cout << _envp[i] << std::endl;
-		}
-	std::cout << "=== END ===" << std::endl;
 	//send request body to script stdin (for POST)
 
     if (req.getMethod() == "POST") {
         if (!_bodyInput.empty()) {
-            write(stdin_pipe[1], _bodyInput.c_str(), _bodyInput.length());
-        }
-    }
+            	write(stdin_pipe[1], _bodyInput.c_str(), _bodyInput.size());
+		}
+	}
     //close stdin to signal EOF
     close(stdin_pipe[1]);
     // Read output from the child process
@@ -225,7 +215,7 @@ std::vector<char> CGIHandler::executeScript(const Request& req) {
 std::vector<char> CGIHandler::readFromPipes(int stdout_fd, int stderr_fd, pid_t pid) {
     std::vector<char> output;
     std::vector<char> errorOutput;
-    char buffer[4096];
+    char buffer[CHUNK_SIZE];
     ssize_t bytesRead;
 
     fd_set read_fds;
@@ -307,6 +297,7 @@ std::string CGIHandler::parseOutput(const std::vector<char>& output) {
     rawResponse += startLine;
 
     std::string outputStr(output.begin(), output.end());
+    std::cout << "CGI output string: " << outputStr << std::endl;
     // separate any headers that might be in the output
     std::string headers;
     //find separator between headers and body

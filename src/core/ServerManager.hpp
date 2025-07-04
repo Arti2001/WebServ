@@ -14,6 +14,8 @@
 #include <fstream>
 #include "Request/Request.hpp"
 #include "Client.hpp"
+#include <cerrno>
+#include <cstring> 
 #include "CGIHandler/CGIHandler.hpp"
 #include <map>
 
@@ -53,7 +55,7 @@ class ServerManager {
 		void					setServers();
 		void					setSocketsToEpollIn(void);
 		void					setEpollCtl( int targetFd, int eventFlag, int operation);
-		bool					setNonBlocking(int fd);
+		void					setNonBlocking(int fd);
 
 
 
