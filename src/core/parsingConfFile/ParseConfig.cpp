@@ -81,6 +81,15 @@ bool	ParseConfig::validBrace() {
 	}
 	return (false);
 }
+const vServer	ParseConfig::createDefaultConfig() {
+
+	vServer	defaultConfig;
+	Location location (defaultConfig);
+
+	defaultConfig.getServerLocations().emplace("/", location);
+
+	return(defaultConfig);
+}
 
 void	ParseConfig::parseConfigFileTokens(std::vector<vServer>& _vServers) {
 	
@@ -107,6 +116,9 @@ void	ParseConfig::parseConfigFileTokens(std::vector<vServer>& _vServers) {
 			throw ConfException("Alien object is detected at the line: " + std::to_string(_tokens[currToken].line_number));
 		}
 	}
+	if (_vServers.empty())
+		_vServers.push_back(createDefaultConfig());
+		
 	std::cout << _vServers;
 }
 

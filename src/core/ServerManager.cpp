@@ -16,7 +16,6 @@ ServerManager::ServerManager(char* fileName, int epollSize) {
 		}
 	} else {
 		fileNameStr = "default.conf";
-		createDefaultConfig();
 	}
 	if (std::filesystem::path(fileNameStr).extension() != ".conf")
 		throw ServerManagerException("Invalid file name: use .conf extention");
@@ -96,15 +95,15 @@ void	ServerManager::parsConfigFile(std::vector<vServer>& _vServers) {
 	}
 }
 
-void	ServerManager::createDefaultConfig(void) {
+//void	ServerManager::createDefaultConfig(void) {
 
-	vServer	defaulConfig;
-	Location location (defaulConfig);
+//	vServer	defaulConfig;
+//	Location location (defaulConfig);
 
-	defaulConfig.getServerLocations().emplace("/", location);
+//	defaulConfig.getServerLocations().emplace("/", location);
 
-	_vServers.push_back(defaulConfig);
-}
+//	_vServers.push_back(defaulConfig);
+//}
 
 
 
@@ -120,7 +119,7 @@ const char*	ServerManager::ServerManagerException::what() const noexcept {
 
 
 void	ServerManager::groupServers(const std::vector<vServer>& _vServers) {
-
+	std::unordered_set<std::string> seenServerNames;
 	for (const vServer& vServer : _vServers) {
 		const std::string& hostPort = vServer.getServerIpPort();
 		_hostVserverMap[hostPort].push_back(&vServer);

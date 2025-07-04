@@ -70,7 +70,7 @@ class ServerManager {
 		
 		
 		void					addClientToMap(int clientFd, int serverFd);
-		void					createDefaultConfig(void);
+		//void					createDefaultConfig(void);
 		
 		bool					isListeningSocket(int fd);
 		bool					isClientSocket(int fd);

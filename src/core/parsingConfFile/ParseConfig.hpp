@@ -69,6 +69,7 @@ class ParseConfig {
 		void											validateLocationBlockStructure();
 		std::string										findLocationPath();
 		std::pair< Token, std::vector<std::string>>		makeKeyValuePair();
+		const vServer							createDefaultConfig(void);
 		void											isSeenDirective(Token directive);
 		bool											noRepeatDirective(TokenType type) const;
 		
