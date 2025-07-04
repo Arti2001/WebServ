@@ -6,7 +6,7 @@
 /*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/06/30 12:13:08 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/07/02 15:44:20 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/07/02 18:07:03 by vshkonda      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include <iostream>
 #include <exception>
 #include <algorithm>
+#include <string_view>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -25,11 +26,14 @@
 #include <sys/select.h>
 #include <signal.h>
 #include <cstring>
+#include <cstdio>
 #include "../Request/Request.hpp"
 #include "../Response/Response.hpp"
 
 #define TIMEOUT_SECONDS 5
 #define MAX_OUTPUT_SIZE  10 * 1024 * 1024 // 10 MB
+#define CHUNK_SIZE 8192 // 8 KB
+
 
 
 
@@ -60,6 +64,7 @@ class CGIHandler {
         std::string resolveScriptPath(const std::string& rootPath, const std::string& uri, const std::string& cgiIndexFile);
         std::pair<std::string, std::string> extractScriptNameAndPathInfo(const std::string& uri);
         std::string joinPaths(const std::string& path1, const std::string& path2);
+		ssize_t writeAllInChunks(int fd, const std::string& data);
 
         //attributes
         const Request& _request;

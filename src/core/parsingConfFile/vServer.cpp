@@ -10,7 +10,7 @@ vServer::vServer() {
 	_vServerRoot = "website/pages/";
 	_vServerIndex = {"index.html"};
 	_vServerAutoIndex = false;
-	_vServerClientMaxSize = 1024 * 1024 * 10;
+	_vServerClientMaxSize = 1024 * 1024 * 1024;
 	_vServerErrorPages = {
 		
 		{400, "/errors/400.html"},
