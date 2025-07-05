@@ -406,6 +406,7 @@ void ServerManager::addCgiFdToMap(int cgiFd, int clientFd) {
 void	ServerManager::manageEpollEvent(const struct epoll_event& currEvent) {
 
 	int	fd = currEvent.data.fd;
+	std::cout << "event for fd: " << fd << std::endl;
 	for (auto cgiFd : _cgiFdClientPtrMap) {
 		if (cgiFd.first) {
 			std::cout << "Current fd in the cgi map: " << cgiFd.first << "\n";
@@ -421,6 +422,7 @@ void	ServerManager::manageEpollEvent(const struct epoll_event& currEvent) {
 		_fdClientMap.at(fd).handleResponse(fd);
 	}
 	else if (_cgiFdClientPtrMap.find(fd) != _cgiFdClientPtrMap.end()) {
+	std::cout << "got here" << std::endl;
     Client* clientPtr = _cgiFdClientPtrMap[fd];
     CGIHandler* cgiHandler = clientPtr->getResponse().getCgiHandler();
 	int stderr_fd = cgiHandler->getStderrFd();
