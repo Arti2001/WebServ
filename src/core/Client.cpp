@@ -182,20 +182,10 @@ void	Client::handleResponse(int clientFd) {
 			_closeAfterResponse = true;
 		_clientResponse = _response->getRawResponse();
 		if (_response->getIsCGI()) {
-			if (_response->getCgiHandler()->isDone()) {
-				std::cout << "CGI handler is done, preparing CGI response." << std::endl;
-				_clientResponse = _response->getCgiHandler()->finalize();
-				if (_clientResponse.empty()) {
-					std::cerr << "Error: CGI response is empty, closing client connection." << std::endl;
-					_serverManager->closeClientFd(clientFd);
-					return;
-				}
-				_clientBytesSent = 0; // Reset bytes sent for the new CGI response
-			} else {
-			std::cerr << "CGI response will follow." << std::endl;
-			return;
+				std::cerr << "CGI response will follow." << std::endl;
+				_serverManager->setEpollCtl(clientFd, EPOLLIN, EPOLL_CTL_MOD);
+				return;
 		}
-	}
 		if (_clientResponse.empty()) {
 			std::cerr << "Error: Response is empty, closing client connection." << std::endl;
 			_serverManager->closeClientFd(clientFd);
@@ -203,10 +193,15 @@ void	Client::handleResponse(int clientFd) {
 		}
 		_clientBytesSent = 0; // Reset bytes sent for the new response
 		std::cout << "Response prepared successfully." << std::endl;
-		// Set the epoll event to EPOLLOUT to send the response		
+		// Set the epoll event to EPOLLOUT to send the response	
 		}
-	const char*	servResp = _clientResponse.c_str();
-	size_t		responseSize = _clientResponse.size();
+	sendResponse(_clientResponse, clientFd);
+}
+
+void Client::sendResponse(std::string responseBody, int clientFd)
+{
+	const char*	servResp = responseBody.c_str();
+	size_t		responseSize = responseBody.size();
 	ssize_t		bytesSent = send(clientFd, servResp + _clientBytesSent, responseSize - _clientBytesSent, 0);
 	if (bytesSent == -1) {
 		_serverManager->setEpollCtl(clientFd, EPOLLOUT, EPOLL_CTL_MOD);

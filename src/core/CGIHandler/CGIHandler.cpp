@@ -6,7 +6,7 @@
 /*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/06/30 12:13:01 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/07/04 18:40:27 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/07/05 17:18:24 by vshkonda      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,8 +106,8 @@ void CGIHandler::start() {
     close(stdin_pipe[0]);
     close(stdout_pipe[1]);
     close(stderr_pipe[1]);
-    fcntl(_stdout_fd, F_SETFL, O_NONBLOCK);
-    fcntl(_stderr_fd, F_SETFL, O_NONBLOCK);
+	ServerManager::setNonBlocking(_stdout_fd);
+	ServerManager::setNonBlocking(_stderr_done);
     _stdout_done = false;
     _stderr_done = false;
     _process_done = false;
@@ -121,13 +121,10 @@ void CGIHandler::start() {
 void CGIHandler::handleEvent(int fd) {
     char buffer[CHUNK_SIZE];
     ssize_t bytesRead;
-	std::cout << "Handling event for fd: " << fd << std::endl;
-	std::cout << "stdout fd: " << _stdout_fd << ", stderr fd: " << _stderr_fd << std::endl;
     if (fd == _stdout_fd && !_stdout_done) {
         while ((bytesRead = read(_stdout_fd, buffer, sizeof(buffer))) > 0) {
             _output.insert(_output.end(), buffer, buffer + bytesRead);
         }
-		std::cout << "Finished reading from stdout, bytes read: " << bytesRead << std::endl;
         if (bytesRead == 0) { // EOF
             close(_stdout_fd);
             _stdout_done = true;
@@ -137,7 +134,6 @@ void CGIHandler::handleEvent(int fd) {
         while ((bytesRead = read(_stderr_fd, buffer, sizeof(buffer))) > 0) {
             _errorOutput.insert(_errorOutput.end(), buffer, buffer + bytesRead);
         }
-		std::cout << "Finished reading from stderr, bytes read: " << bytesRead << std::endl;
         if (bytesRead == 0) { // EOF
             close(_stderr_fd);
             _stderr_done = true;
@@ -146,7 +142,6 @@ void CGIHandler::handleEvent(int fd) {
     int status;
     if (!_process_done && waitpid(_pid, &status, WNOHANG) > 0) {
         _process_done = true;
-        // Optionally, store exit status for error handling
     }
 }
 

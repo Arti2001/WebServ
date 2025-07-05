@@ -56,7 +56,7 @@ class ServerManager {
 		void					setServers();
 		void					setSocketsToEpollIn(void);
 		void					setEpollCtl( int targetFd, int eventFlag, int operation);
-		void					setNonBlocking(int fd);
+		static void				setNonBlocking(int fd);
 
 
 

@@ -427,16 +427,19 @@ void	ServerManager::manageEpollEvent(const struct epoll_event& currEvent) {
     CGIHandler* cgiHandler = clientPtr->getResponse().getCgiHandler();
 	int stderr_fd = cgiHandler->getStderrFd();
 	int stdout_fd = cgiHandler->getStdoutFd();
+	std::cout << "stderr: " << stderr_fd << "stdout: " << stdout_fd << std::endl;
     if (fd == stdout_fd || fd == stderr_fd) {
         cgiHandler->handleEvent(fd);
-
+		
         // If both stdout and stderr are done, and the process is done, clean up
         if (cgiHandler->isDone()) {
-            clientPtr->getResponse().sendCGIResponse();
-
+            clientPtr->getResponse().generateCGIResponse();
+			std::string cgiResponse = clientPtr->getResponse().getRawResponse();
             int stdout_fd = cgiHandler->getStdoutFd();
             int stderr_fd = cgiHandler->getStderrFd();
-
+			int clientFd = clientPtr->getResponse().getClientFd();
+			setEpollCtl(clientFd, EPOLLOUT, EPOLL_CTL_MOD);
+			clientPtr->sendResponse(cgiResponse, clientFd);
             // Remove from epoll and tracking map before closing
             setEpollCtl(stdout_fd, EPOLLIN, EPOLL_CTL_DEL);
             setEpollCtl(stderr_fd, EPOLLIN, EPOLL_CTL_DEL);

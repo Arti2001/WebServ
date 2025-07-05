@@ -6,7 +6,7 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:04:57 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/07/04 18:29:25 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/07/05 16:02:17 by vshkonda      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,6 +103,7 @@ class Response {
         void setStatusMessage(const std::string& reasonPhrase);
 		CGIHandler* getCgiHandler() const { return _cgiHandler.get(); }
 		bool getIsCGI() const { return _isCgi; }
+		int getClientFd() const { return _clientFd;}
 
         //Headers
         void addHeader(const std::string& key, const std::string& value);
@@ -116,7 +117,7 @@ class Response {
 
         void generateResponse(); // Generate the full HTTP response string
         static    std::string getMimeType(const std::string &path); // Get the MIME type based on the file extension
-		void sendCGIResponse();
+		void generateCGIResponse();
 };
 
 #endif

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import os, sys, cgi, cgitb, shutil, json
+import os, sys, cgi, cgitb, shutil, json, time
 
 sys.stderr.write(f"CGI got {os.environ.get('CONTENT_LENGTH')} bytes, "
                  f"stdin has {len(sys.stdin.buffer.peek())} bytes\n")

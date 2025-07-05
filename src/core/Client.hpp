@@ -62,6 +62,7 @@ class Client{
 
 		void					handleRequest( int clientFd );
 		void					handleResponse( int clientFd );
+		void					sendResponse(std::string responseBody, int clientFd);
 		
 		std::string				prepareResponse(int clientFd);
 		std::string				getCgiResponse(Request &request);

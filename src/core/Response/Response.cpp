@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>                +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/07/04 19:17:48 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/07/05 17:20:37 by vshkonda      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -273,23 +273,18 @@ void Response::handleCGIRequest() {
     }
 }
 
-void Response::sendCGIResponse(){
+void Response::generateCGIResponse(){
+	_rawResponse.clear();
 	_rawResponse = _cgiHandler->finalize(); // Get the final response from the CGI handler
 	if (_rawResponse.empty()) {
 		setStatusCode(500); // Internal Server Error
 		return generateErrorResponse();
 	}
-	std::cout << "CGI response generated successfully." << std::endl;
-	addHeader("Content-Type", "text/html"); // Set content type for CGI response
-	addHeader("Connection", "close"); // Close connection after response
-	createStartLine();
-	createHeaders();
 }
 
 
 
 void Response::handleGetRequest() {
-    std::cout << "Handling get request" << std::endl;
     if (!isMethodAllowed("GET")) {
         setStatusCode(405); // Method Not Allowed
         return generateErrorResponse();
@@ -298,7 +293,6 @@ void Response::handleGetRequest() {
     std::string fullPath = _locationConfig->getLocationRoot() + resolveRelativePath(path, _locationConfig->getLocationPath());
     
     if (!fileExists(fullPath) && !_validPath) {
-        std::cout << "File not found" << std::endl;
         setStatusCode(404);
         return generateErrorResponse();
     }
@@ -316,7 +310,6 @@ void Response::handleGetRequest() {
             }
 		}
 		if (!foundIndex) {
-			std::cout << "Index file not found" << std::endl;
 			if (_locationConfig->getLocationAutoIndex()) {
 				_body = generateDirectoryListing(fullPath, _locationConfig->getLocationPath());
 				return ;
@@ -403,7 +396,6 @@ std::string Response::createUploadFile() {
     }
     outFile.write(body.data(), body.size());
     outFile.close();
-    std::cout << "File created. Path is " << filePath << std::endl;
     return fileName; // Return the path of the uploaded file
 }
 
@@ -427,7 +419,7 @@ void Response::handlePostRequest() {
         std::cout << "Error creating upload file" << std::endl;
         return generateErrorResponse();
     }
-    _body = "POST request handled successfully"; // Example response body
+    _body = "POST request handled successfully"; // Successful post response body
     _body += "\nFile ID: " + fileName; // Append the file ID to the response body
     setStatusCode(200); // Set status code to 200 OK
     addHeader("Content-Length", std::to_string(_body.size()));
@@ -545,8 +537,6 @@ std::string Response::resolveRelativePath(const std::string &path, const std::st
 
 bool Response::isMethodAllowed(const std::string &method) const {
     const std::unordered_set<std::string>& allowedMethods = _locationConfig->getLocationAllowedMethods();
-    std::cout << "Checking if method " << method << " is allowed." << std::endl;
-    std::cout << "Allowed methods: ";
     for (const auto &allowedMethod : allowedMethods) {
         std::cout << allowedMethod << " ";
     }
