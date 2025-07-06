@@ -6,7 +6,7 @@
 /*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/06/30 12:13:01 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/07/04 13:50:15 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/07/06 14:11:31 by vshkonda      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,9 @@ CGIHandler::CGIHandler(const Request &request, const Location &location, std::st
 	std::unordered_map<std::string, std::string> envVariables = initEnvironmentVars(request);
     _envp = buildEnvironmentArray(envVariables);
 	_timeout = request.getTimeout();
+	_stderr_done = false;
+	_stdout_done = false;
+	_process_done = false;
     }
 
 CGIHandler::~CGIHandler()
@@ -57,11 +60,97 @@ std::string CGIHandler::resolveScriptPath(const std::string& rootPath, const std
     return scriptPath;
 }
 
- std::string CGIHandler::process() {
-    std::vector<char> output = executeScript(_request);
-    std::string result = parseOutput(output);
-    std::cout << "CGI output: " << result << std::endl;
-	return result;
+void CGIHandler::start() {
+    int stdin_pipe[2], stdout_pipe[2], stderr_pipe[2];
+    if (pipe(stdin_pipe) < 0 || pipe(stdout_pipe) < 0 || pipe(stderr_pipe) < 0)
+        throw CGIException("Failed to create pipes", 500);
+
+    _pid = fork();
+    if (_pid < 0) throw CGIException("Failed to fork", 500);
+
+    if (_pid == 0) {
+        std::string scriptName;
+        dup2(stdin_pipe[0], STDIN_FILENO);
+        dup2(stdout_pipe[1], STDOUT_FILENO);
+        dup2(stderr_pipe[1], STDERR_FILENO);
+        close(stdin_pipe[0]); 
+		close(stdin_pipe[1]);
+        close(stdout_pipe[0]); 
+		close(stdout_pipe[1]);
+        close(stderr_pipe[0]); 
+		close(stderr_pipe[1]);
+        size_t lastSlash = _scriptPath.find_last_of('/');
+        if (lastSlash != std::string::npos) {
+            std::string scriptDir = _scriptPath.substr(0, lastSlash);
+            if (chdir(scriptDir.c_str()) != 0) {
+                perror("CGI chdir failed");
+                exit(1);
+            }
+        }
+        if (lastSlash != std::string::npos)
+            scriptName = _scriptPath.substr(lastSlash + 1);
+        if (!_cgiPath.empty()) {
+            const char* args[] = {_cgiPath.c_str(), scriptName.c_str(), nullptr};
+            execve(_cgiPath.c_str(), const_cast<char* const*>(args), _envp);
+        } else {
+            const char* args[] = {scriptName.c_str(), nullptr};
+            execve(scriptName.c_str(), const_cast<char* const*>(args), _envp);
+        }
+        perror("CGI execve failed for script");
+        exit(1);
+    }
+
+    _stdin_fd = stdin_pipe[1];
+    _stdout_fd = stdout_pipe[0];
+    _stderr_fd = stderr_pipe[0];
+    close(stdin_pipe[0]);
+    close(stdout_pipe[1]);
+    close(stderr_pipe[1]);
+	ServerManager::setNonBlocking(_stdout_fd);
+	ServerManager::setNonBlocking(_stderr_done);
+    _stdout_done = false;
+    _stderr_done = false;
+    _process_done = false;
+    if (_request.getMethod() == "POST" && !_bodyInput.empty()) {
+        write(_stdin_fd, _bodyInput.c_str(), _bodyInput.size());
+    }
+    close(_stdin_fd);
+    // Register _stdout_fd and _stderr_fd with your event loop for EPOLLIN
+}
+
+void CGIHandler::handleEvent(int fd) {
+    char buffer[CHUNK_SIZE];
+    ssize_t bytesRead;
+    if (fd == _stdout_fd && !_stdout_done) {
+        while ((bytesRead = read(_stdout_fd, buffer, sizeof(buffer))) > 0) {
+            _output.insert(_output.end(), buffer, buffer + bytesRead);
+        }
+        if (bytesRead == 0) { // EOF
+            close(_stdout_fd);
+            _stdout_done = true;
+        }
+    }
+    if (fd == _stderr_fd && !_stderr_done) {
+        while ((bytesRead = read(_stderr_fd, buffer, sizeof(buffer))) > 0) {
+            _errorOutput.insert(_errorOutput.end(), buffer, buffer + bytesRead);
+        }
+        if (bytesRead == 0) { // EOF
+            close(_stderr_fd);
+            _stderr_done = true;
+        }
+    }
+    int status;
+    if (!_process_done && (waitpid(_pid, &status, WNOHANG) > 0 || WIFEXITED(status))) {
+        _process_done = true;
+    }
+}
+
+bool CGIHandler::isDone() const {
+    return _stdout_done && _stderr_done && _process_done;
+}
+
+std::string CGIHandler::finalize() {
+    return parseOutput(_output);
 }
 
 std::unordered_map<std::string, std::string> CGIHandler::initEnvironmentVars(const Request& request) {
@@ -135,172 +224,12 @@ std::string CGIHandler::getInterpreter(const std::string& scriptPath) {
     return "";
 }
 
-std::vector<char> CGIHandler::executeScript(const Request& req) {
-    //setup pipes for communication
-    int stdin_pipe[2];
-    int stdout_pipe[2];
-    int stderr_pipe[2];
-
-    if (pipe(stdin_pipe) < 0 || pipe(stdout_pipe) < 0 || pipe(stderr_pipe) < 0) {
-        throw CGIException("Failed to create pipes", 500);
-    }
-	pid_t pid = fork();
-    if (pid < 0) {
-        //fork failed
-        close(stdin_pipe[0]);
-        close(stdin_pipe[1]);
-        close(stdout_pipe[0]);
-        close(stdout_pipe[1]);
-        close(stderr_pipe[0]);
-        close(stderr_pipe[1]);
-        throw CGIException("Failed to fork", 500);
-    }
-    if (pid == 0) {
-		std::string scriptName;
-        //child process
-        //redirect stdin/stdout/stderr
-        dup2(stdin_pipe[0], STDIN_FILENO);
-        dup2(stdout_pipe[1], STDOUT_FILENO);
-        dup2(stderr_pipe[1], STDERR_FILENO);
-        
-        // Close all original pipe file descriptors as they are duplicated now
-        close(stdin_pipe[0]);
-        close(stdin_pipe[1]);
-        close(stdout_pipe[0]);
-        close(stdout_pipe[1]);
-        close(stderr_pipe[0]);
-        close(stderr_pipe[1]);
-        
-        // Change to script directory
-        size_t lastSlash = _scriptPath.find_last_of('/');
-        if (lastSlash != std::string::npos) {
-            std::string scriptDir = _scriptPath.substr(0, lastSlash);
-            if (chdir(scriptDir.c_str()) != 0) {
-                perror("CGI chdir failed");
-                exit(1);
-            }
-        }
-
-        // Extract script filename
-    	if (lastSlash != std::string::npos) 
-    	     scriptName = _scriptPath.substr(lastSlash + 1);
-        if (!_cgiPath.empty()) {
-    		const char* args[] = {_cgiPath.c_str(), scriptName.c_str(), nullptr};
-    		execve(_cgiPath.c_str(), const_cast<char* const*>(args), _envp);
-		} else {
-    		const char* args[] = {scriptName.c_str(), nullptr};
-    		execve(scriptName.c_str(), const_cast<char* const*>(args), _envp);
-		}
-		
-        //execve failed if we get here
-        perror("CGI execve failed for script");
-        exit(1);
-    }
-    
-    //close unused pipes
-    close(stdin_pipe[0]);
-    close(stdout_pipe[1]);
-    close(stderr_pipe[1]);
-	//send request body to script stdin (for POST)
-
-    if (req.getMethod() == "POST") {
-        if (!_bodyInput.empty()) {
-            	write(stdin_pipe[1], _bodyInput.c_str(), _bodyInput.size());
-		}
-	}
-    //close stdin to signal EOF
-    close(stdin_pipe[1]);
-    // Read output from the child process
-    return readFromPipes(stdout_pipe[0], stderr_pipe[0], pid);
-}
-
-std::vector<char> CGIHandler::readFromPipes(int stdout_fd, int stderr_fd, pid_t pid) {
-    std::vector<char> output;
-    std::vector<char> errorOutput;
-    char buffer[CHUNK_SIZE];
-    ssize_t bytesRead;
-
-    fd_set read_fds;
-    struct timeval timeout;
-
-    while (stdout_fd != -1 || stderr_fd != -1) {
-        FD_ZERO(&read_fds);
-        if (stdout_fd != -1) FD_SET(stdout_fd, &read_fds);
-        if (stderr_fd != -1) FD_SET(stderr_fd, &read_fds);
-
-        int max_fd = 0;
-        if (stdout_fd != -1) max_fd = std::max(max_fd, stdout_fd);
-        if (stderr_fd != -1) max_fd = std::max(max_fd, stderr_fd);
-
-        timeout.tv_sec = _timeout;
-        timeout.tv_usec = 0;
-
-        int activity = select(max_fd + 1, &read_fds, nullptr, nullptr, &timeout);
-
-		std::cout << "stdout_fd: " << stdout_fd << ", stderr_fd: " << stderr_fd << std::endl;
-        if (activity < 0) {
-            if (stdout_fd != -1) close(stdout_fd);
-            if (stderr_fd != -1) close(stderr_fd);
-            throw CGIException("select() failed", 500);
-        }
-		std::cout << "CGI select activity: " << activity << std::endl;
-        if (activity == 0) {
-            kill(pid, SIGKILL);
-            waitpid(pid, NULL, 0);
-            if (stdout_fd != -1) close(stdout_fd);
-            if (stderr_fd != -1) close(stderr_fd);
-            throw CGIException("CGI script timed out", 504);
-        }
-
-        if (stdout_fd != -1 && FD_ISSET(stdout_fd, &read_fds)) {
-            bytesRead = read(stdout_fd, buffer, sizeof(buffer));
-            if (bytesRead > 0) {
-                output.insert(output.end(), buffer, buffer + bytesRead);
-                if (output.size() > MAX_OUTPUT_SIZE) {
-                    kill(pid, SIGTERM);
-                    close(stdout_fd);
-                    close(stderr_fd);
-                    throw CGIException("Max output size exceeded", 413);
-                }
-            } else {
-                close(stdout_fd);
-                stdout_fd = -1;
-            }
-        }
-
-        if (stderr_fd != -1 && FD_ISSET(stderr_fd, &read_fds)) {
-            bytesRead = read(stderr_fd, buffer, sizeof(buffer));
-            if (bytesRead > 0) {
-                errorOutput.insert(errorOutput.end(), buffer, buffer + bytesRead);
-            } else {
-                close(stderr_fd);
-                stderr_fd = -1;
-            }
-        }
-    }
-
-    int status;
-    waitpid(pid, &status, 0);
-
-    if (WIFEXITED(status) && WEXITSTATUS(status) != 0) {
-        //script exited with non-zero status
-        std::string errorMsg = "CGI exited with non-zero status " + std::to_string(WEXITSTATUS(status));
-        if (!errorOutput.empty()) {
-            errorMsg += ". Stderr: " + std::string(errorOutput.begin(), errorOutput.end());
-        }
-        throw CGIException(errorMsg, 500);
-    }
-    
-    return output;
-}
-
 std::string CGIHandler::parseOutput(const std::vector<char>& output) {
     std::string rawResponse;
     std::string startLine = "HTTP/1.1 200 OK\r\n";
     rawResponse += startLine;
 
     std::string outputStr(output.begin(), output.end());
-    std::cout << "CGI output string: " << outputStr << std::endl;
     // separate any headers that might be in the output
     std::string headers;
     //find separator between headers and body
@@ -308,7 +237,7 @@ std::string CGIHandler::parseOutput(const std::vector<char>& output) {
     if (headerEnd == std::string::npos) {
        //no headers, treat output as body
        headers += "Content-Type: text/html\r\n";
-       headers += "\r\nContent-Length: " + std::to_string(output.size()) + "\r\n";
+       headers += "Content-Length: " + std::to_string(output.size()) + "\r\n";
        rawResponse += headers + "\r\n";
        rawResponse += outputStr;
        return rawResponse;

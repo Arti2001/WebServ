@@ -1,5 +1,16 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        ::::::::            */
+/*   Client.cpp                                         :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/07/06 13:07:50 by vshkonda      #+#    #+#                 */
+/*   Updated: 2025/07/06 13:40:18 by vshkonda      ########   odam.nl         */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "Client.hpp" 
-// #include "Request/RequestParser.hpp"
 
 
 Client::Client(int serverFd, ServerManager* serverManager) : _headersParsed(false), _clientBytesSent(0),
@@ -15,20 +26,12 @@ Client::Client(const Client& other) : _request(other._request), _startLineAndHea
 	_bodyBuffer(other._bodyBuffer), _headersParsed(other._headersParsed), _bodyStart(other._bodyStart),
 	_clientBytesSent(other._clientBytesSent), _clientResponse(other._clientResponse), _serverFd(other._serverFd),
 	_serverManager(other._serverManager), _lastActiveTime(other._lastActiveTime), _closeAfterResponse(other._closeAfterResponse) {
-	std::cout << "Copy constructor called for Client" << std::endl;
 }
 
 //Setters
 void	Client::setLastActiveTime( std::time_t timeStamp) {
 	this->_lastActiveTime = timeStamp;
 }
-
-// void Client::setIsClosed(bool flag) {
-// 	this->_closed = flag;
-// }
-
-
-
 
 //Getters
 
@@ -45,38 +48,13 @@ size_t& Client::getClientsBytesSent(void) {
 	return(_clientBytesSent);
 }
 
-// const std::string&	Client::getClientsResponse(void) const {
-// 	return(_clientResponse);
-// }
-
-//bool&	Client::getIsClosed(void) {
-//	return(_closed);
-//}
-
-
-
-
-// std::string	Client::getCgiResponse(Request &request) {
-
-// 	CGIHandler	cgiHandler;
-// 	std::cout << "we call CGI" << std::endl;
-// 	Response cgiResponse = cgiHandler.handle(request);
-// 	// std::vector<char> respVector = cgiResponse.serialize();
-// 	std::string respStr(respVector.begin(), respVector.end());
-
-// 	return(respStr);
-// }
-
-
-
-std::string	Client::prepareResponse() {
-	std::cout << "Preparing response for client: " << this->getServerFd() << std::endl;
+std::string	Client::prepareResponse(int clientFd) {
 	int		socketClientConnectedTo = this->getServerFd();
-	Response response(&_request, _serverManager, socketClientConnectedTo);
-	response.generateResponse();
-	if (getAnyHeader(response.getHeaders(), "Connection") == "close")
+	Response _response(&_request, _serverManager, socketClientConnectedTo, clientFd);
+	_response.generateResponse();
+	if (getAnyHeader(_response.getHeaders(), "Connection") == "close")
 		_closeAfterResponse = true;
-	return (response.getRawResponse());
+	return (_response.getRawResponse());
 }
 
 
@@ -123,12 +101,11 @@ void    Client::handleRequest (int clientFd) {
 		if (!_headersParsed) {
 			_startLineAndHeadersBuffer += incomingData;
 			if (!headersComplete(_startLineAndHeadersBuffer)) {
-				std::cout << "Request is still incomplete, waiting for more data..." << std::endl;
+				std::cout << "Headers not complete yet, waiting for more data..." << std::endl;
 				return;
 			}
 			_request.reset();
 			_request = Request(_startLineAndHeadersBuffer);
-			std::cout << "Trying to parse request for " << clientFd << std::endl;
 			try {
 				if (!_headersParsed)
 					_request.parseRequest();
@@ -141,8 +118,6 @@ void    Client::handleRequest (int clientFd) {
 		}
 		// If headers are parsed, we can now check for the body. It is optional depending on request type, 
 		// so it is separated from the headers parsing logic.
-		std::cout << "Is body expected? " << (_request.getBodyExpected() ? "Yes" : "No") << std::endl;
-
 		if (_headersParsed && _request.getBodyExpected())
 		{
 			_bodyBuffer += incomingData.substr(_bodyStart); // we append the chunk that may have been read with headers
@@ -153,41 +128,55 @@ void    Client::handleRequest (int clientFd) {
 				_bodyBuffer.clear(); // Clear the body buffer after parsing
 				
 			} else {
-				std::cout << "Body is not complete, waiting for more data..." << std::endl;
+				std::cout << "Body not complete yet, waiting for more data..." << std::endl;
 				return;
 			}
 		}
-		std::cout << "Request parsed successfully." << std::endl;
+		_startLineAndHeadersBuffer.clear(); // Clear the buffer after parsing headers and body
+		_headersParsed = false; // Reset the headers parsed flag for the next request
+		std::cout << "Request start line: " << _request.getPath() << std::endl;
 		_serverManager->setEpollCtl(clientFd, EPOLLOUT, EPOLL_CTL_MOD);
         return ;
 		
     }
-    else if (bytesRead == 0){
+    else if (bytesRead == 0) {
         std::cout << "Client disconnected: Clean up!" << std::endl;
         _serverManager->closeClientFd(clientFd);
         return;
-    }
-    else
+    } else {
         std::cout << "Recv failed"<< std::endl;
 		_serverManager->closeClientFd(clientFd);
 		return;
+	}
 }
 
 
 void	Client::handleResponse(int clientFd) {
 	if (_clientResponse.empty()) {
-		_clientResponse = this->prepareResponse();
+		_response =std::make_unique<Response>(&_request, _serverManager, _serverFd, clientFd);
+		_response->generateResponse();
+		if (getAnyHeader(_response->getHeaders(), "Connection") == "close")
+			_closeAfterResponse = true;
+		_clientResponse = _response->getRawResponse();
+		if (_response->getIsCGI()) {
+			std::cout << "CGI is coming" << std::endl;
+			_serverManager->setEpollCtl(clientFd, EPOLLIN, EPOLL_CTL_MOD);
+			return;
+		}
 		if (_clientResponse.empty()) {
 			std::cerr << "Error: Response is empty, closing client connection." << std::endl;
 			_serverManager->closeClientFd(clientFd);
 			return;
 		}
 		_clientBytesSent = 0; // Reset bytes sent for the new response
-		std::cout << "Response prepared successfully." << std::endl;
-		// Set the epoll event to EPOLLOUT to send the response		
-		}
-	const char*	servResp = _clientResponse.c_str();
-	size_t		responseSize = _clientResponse.size();
+	}
+	sendResponse(_clientResponse, clientFd);
+}
+
+void Client::sendResponse(std::string responseBody, int clientFd)
+{
+	const char*	servResp = responseBody.c_str();
+	size_t		responseSize = responseBody.size();
 	ssize_t		bytesSent = send(clientFd, servResp + _clientBytesSent, responseSize - _clientBytesSent, 0);
 	if (bytesSent == -1) {
 		_serverManager->setEpollCtl(clientFd, EPOLLOUT, EPOLL_CTL_MOD);
@@ -195,7 +184,6 @@ void	Client::handleResponse(int clientFd) {
 	}
 	_clientBytesSent += bytesSent;
 	if (_clientBytesSent == responseSize) {
-		std::cout << "All data sent" << "\n";
 		_clientBytesSent = 0;
 		_serverManager->closeClientFd(clientFd);	
 	}

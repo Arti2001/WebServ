@@ -1,12 +1,11 @@
 #!/usr/bin/php
 <?php
-header('Content-Type: text/html');
 
 // Get timeout duration from query string (default 30 seconds)
-$timeout = isset($_GET['timeout']) ? intval($_GET['timeout']) : 30;
+$timeout = isset($_GET['timeout']) ? intval($_GET['timeout']) : 5;
 
 // Cap maximum timeout at 60 seconds
-$timeout = min($timeout, 60);
+$timeout = min($timeout, 10);
 
 // Sleep for the specified duration
 sleep($timeout);

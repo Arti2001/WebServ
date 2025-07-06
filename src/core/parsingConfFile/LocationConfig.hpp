@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        ::::::::            */
+/*   LocationConfig.hpp                                 :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/07/06 13:09:00 by vshkonda      #+#    #+#                 */
+/*   Updated: 2025/07/06 13:09:01 by vshkonda      ########   odam.nl         */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef LOCATIONCONFIG_HPP
 #define LOCATIONCONFIG_HPP
 

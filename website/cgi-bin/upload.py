@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import os, sys, cgi, cgitb, shutil, json
+import os, sys, cgi, cgitb, shutil, json, time
 
 sys.stderr.write(f"CGI got {os.environ.get('CONTENT_LENGTH')} bytes, "
                  f"stdin has {len(sys.stdin.buffer.peek())} bytes\n")
@@ -39,7 +39,6 @@ def main():
 
     # Parse multipart/form-data
     form = cgi.FieldStorage()
-    # reply("keys form", list(form.keys()))
 
     if "uploadFile" not in form:
         reply("error", f"No form part named 'uploadFile' found. Form is {form}")

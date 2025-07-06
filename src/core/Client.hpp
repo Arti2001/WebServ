@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        ::::::::            */
+/*   Client.hpp                                         :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/07/06 13:07:57 by vshkonda      #+#    #+#                 */
+/*   Updated: 2025/07/06 13:07:58 by vshkonda      ########   odam.nl         */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
 #define REQUEST_READ_BUFFER			15000
@@ -12,7 +24,7 @@
 #include <unistd.h>
 
 class ServerManager;
-class RequestParser;
+class Response;
 
 class Client{
 
@@ -28,6 +40,7 @@ class Client{
 		std::string				_clientResponse;
 		int						_serverFd;
 		ServerManager*			_serverManager;
+		std::unique_ptr<Response> 	_response; // Pointer to the response object, if needed
 		std::time_t				_lastActiveTime;
 		bool					_closeAfterResponse;
 
@@ -54,14 +67,16 @@ class Client{
 		int					getServerFd( void ) const;
 		size_t&				getClientsBytesSent( void );
 		Request&			getRequest( void ) { return (_request); }
+		Response&			getResponse( void ) { return (*_response); };
 
 		//methods
 
 
 		void					handleRequest( int clientFd );
 		void					handleResponse( int clientFd );
+		void					sendResponse(std::string responseBody, int clientFd);
 		
-		std::string				prepareResponse();
+		std::string				prepareResponse(int clientFd);
 		std::string				getCgiResponse(Request &request);
 
 		static std::string				getAnyHeader(std::unordered_map<std::string, std::string> headers, std::string headerName);
