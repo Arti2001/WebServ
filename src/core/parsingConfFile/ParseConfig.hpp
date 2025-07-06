@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ParseConfig.hpp                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/07/06 13:09:10 by vshkonda          #+#    #+#             */
+/*   Updated: 2025/07/06 14:26:00 by amysiv           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef PARSECONFIG_HPP
 #define PARSECONFIG_HPP
 
@@ -73,16 +85,11 @@ class ParseConfig {
 		void											isSeenDirective(Token directive);
 		bool											noRepeatDirective(TokenType type) const;
 		
-		
+	
 		//helper
 		bool											validBrace();
 		bool											isTokenDirective(TokenType type) const;
 
-
-		////getters
-		//std::vector<vServer>		getVSevers( void ) const;
-		
-		
 		class ConfException : public std::exception {
 			private:
 				std::string	_message;

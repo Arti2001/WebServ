@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Client.hpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/07/06 13:07:57 by vshkonda          #+#    #+#             */
+/*   Updated: 2025/07/06 15:08:50 by amysiv           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
 #define REQUEST_READ_BUFFER			15000
@@ -12,12 +24,11 @@
 #include <unistd.h>
 
 class ServerManager;
-class RequestParser;
+class Response;
 
 class Client{
 
 	private:
-		//
 		Request					_request;
 		std::string				_startLineAndHeadersBuffer;
 		std::string				_bodyBuffer;
@@ -28,6 +39,7 @@ class Client{
 		std::string				_clientResponse;
 		int						_serverFd;
 		ServerManager*			_serverManager;
+		std::unique_ptr<Response>_response;
 		std::time_t				_lastActiveTime;
 		bool					_closeAfterResponse;
 
@@ -54,14 +66,16 @@ class Client{
 		int					getServerFd( void ) const;
 		size_t&				getClientsBytesSent( void );
 		Request&			getRequest( void ) { return (_request); }
+		Response&			getResponse( void ) { return (*_response); };
 
 		//methods
 
 
 		void					handleRequest( int clientFd );
 		void					handleResponse( int clientFd );
+		void					sendResponse(std::string responseBody, int clientFd);
 		
-		std::string				prepareResponse();
+		std::string				prepareResponse(int clientFd);
 		std::string				getCgiResponse(Request &request);
 
 		static std::string				getAnyHeader(std::unordered_map<std::string, std::string> headers, std::string headerName);

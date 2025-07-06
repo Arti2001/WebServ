@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   vServer.cpp                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/07/06 13:09:17 by vshkonda          #+#    #+#             */
+/*   Updated: 2025/07/06 15:09:55 by amysiv           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 
 #include "vServer.hpp" 
 
@@ -184,15 +196,9 @@ void	vServer::validateServerNames(std::vector<std::string>& namesVector) {
 		throw ParseConfig::ConfException("Invalid server-name directive: max 2 names");
 	}
 
-	std::regex namePattern(R"(^[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+$)");
 	for (std::string& name : namesVector) {
-
-		if (std::regex_match(name, namePattern) || (name == "localhost")) {
 			_vServerNames.clear();
 			_vServerNames.insert(name);
-		}
-		else
-			throw ParseConfig::ConfException("Input does not match 'example.com' format .\n");
 	}
 }
 

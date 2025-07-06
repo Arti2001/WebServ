@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>                +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/07/04 12:48:21 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/07/06 18:49:48 by vshkonda      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,13 +14,37 @@
 
 Response::Response() {}
 
-Response::Response(Request *request, ServerManager *ServerManager, int clientSocket) : 
+Response::Response(Request *request, ServerManager *ServerManager, int serverFd, int clientFd) : 
     _request(request),
     _serverManager(ServerManager),
     _serverConfig(nullptr),
     _locationConfig(nullptr),
-    _clientSocket(clientSocket),
-    _rawResponse("")
+    _serverFd(serverFd),
+	_clientFd(clientFd),
+	_isCgi(false),
+	_cgiHandler(nullptr),
+	_statusCode(200), // Default status code
+	_validPath(false), // Initially set to false, will be updated later
+    _rawResponse(""),
+	_statusMessage("OK"), // Default status message
+	_headers(),
+	_body(""),
+	_statusMessages({
+		{200, "OK"},
+		{301, "Moved Permanently"},
+		{400, "Bad Request"},
+		{401, "Unauthorized"},
+		{403, "Forbidden"},
+		{404, "Not Found"},
+		{405, "Method Not Allowed"},
+		{408, "Request Timeout"},
+		{413, "Payload Too Large"},
+		{418, "I'm a teapot"},
+		{429, "Too Many Requests"},
+		{500, "Internal Server Error"}
+	}),
+	_cgiIndexFile("")
+	
 {
     _statusCode = request->getStatusCode();
     _statusMessage = _statusMessages[_statusCode];
@@ -62,23 +86,20 @@ const std::string& Response::getBody() const {
 }
 
 void Response::matchServer() {
-    const std::vector<const vServer*>&	subServConfigs = _serverManager->findServerConfigsByFd(_clientSocket);
+    const std::vector<const vServer*>&	subServConfigs = _serverManager->findServerConfigsByFd(_serverFd);
 	if (subServConfigs.empty()) {
 		std::cerr << "No server configurations found for the connected socket." << std::endl;
 		// Handle the error, e.g., return a 500 Internal Server Error response
 		setStatusCode(500);
         return ;
 	}
-    std::cout << "About to check host" << std::endl;
     std::string hostHeaderValue = Client::getAnyHeader(_request->getHeaders(), "Host");
     if (hostHeaderValue.empty()) {
         setStatusCode(400);
         return ;
     }
-    std::cout << "Host found:" << hostHeaderValue << std::endl;
     
     _serverConfig = _serverManager->findServerConfigByName(subServConfigs, hostHeaderValue);
-    std::cout << "Server config found: " << (_serverConfig ? "Yes" : "No") << std::endl;
     if (!_serverConfig) {
         setStatusCode(404);
         return ;
@@ -93,7 +114,6 @@ void Response::matchLocation() {
         return;
     }
     _locationConfig = _serverManager->findLocationBlockByUri(*_serverConfig, _request->getUri());
-    std::cout << "Location block found: " << (_locationConfig ? "Yes" : "No") << std::endl;
     if (!_locationConfig) {
         std::cerr << "No matching location block found for the request URI. No default." << std::endl;
         setStatusCode(404);
@@ -102,9 +122,6 @@ void Response::matchLocation() {
     if (_locationConfig->getLocationReturnPages().first) {
         setStatusCode(_locationConfig->getLocationReturnPages().first);
 	}
-	std::cout << "Location max client size: " << _locationConfig->getLocationClientMaxSize() << std::endl;
-	std::cout << "Request body size: " << _request->getBodySize() << std::endl;
-	std::cout << "Code: " << _statusCode << std::endl;
     if (_locationConfig->getLocationClientMaxSize() < static_cast<unsigned int>(_request->getBodySize()))
         setStatusCode(413);
 }
@@ -122,7 +139,6 @@ void Response::generateResponse() {
 
     if (_statusCode >= 300 && _statusCode < 400)
         return handleRedirectRequest();
-    std::cout << "Checking if it is a cgi request" << std::endl;
     if (isCgiRequest())
         return handleCGIRequest();
 
@@ -154,7 +170,9 @@ void Response::generateErrorResponse() {
     _body.clear();
     
 	// match the error code with the custom html error page if it exists
-	if (_locationConfig->getLocationErrorPages().find(_statusCode) != _locationConfig->getLocationErrorPages().end()) {
+	std::cout << "Checking for custom error page for status code: " << _statusCode << std::endl;
+	if (_locationConfig && _locationConfig->getLocationErrorPages().find(_statusCode) != _locationConfig->getLocationErrorPages().end()) {
+		std::cout << "Custom error page found for status code: " << _statusCode << std::endl;
 		std::string errorPagePath = _locationConfig->getLocationErrorPages().at(_statusCode);
 		std::string fullPath = _locationConfig->getLocationRoot() + resolveRelativePath(errorPagePath, _locationConfig->getLocationPath());
 		if (fileExists(fullPath)) {
@@ -174,9 +192,10 @@ void Response::generateErrorResponse() {
     addHeader("Connection", "close");
     
     // Generate the full response
-    // createStartLine();
-    // createHeaders();
-    // createBody();
+	_rawResponse.clear();
+    createStartLine();
+    createHeaders();
+    createBody();
 }
 
 void Response::handleRedirectRequest() {
@@ -204,17 +223,14 @@ void Response::handleRedirectRequest() {
 bool Response::isCgiRequest() {
     // check if the uri has the cgi extension
     std::string path = _request->getUri(); // e.g., "/cgi-bin/script.cgi"
-    std::cout << "Path: " << path << std::endl;
     size_t extDot = path.find_last_of('.');
     std::string extension;
     if (extDot != std::string::npos)
         extension = path.substr(path.find_last_of('.')); // need to check whether the extension is extracted with a dot or not. if not remove +1
     else
         extension = "";
-    std::cout << "Extension: " << extension << std::endl;
     std::map <std::string, std::string> cgiExtensions = _locationConfig->getLocationAllowedCgi();
     if (cgiExtensions.empty()) {
-        std::cerr << "No CGI extensions allowed for this location." << std::endl;
         return false; // No CGI extensions allowed
     }
      // if the extension is in the supported/allowed cgi extensions, then it is a cgi request
@@ -224,7 +240,6 @@ bool Response::isCgiRequest() {
             std::cerr << "No index files specified for this location." << std::endl;
             return false; // No index files specified
         }
-        std::cout << "Index files: " << indexFiles.size() << std::endl;
         for (const auto &indexFile : indexFiles) {
             extDot = indexFile.find_last_of('.');
             std::string indexExtension;
@@ -232,15 +247,13 @@ bool Response::isCgiRequest() {
                 indexExtension = indexFile.substr(extDot);
             else
                 indexExtension = "";
-            if (cgiExtensions.find(indexExtension) != cgiExtensions.end()) {
-                std::cout << "CGI request detected for index file: " << indexFile << std::endl;
+            if (cgiExtensions.find(indexExtension) != cgiExtensions.end() && fileExists(indexFile)) {
 				_cgiIndexFile = indexFile; // Store the index file name for CGI handling
                 return true; // The request is a CGI request for an index file
             }
         }
     }
     else if (cgiExtensions.find(extension) != cgiExtensions.end()) {
-        std::cout << "CGI request detected for extension: " << extension << std::endl;
         return true; // The request is a CGI request
     } 
    return false; // The request is not a CGI request
@@ -248,16 +261,17 @@ bool Response::isCgiRequest() {
 
 void Response::handleCGIRequest() {
     // Handle CGI request logic here
-    std::cout << "Handling CGI request" << std::endl;
-    std::cout << "Request method: " << _request->getMethod() << std::endl;
     if (!isMethodAllowed(_request->getMethod())) {
         setStatusCode(405); // Method Not Allowed
         return generateErrorResponse();
     }
     // after checking the allowed method. We want to move into create an instanoce of cgi handler. it will take the response as tthe argument in its constructor. the attributes we would really care about are the cgi path, script name, environment variables, and the request body if applicable. 
     try {
-        CGIHandler cgiHandler(*_request, *_locationConfig, _cgiIndexFile);
-        _rawResponse = cgiHandler.process(); // Handle the CGI request and get the raw response
+        _cgiHandler = std::make_unique<CGIHandler>(*_request, *_locationConfig, _cgiIndexFile);
+        _cgiHandler->start(); // Handle the CGI request and get the raw response
+		_isCgi = true; // Set the flag to indicate that this is a CGI request
+		_serverManager->addCgiFdToMap(_cgiHandler->getStdoutFd(), _clientFd); // Add the CGI stdout to epoll for reading
+		_serverManager->addCgiFdToMap(_cgiHandler->getStderrFd(), _clientFd); // Add the CGI stderr to epoll for reading
     }
     // if it fails i should set the corresponsing status code and return an error response
     catch (const CGIHandler::CGIException &e) {
@@ -267,9 +281,18 @@ void Response::handleCGIRequest() {
     }
 }
 
+void Response::generateCGIResponse(){
+	_rawResponse.clear();
+	_rawResponse = _cgiHandler->finalize(); // Get the final response from the CGI handler
+	if (_rawResponse.empty()) {
+		setStatusCode(500); // Internal Server Error
+		return generateErrorResponse();
+	}
+}
+
+
 
 void Response::handleGetRequest() {
-    std::cout << "Handling get request" << std::endl;
     if (!isMethodAllowed("GET")) {
         setStatusCode(405); // Method Not Allowed
         return generateErrorResponse();
@@ -278,7 +301,6 @@ void Response::handleGetRequest() {
     std::string fullPath = _locationConfig->getLocationRoot() + resolveRelativePath(path, _locationConfig->getLocationPath());
     
     if (!fileExists(fullPath) && !_validPath) {
-        std::cout << "File not found" << std::endl;
         setStatusCode(404);
         return generateErrorResponse();
     }
@@ -296,7 +318,6 @@ void Response::handleGetRequest() {
             }
 		}
 		if (!foundIndex) {
-			std::cout << "Index file not found" << std::endl;
 			if (_locationConfig->getLocationAutoIndex()) {
 				_body = generateDirectoryListing(fullPath, _locationConfig->getLocationPath());
 				return ;
@@ -348,7 +369,7 @@ void Response::makeChunkedResponse(const std:: string &path) {
     }
     else
     {
-        std::string chunkSize = std::to_string(bytesRead) + "\r\n"; // convert to hex	
+        std::string chunkSize = intToHex(bytesRead) + "\r\n"; // convert to hex	
         _rawResponse += chunkSize; // Add chunk size to the response
         _rawResponse.append(buffer, bytesRead); // Append the read bytes to the response
         _rawResponse += "\r\n"; // End of chunk    
@@ -357,6 +378,12 @@ void Response::makeChunkedResponse(const std:: string &path) {
     addHeader("Content-Type", getMimeType(path)); // Set content type based on file extension
     setStatusCode(200); // Set status code to 200 OK
 };
+
+std::string Response::intToHex(int value) {
+	std::ostringstream oss;
+	oss << std::hex << value; // Convert integer to hexadecimal
+	return oss.str();
+}
 
 std::string Response::createUploadFile() {
     const std::string &body = _request->getBody();
@@ -383,7 +410,6 @@ std::string Response::createUploadFile() {
     }
     outFile.write(body.data(), body.size());
     outFile.close();
-    std::cout << "File created. Path is " << filePath << std::endl;
     return fileName; // Return the path of the uploaded file
 }
 
@@ -396,7 +422,6 @@ std::string Response::generateUUID() {
 }
 
 void Response::handlePostRequest() {
-    std::cout << "Handling POST request" << std::endl;
     if (!isMethodAllowed("POST")) {
         setStatusCode(405); // Method Not Allowed
         return generateErrorResponse();
@@ -407,7 +432,7 @@ void Response::handlePostRequest() {
         std::cout << "Error creating upload file" << std::endl;
         return generateErrorResponse();
     }
-    _body = "POST request handled successfully"; // Example response body
+    _body = "POST request handled successfully"; // Successful post response body
     _body += "\nFile ID: " + fileName; // Append the file ID to the response body
     setStatusCode(200); // Set status code to 200 OK
     addHeader("Content-Length", std::to_string(_body.size()));
@@ -415,7 +440,6 @@ void Response::handlePostRequest() {
 }
 
 void Response::handleDeleteRequest() {
-    std::cout << "Handling DELETE request" << std::endl;
     if (!isMethodAllowed("DELETE")) {
         setStatusCode(405); // Method Not Allowed
         return generateErrorResponse();
@@ -433,7 +457,6 @@ void Response::handleDeleteRequest() {
         fullPath = _locationConfig->getLocationUploadPath() + "/" + path;
     else
         fullPath = _locationConfig->getLocationUploadPath() + path;
-    std::cout << "Full path to delete: " << fullPath << std::endl;
     if (!fileExists(fullPath)) {
         std::cout << "File to delete not found" << std::endl;
         setStatusCode(404); // Not Found
@@ -525,12 +548,6 @@ std::string Response::resolveRelativePath(const std::string &path, const std::st
 
 bool Response::isMethodAllowed(const std::string &method) const {
     const std::unordered_set<std::string>& allowedMethods = _locationConfig->getLocationAllowedMethods();
-    std::cout << "Checking if method " << method << " is allowed." << std::endl;
-    std::cout << "Allowed methods: ";
-    for (const auto &allowedMethod : allowedMethods) {
-        std::cout << allowedMethod << " ";
-    }
-    std::cout << std::endl;
     return (allowedMethods.count(method));
 }
 

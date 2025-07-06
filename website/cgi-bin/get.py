@@ -6,7 +6,9 @@ import json
 import sys
 
 # Configuration
-UPLOAD_DIR = "uploads"  # Directory where files are stored
+SCRIPT_DIR   = os.path.dirname(os.path.realpath(__file__))
+EXEC_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "../../"))
+UPLOAD_DIR = os.path.join(EXEC_DIR, os.environ.get("UPLOAD_DIR"))   # absolute path is safer
 
 def send_error(message):
     body = json.dumps({

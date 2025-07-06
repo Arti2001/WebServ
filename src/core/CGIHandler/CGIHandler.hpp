@@ -6,7 +6,7 @@
 /*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/06/30 12:13:08 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/07/04 12:47:08 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/07/04 17:31:49 by vshkonda      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,19 @@ class CGIHandler {
 			private:
 				int _statusCode; // Status code for the CGI error
         };
+		void start(); // Start the CGI script execution
+
+		// Getters for file descriptors
+		int getStdoutFd() const { return _stdout_fd; }
+		int getStderrFd() const { return _stderr_fd; }
+		int getStdinFd() const { return _stdin_fd; }
+		void handleEvent(int fd);
+
+		// Check if the CGI execution is done
+		bool isDone() const;
+
+		// Finalize the CGI execution and return the output
+		std::string finalize();
     
     private:
         //Helper methods
@@ -79,6 +92,16 @@ class CGIHandler {
         std::string _bodyInput; // Body input for the CGI script, if applicable
         std::string _cgiUploadPath; // Output from the CGI script execution
 		time_t _timeout; // Timeout for the CGI script execution
+
+		int _stdin_fd; // File descriptor for the CGI script's stdin
+		int _stdout_fd; // File descriptor for the CGI script's stdout
+		int _stderr_fd; // File descriptor for the CGI script's stderr
+		bool _stdout_done; // Flag to indicate if stdout is done reading
+		bool _stderr_done; // Flag to indicate if stderr is done reading
+		bool _process_done; // Flag to indicate if the CGI process has finished
+		pid_t _pid; // Process ID of the CGI script
+		std::vector<char> _output; // Output from the CGI script	
+		std::vector<char> _errorOutput; // Error output from the CGI script
 		
 
 

@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        ::::::::            */
+/*   LocationConfig.cpp                                 :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/07/06 13:08:57 by vshkonda      #+#    #+#                 */
+/*   Updated: 2025/07/06 18:03:56 by vshkonda      ########   odam.nl         */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "LocationConfig.hpp"
 
 Location::Location() {
@@ -6,7 +18,7 @@ Location::Location() {
 Location::Location(const vServer& serv) {
 
 	_locationPath = "/";
-	_locationUploadPath = "uploads/";
+	_locationUploadPath = "website/uploads/";
 	_locationReturnPages = {0, ""};
 	_locationRoot= serv.getServerRoot();
 	_locationIndex = serv.getServerIndex();

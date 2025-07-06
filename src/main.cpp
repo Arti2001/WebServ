@@ -1,18 +1,26 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        ::::::::            */
+/*   main.cpp                                           :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: amysiv <amysiv@student.42.fr>                +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/07/06 13:08:25 by vshkonda      #+#    #+#                 */
+/*   Updated: 2025/07/06 15:21:33 by vshkonda      ########   odam.nl         */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "core/ServerManager.hpp"
 #include "core/Server.hpp"
 #include "core/Request/Request.hpp"
 #include "core/Response/Response.hpp"
-
 #include "core/Utils.hpp"
-#include "core/ServerManager.hpp"
 
-
-//Server *g_server = nullptr;
 volatile sig_atomic_t	running = 1;
 
 
 void signalHandler(int signum)
 {
-	std::cout << " here "<< "\n";
 	std::cout << "\nInterupt signal (" << signum << ") received." << "\n";
 	running = 0;
 	std::cout << "Cleaning up all resources" << "\n";
@@ -22,7 +30,7 @@ void signalHandler(int signum)
 
 int main(int argc, char *argv[]) {
 	if (argc > 2) {
-		std::cerr<< "Usage ./webserv config_file(.conf)." << "\n";
+		std::cerr<< "Usage ./webserv (optional | config_file(.conf))." << "\n";
 		return (1);
 	}
 	try{

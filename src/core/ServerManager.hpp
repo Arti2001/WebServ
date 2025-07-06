@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ServerManager.hpp                                  :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/07/06 13:08:15 by vshkonda          #+#    #+#             */
+/*   Updated: 2025/07/06 14:29:37 by amysiv           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef SERVERMANAGER_HPP
 #define SERVERMANAGER_HPP
 #define EPOLL_CAPACITY				20
@@ -35,6 +47,7 @@ class ServerManager {
 		std::map<std::string, std::vector<const vServer*>>	_hostVserverMap;
 		std::vector<Server>									_servers;
 		std::map<int, Client>								_fdClientMap;
+		std::unordered_map<int, Client*>					_cgiFdClientPtrMap; // map to store pointers to Client objects by their file descriptors
 	
 	
 	public:
@@ -55,7 +68,7 @@ class ServerManager {
 		void					setServers();
 		void					setSocketsToEpollIn(void);
 		void					setEpollCtl( int targetFd, int eventFlag, int operation);
-		void					setNonBlocking(int fd);
+		static void				setNonBlocking(int fd);
 
 
 
@@ -70,6 +83,7 @@ class ServerManager {
 		
 		
 		void					addClientToMap(int clientFd, int serverFd);
+		void 					addCgiFdToMap(int cgiFd, int clientFd);
 		//void					createDefaultConfig(void);
 		
 		bool					isListeningSocket(int fd);

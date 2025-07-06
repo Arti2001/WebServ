@@ -1,6 +1,5 @@
 #!/usr/bin/php
 <?php
-header('Content-Type: text/html');
 header('Status: 500 Internal Server Error');
 ?>
 <!DOCTYPE html>

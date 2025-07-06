@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import os, sys, cgi, cgitb, shutil, json
+import os, sys, cgi, cgitb, shutil, json, time
 
 sys.stderr.write(f"CGI got {os.environ.get('CONTENT_LENGTH')} bytes, "
                  f"stdin has {len(sys.stdin.buffer.peek())} bytes\n")
@@ -10,7 +10,8 @@ cgitb.enable()
 # sys.stderr.write("First 200 bytes of stdin: " + sys.stdin.read(200) + "\n")
 # --- configuration ----------------------------------------------------------
 SCRIPT_DIR   = os.path.dirname(os.path.realpath(__file__))
-UPLOAD_DIR = os.path.join(SCRIPT_DIR, os.environ.get("UPLOAD_DIR"))   # absolute path is safer
+EXEC_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "../../"))
+UPLOAD_DIR = os.path.join(EXEC_DIR, os.environ.get("UPLOAD_DIR"))   # absolute path is safer
 MAX_BYTES    = 500 * 1024 * 1024                     # 50 MiB
 # ---------------------------------------------------------------------------
 
@@ -39,7 +40,6 @@ def main():
 
     # Parse multipart/form-data
     form = cgi.FieldStorage()
-    # reply("keys form", list(form.keys()))
 
     if "uploadFile" not in form:
         reply("error", f"No form part named 'uploadFile' found. Form is {form}")

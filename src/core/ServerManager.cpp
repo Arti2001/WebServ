@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        ::::::::            */
+/*   ServerManager.cpp                                  :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: amysiv <amysiv@student.42.fr>                +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/07/06 13:08:11 by vshkonda      #+#    #+#                 */
+/*   Updated: 2025/07/06 15:19:24 by vshkonda      ########   odam.nl         */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "ServerManager.hpp"
 
 #include <filesystem>	
@@ -118,26 +130,36 @@ const char*	ServerManager::ServerManagerException::what() const noexcept {
 
 
 
+//void	ServerManager::groupServers(const std::vector<vServer>& _vServers) {
+//	std::unordered_map<std::string, std::unordered_set<std::string>> seenServerNames;
+//	bool skipServer = false;
+//	for (const vServer& vServer : _vServers) {
+//		const std::string& hostPort = vServer.getServerIpPort();
+//		for(const std::string& name : vServer.getServerNames()) {
+//			if (seenServerNames.count(name) ) {
+//				skipServer = true;
+//				break;
+//			}
+//			seenServerNames.insert(name);
+//		}
+//		if (!skipServer)
+//			_hostVserverMap[hostPort].push_back(&vServer);
+//		skipServer = false;
+//	}
+//	std::cout << "Grouped servers by host and port." << "\n";
+//}
+
+
+
+
 void	ServerManager::groupServers(const std::vector<vServer>& _vServers) {
-	std::unordered_set<std::string> seenServerNames;
-	bool skipServer = false;
+
 	for (const vServer& vServer : _vServers) {
 		const std::string& hostPort = vServer.getServerIpPort();
-		for(const std::string& name : vServer.getServerNames()) {
-			if (seenServerNames.count(name)) {
-				skipServer = true;
-				break;
-			}
-			seenServerNames.insert(name);
-		}
-		if (!skipServer)
-			_hostVserverMap[hostPort].push_back(&vServer);
-		skipServer = false;
+		_hostVserverMap[hostPort].push_back(&vServer);
 	}
 	std::cout << "Grouped servers by host and port." << "\n";
 }
-
-
 
 
 
@@ -154,7 +176,6 @@ void	ServerManager::setServers() {
 		_servers.emplace_back(socketFd, it->second);
 
 	}
-	std::cout << "Servers are set up and ready to run." << _servers.size() << "that many servers" << "\n";
 }
 
 
@@ -342,7 +363,7 @@ void	ServerManager::runServers(void) {
 		int readyFds = epoll_wait(_epollFd, epollEvents, EPOLL_CAPACITY, timeout);
 		if (readyFds == -1) {
 			int err = errno;
-			throw ServerManagerException("epol_wait(): " + std::string(strerror(err)));
+			throw ServerManagerException("epoll_wait(): " + std::string(strerror(err)));
 		}
 		for (int i = 0; i < readyFds; i++) {
 			manageEpollEvent(epollEvents[i]);
@@ -384,6 +405,21 @@ void ServerManager::addClientToMap(int clientFd, int serverFd) {
 }
 
 
+void ServerManager::addCgiFdToMap(int cgiFd, int clientFd) {
+	//callback function
+	auto it = _fdClientMap.find(clientFd);
+	if (it == _fdClientMap.end()) {
+		std::cerr << "Error: Client fd not found in map." << std::endl;
+		return;
+	}
+	Client* clientPtr = &it->second; // get pointer to Client object
+
+	setNonBlocking(cgiFd);
+	setEpollCtl(cgiFd, EPOLLIN, EPOLL_CTL_ADD);
+	_cgiFdClientPtrMap.emplace(cgiFd, clientPtr); // store pointer to Client object
+}
+
+
 
 
 void	ServerManager::manageEpollEvent(const struct epoll_event& currEvent) {
@@ -398,7 +434,42 @@ void	ServerManager::manageEpollEvent(const struct epoll_event& currEvent) {
 	else if ((currEvent.events & EPOLLOUT) && isClientSocket(fd)) {
 		_fdClientMap.at(fd).handleResponse(fd);
 	}
+	else if (_cgiFdClientPtrMap.find(fd) != _cgiFdClientPtrMap.end()) {
+		Client* clientPtr = _cgiFdClientPtrMap[fd];
+		CGIHandler* cgiHandler = clientPtr->getResponse().getCgiHandler();
+		int stderr_fd = cgiHandler->getStderrFd();
+		int stdout_fd = cgiHandler->getStdoutFd();
+		if (fd == stdout_fd || fd == stderr_fd) {
+			cgiHandler->handleEvent(fd);
+			
+			// If both stdout and stderr are done, and the process is done, clean up
+			if (cgiHandler->isDone()) {
+				clientPtr->getResponse().generateCGIResponse();
+				std::string cgiResponse = clientPtr->getResponse().getRawResponse();
+				int clientFd = clientPtr->getResponse().getClientFd();
+				setEpollCtl(clientFd, EPOLLOUT, EPOLL_CTL_MOD);
+				clientPtr->sendResponse(cgiResponse, clientFd);
+				// Remove from epoll and tracking map before closing
+				setEpollCtl(stdout_fd, EPOLLIN, EPOLL_CTL_DEL);
+				setEpollCtl(stderr_fd, EPOLLIN, EPOLL_CTL_DEL);
+				_cgiFdClientPtrMap.erase(stderr_fd);
+				_cgiFdClientPtrMap.erase(stdout_fd);
+
+				// Only close if not already closed
+				if (stdout_fd >= 0) close(stdout_fd);
+				if (stderr_fd >= 0) close(stderr_fd);
+			}
+		} else {
+			std::cerr << "Error: CGI handler is null." << std::endl;
+			setEpollCtl(fd, EPOLLIN, EPOLL_CTL_DEL);
+			_cgiFdClientPtrMap.erase(stderr_fd);
+			_cgiFdClientPtrMap.erase(stdout_fd);
+			close(fd);
+		}
+	}
 }
+
+
 
 
 
@@ -408,7 +479,6 @@ const std::vector<const vServer*> ServerManager::findServerConfigsByFd(int fd) c
 
 		if (server.getSocketFd() == fd) 
 		{
-			std::cout << "Config for " << fd << " found." << "\n";
 			return (server.getServConfigs());
 		}
 	}
@@ -434,7 +504,6 @@ const vServer* ServerManager::findServerConfigByName(const std::vector<const vSe
 			}
 		}
 	}
-	std::cout << "No server config found for name: " << serverName << ", falling back to default config." << "\n";
 	return(defaultServConfig); // fallback
 }
 
@@ -468,8 +537,6 @@ const Location*	ServerManager::findLocationBlockByUri(const vServer& serverConfi
 		return (nullptr); // better to return nullptr if no default location is found as it inicates that something went wrogn with creation of default location
 		
 	}
-		
-	std::cout<< "No  location block found, fell back to default location block " << "\n";
 	return (defaultLocation);
 }
 

@@ -1,13 +1,24 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        ::::::::            */
+/*   Request.cpp                                        :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/07/06 13:08:42 by vshkonda      #+#    #+#                 */
+/*   Updated: 2025/07/06 18:32:00 by vshkonda      ########   odam.nl         */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "Request.hpp"
 
 Request::Request() : _currentPosition(0), _timeout(REQUEST_DEFAULT_TIMEOUT), _statusCode(REQUEST_DEFAULT_STATUS_CODE), _bodySize(REQUEST_DEFAULT_MAX_BODY_SIZE), _isChunked(false) {
     // Default constructor
 }
 
-Request::Request(const std::string &rawRequest) : _currentPosition(0), _timeout(REQUEST_DEFAULT_TIMEOUT), _statusCode(REQUEST_DEFAULT_STATUS_CODE), _bodySize(REQUEST_DEFAULT_MAX_BODY_SIZE), _isChunked(false) {
+Request::Request(const std::string &rawRequest) : _rawRequest(rawRequest), _currentPosition(0), _method(""), _path(""), _httpVersion(""), _headers() ,_body(""), _query(""), _timeout(REQUEST_DEFAULT_TIMEOUT), _statusCode(REQUEST_DEFAULT_STATUS_CODE), _bodySize(REQUEST_DEFAULT_MAX_BODY_SIZE), _isChunked(false), _isCgi(false), _bodyExpected(false), _supportedMethods(), _seenHeaders() {
     // Constructor with raw request string
     registerSupportedMethods();
-    _rawRequest = rawRequest;
     if (_rawRequest.empty()) {
         std::cerr << "Empty request received." << std::endl;
         this->setStatusCode(400); // Bad Request
@@ -120,11 +131,12 @@ void Request::parseMethod(const std::string &method) {
     // Parse the HTTP method from the request
     if (method.empty()) {
         std::cerr << "Empty method in request." << std::endl;
-        return this->setStatusCode(400); // Bad Request
+        setStatusCode(400); // Bad Request
+		return ;
     }
     if (_supportedMethods.find(method) == _supportedMethods.end()) {
         std::cerr << "Unsupported method: " << method << std::endl;
-        return this->setStatusCode(405); // Method Not Allowed
+        this->setStatusCode(405); // Method Not Allowed
     }
     _method = method;
 }
@@ -184,7 +196,6 @@ void Request::parseHeaders() {
                 return this->setStatusCode(400); // Bad Request, invalid header
             }
             _headers[headerName] = headerValue;
-			std::cout << "Parsed header: " << headerName << ": " << headerValue << std::endl;
         } else {
             std::cerr << "Invalid header format: " << line << std::endl;
             return this->setStatusCode(400); // Bad Request, invalid header format
@@ -237,43 +248,6 @@ void Request::parseChunkedBody() {
         _body += ss.str().substr(ss.tellg(), chunkSize); // Append the chunk to the body
         ss.seekg(chunkSize + 2, std::ios::cur); // Move past the chunk and CRLF
     }
-    // std::string chunked_data = _body;
-    // std::string decoded_data;
-    // size_t pos = 0;
-
-    // while (pos < chunked_data.length()) {
-    //     size_t line_end = chunked_data.find("\r\n", pos);
-    //     if (line_end == std::string::npos) {
-    //         // incomplete chunk
-    //         break;
-    //     }
-
-    //     //extract and convert the chunk size
-    //     std::string chunk_size_hex = chunked_data.substr(pos, line_end - pos);
-    //     size_t chunk_size = 0;
-    //     std::istringstream(chunk_size_hex) >> std::hex >> chunk_size;
-
-    //     // if chunk size == 0, we've reached the end of the body
-    //     if (chunk_size == 0) {
-    //         _body = decoded_data;
-    //         return ;
-    //     }
-
-    //     // position after the CRLF
-    //     pos = line_end + 2;
-
-    //     // check if we have enough data for this chunk
-    //     if (pos + chunk_size + 2 > chunked_data.length()) {
-    //         // not enough data
-    //         break;
-    //     }
-
-    //     decoded_data.append(chunked_data.substr(pos, chunk_size));
-
-    //     //move position past this chunk
-    //     pos += chunk_size + 2;
-    // }
-    // throw std::runtime_error("400 Bad Request: Incomplete chunked transfer encoding");
 }
 
 void Request::setTimeout(time_t timeout) {
@@ -328,7 +302,6 @@ void Request::setCgi(bool isCgi) {
 
 bool Request::checkError() const {
     // Check if there is an error in the request
-    std::cout << "Checking for errors in the request..." << _statusCode << std::endl;
     if (_statusCode >= 400 && _statusCode < 600) {
         return true; // Error status code
     }
