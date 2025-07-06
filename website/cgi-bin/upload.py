@@ -39,7 +39,6 @@ def main():
 
     # Parse multipart/form-data
     form = cgi.FieldStorage()
-    # reply("keys form", list(form.keys()))
 
     if "uploadFile" not in form:
         reply("error", f"No form part named 'uploadFile' found. Form is {form}")
