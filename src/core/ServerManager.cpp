@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/06 13:08:11 by vshkonda          #+#    #+#             */
-/*   Updated: 2025/07/06 14:37:25 by amysiv           ###   ########.fr       */
+/*   Updated: 2025/07/06 18:44:04 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,49 +107,12 @@ void	ServerManager::parsConfigFile(std::vector<vServer>& _vServers) {
 	}
 }
 
-//void	ServerManager::createDefaultConfig(void) {
-
-//	vServer	defaulConfig;
-//	Location location (defaulConfig);
-
-//	defaulConfig.getServerLocations().emplace("/", location);
-
-//	_vServers.push_back(defaulConfig);
-//}
-
-
 
 
 const char*	ServerManager::ServerManagerException::what() const noexcept {
 	
 	return (_message.c_str());
 }
-
-
-
-
-
-
-//void	ServerManager::groupServers(const std::vector<vServer>& _vServers) {
-//	std::unordered_map<std::string, std::unordered_set<std::string>> seenServerNames;
-//	bool skipServer = false;
-//	for (const vServer& vServer : _vServers) {
-//		const std::string& hostPort = vServer.getServerIpPort();
-//		for(const std::string& name : vServer.getServerNames()) {
-//			if (seenServerNames.count(name) ) {
-//				skipServer = true;
-//				break;
-//			}
-//			seenServerNames.insert(name);
-//		}
-//		if (!skipServer)
-//			_hostVserverMap[hostPort].push_back(&vServer);
-//		skipServer = false;
-//	}
-//	std::cout << "Grouped servers by host and port." << "\n";
-//}
-
-
 
 
 void	ServerManager::groupServers(const std::vector<vServer>& _vServers) {
@@ -396,18 +359,14 @@ void	ServerManager::manageListenSocketEvent(const struct epoll_event& currEvent)
 
 
 void ServerManager::addClientToMap(int clientFd, int serverFd) {
-	//callback function
-
 	setNonBlocking(clientFd);
 	setEpollCtl(clientFd, EPOLLIN, EPOLL_CTL_ADD);
 	_fdClientMap.emplace(clientFd, Client(serverFd, this));
-	// _fdClientMap.emplace(std::piecewise_construct, std::forward_as_tuple(clientFd), std::forward_as_tuple(serverFd, this));
-
 }
 
 
 void ServerManager::addCgiFdToMap(int cgiFd, int clientFd) {
-	//callback function
+
 	auto it = _fdClientMap.find(clientFd);
 	if (it == _fdClientMap.end()) {
 		std::cerr << "Error: Client fd not found in map." << std::endl;
