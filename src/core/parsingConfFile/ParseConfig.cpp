@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/06 13:09:04 by vshkonda          #+#    #+#             */
-/*   Updated: 2025/07/06 15:47:50 by amysiv           ###   ########.fr       */
+/*   Updated: 2025/07/06 18:41:46 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -216,7 +216,7 @@ void	ParseConfig::	parsevServerBlock( vServer& serv) {
 	while (depth > 0) {
 
 		if (_tokens[currToken].type == CLOSED_BRACE) {
-			std::cout << "Closing brace is encountered"<< "\n";
+			//std::cout << "Closing brace is encountered"<< "\n";
 			depth--;
 			continue;
 		}
@@ -274,9 +274,12 @@ Location	loc(vServer);
 
 std::string locationPath = findLocationPath();
 loc.setLocationPath(locationPath);
-	
 for (; _tokens[currToken].type != CLOSED_BRACE; currToken++) {
 	
+	if (_tokens[currToken].type == COMMENT) {
+		std::cout << "FOUND COMENT : " + _tokens[currToken].lexem<<"\n";
+		continue;
+	}
 	std::pair<Token, std::vector<std::string>> pair = makeKeyValuePair();
 
 	switch (pair.first.type) {
