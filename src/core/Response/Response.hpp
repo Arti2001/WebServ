@@ -6,7 +6,7 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:04:57 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/07/05 16:02:17 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/07/06 13:15:01 by vshkonda      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,7 @@ class Response {
         int _statusCode; // HTTP status code (e.g., 200, 404, 500)
         bool _validPath; // Flag to indicate if the path is valid
         std::string _rawResponse;
+		std::string _rawCGIResponse; // Raw CGI response string
         std::string _statusMessage; // HTTP status message (e.g., "OK", "Not Found", "Internal Server Error")
         std::unordered_map<std::string, std::string> _headers; // HTTP headers for the response
         std::string _body; // Body of the response
@@ -114,6 +115,7 @@ class Response {
         const std::string &getBody() const;
         const std::string& getRawResponse() const;
         std::string urlEncode(const std::string& value);
+		std::string intToHex(int value);
 
         void generateResponse(); // Generate the full HTTP response string
         static    std::string getMimeType(const std::string &path); // Get the MIME type based on the file extension

@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        ::::::::            */
+/*   ServerManager.hpp                                  :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/07/06 13:08:15 by vshkonda      #+#    #+#                 */
+/*   Updated: 2025/07/06 13:08:16 by vshkonda      ########   odam.nl         */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef SERVERMANAGER_HPP
 #define SERVERMANAGER_HPP
 #define EPOLL_CAPACITY				20

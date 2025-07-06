@@ -6,7 +6,7 @@
 /*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/06/30 12:13:01 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/07/06 11:44:38 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/07/06 14:11:31 by vshkonda      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -140,7 +140,7 @@ void CGIHandler::handleEvent(int fd) {
         }
     }
     int status;
-    if (!_process_done && waitpid(_pid, &status, WNOHANG) > 0) {
+    if (!_process_done && (waitpid(_pid, &status, WNOHANG) > 0 || WIFEXITED(status))) {
         _process_done = true;
     }
 }
@@ -237,7 +237,7 @@ std::string CGIHandler::parseOutput(const std::vector<char>& output) {
     if (headerEnd == std::string::npos) {
        //no headers, treat output as body
        headers += "Content-Type: text/html\r\n";
-       headers += "\r\nContent-Length: " + std::to_string(output.size()) + "\r\n";
+       headers += "Content-Length: " + std::to_string(output.size()) + "\r\n";
        rawResponse += headers + "\r\n";
        rawResponse += outputStr;
        return rawResponse;

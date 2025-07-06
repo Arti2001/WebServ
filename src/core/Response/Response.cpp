@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>                +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/07/06 11:47:20 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/07/06 13:20:39 by vshkonda      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,7 +93,6 @@ void Response::matchLocation() {
         return;
     }
     _locationConfig = _serverManager->findLocationBlockByUri(*_serverConfig, _request->getUri());
-    std::cout << "Location block found: " << (_locationConfig ? "Yes" : "No") << std::endl;
     if (!_locationConfig) {
         std::cerr << "No matching location block found for the request URI. No default." << std::endl;
         setStatusCode(404);
@@ -208,7 +207,6 @@ bool Response::isCgiRequest() {
         extension = "";
     std::map <std::string, std::string> cgiExtensions = _locationConfig->getLocationAllowedCgi();
     if (cgiExtensions.empty()) {
-        std::cerr << "No CGI extensions allowed for this location." << std::endl;
         return false; // No CGI extensions allowed
     }
      // if the extension is in the supported/allowed cgi extensions, then it is a cgi request
@@ -347,7 +345,7 @@ void Response::makeChunkedResponse(const std:: string &path) {
     }
     else
     {
-        std::string chunkSize = std::to_string(bytesRead) + "\r\n"; // convert to hex	
+        std::string chunkSize = intToHex(bytesRead) + "\r\n"; // convert to hex	
         _rawResponse += chunkSize; // Add chunk size to the response
         _rawResponse.append(buffer, bytesRead); // Append the read bytes to the response
         _rawResponse += "\r\n"; // End of chunk    
@@ -356,6 +354,12 @@ void Response::makeChunkedResponse(const std:: string &path) {
     addHeader("Content-Type", getMimeType(path)); // Set content type based on file extension
     setStatusCode(200); // Set status code to 200 OK
 };
+
+std::string Response::intToHex(int value) {
+	std::ostringstream oss;
+	oss << std::hex << value; // Convert integer to hexadecimal
+	return oss.str();
+}
 
 std::string Response::createUploadFile() {
     const std::string &body = _request->getBody();
@@ -429,7 +433,6 @@ void Response::handleDeleteRequest() {
         fullPath = _locationConfig->getLocationUploadPath() + "/" + path;
     else
         fullPath = _locationConfig->getLocationUploadPath() + path;
-    std::cout << "Full path to delete: " << fullPath << std::endl;
     if (!fileExists(fullPath)) {
         std::cout << "File to delete not found" << std::endl;
         setStatusCode(404); // Not Found
@@ -521,10 +524,6 @@ std::string Response::resolveRelativePath(const std::string &path, const std::st
 
 bool Response::isMethodAllowed(const std::string &method) const {
     const std::unordered_set<std::string>& allowedMethods = _locationConfig->getLocationAllowedMethods();
-    for (const auto &allowedMethod : allowedMethods) {
-        std::cout << allowedMethod << " ";
-    }
-    std::cout << std::endl;
     return (allowedMethods.count(method));
 }
 

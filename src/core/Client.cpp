@@ -1,5 +1,16 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        ::::::::            */
+/*   Client.cpp                                         :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/07/06 13:07:50 by vshkonda      #+#    #+#                 */
+/*   Updated: 2025/07/06 13:40:18 by vshkonda      ########   odam.nl         */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "Client.hpp" 
-// #include "Request/RequestParser.hpp"
 
 
 Client::Client(int serverFd, ServerManager* serverManager) : _headersParsed(false), _clientBytesSent(0),
@@ -21,13 +32,6 @@ Client::Client(const Client& other) : _request(other._request), _startLineAndHea
 void	Client::setLastActiveTime( std::time_t timeStamp) {
 	this->_lastActiveTime = timeStamp;
 }
-
-// void Client::setIsClosed(bool flag) {
-// 	this->_closed = flag;
-// }
-
-
-
 
 //Getters
 
@@ -97,7 +101,7 @@ void    Client::handleRequest (int clientFd) {
 		if (!_headersParsed) {
 			_startLineAndHeadersBuffer += incomingData;
 			if (!headersComplete(_startLineAndHeadersBuffer)) {
-				std::cout << "Request is still incomplete, waiting for more data..." << std::endl;
+				std::cout << "Headers not complete yet, waiting for more data..." << std::endl;
 				return;
 			}
 			_request.reset();
@@ -124,22 +128,26 @@ void    Client::handleRequest (int clientFd) {
 				_bodyBuffer.clear(); // Clear the body buffer after parsing
 				
 			} else {
+				std::cout << "Body not complete yet, waiting for more data..." << std::endl;
 				return;
 			}
 		}
+		_startLineAndHeadersBuffer.clear(); // Clear the buffer after parsing headers and body
+		_headersParsed = false; // Reset the headers parsed flag for the next request
+		std::cout << "Request start line: " << _request.getPath() << std::endl;
 		_serverManager->setEpollCtl(clientFd, EPOLLOUT, EPOLL_CTL_MOD);
         return ;
 		
     }
-    else if (bytesRead == 0){
+    else if (bytesRead == 0) {
         std::cout << "Client disconnected: Clean up!" << std::endl;
         _serverManager->closeClientFd(clientFd);
         return;
-    }
-    else
+    } else {
         std::cout << "Recv failed"<< std::endl;
 		_serverManager->closeClientFd(clientFd);
 		return;
+	}
 }
 
 
@@ -151,9 +159,9 @@ void	Client::handleResponse(int clientFd) {
 			_closeAfterResponse = true;
 		_clientResponse = _response->getRawResponse();
 		if (_response->getIsCGI()) {
-				std::cerr << "CGI response will follow." << std::endl;
-				_serverManager->setEpollCtl(clientFd, EPOLLIN, EPOLL_CTL_MOD);
-				return;
+			std::cout << "CGI is coming" << std::endl;
+			_serverManager->setEpollCtl(clientFd, EPOLLIN, EPOLL_CTL_MOD);
+			return;
 		}
 		if (_clientResponse.empty()) {
 			std::cerr << "Error: Response is empty, closing client connection." << std::endl;
@@ -176,7 +184,6 @@ void Client::sendResponse(std::string responseBody, int clientFd)
 	}
 	_clientBytesSent += bytesSent;
 	if (_clientBytesSent == responseSize) {
-		std::cout << "All data sent" << "\n";
 		_clientBytesSent = 0;
 		_serverManager->closeClientFd(clientFd);	
 	}

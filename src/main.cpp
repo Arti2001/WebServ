@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        ::::::::            */
+/*   main.cpp                                           :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/07/06 13:08:25 by vshkonda      #+#    #+#                 */
+/*   Updated: 2025/07/06 13:08:26 by vshkonda      ########   odam.nl         */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "core/ServerManager.hpp"
 #include "core/Server.hpp"
 #include "core/Request/Request.hpp"

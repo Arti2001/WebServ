@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        ::::::::            */
+/*   ServerManager.cpp                                  :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/07/06 13:08:11 by vshkonda      #+#    #+#                 */
+/*   Updated: 2025/07/06 14:12:41 by vshkonda      ########   odam.nl         */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "ServerManager.hpp"
 
 #include <filesystem>	
@@ -154,7 +166,6 @@ void	ServerManager::setServers() {
 		_servers.emplace_back(socketFd, it->second);
 
 	}
-	std::cout << "Servers are set up and ready to run." << _servers.size() << "that many servers" << "\n";
 }
 
 
@@ -458,7 +469,6 @@ const std::vector<const vServer*> ServerManager::findServerConfigsByFd(int fd) c
 
 		if (server.getSocketFd() == fd) 
 		{
-			std::cout << "Config for " << fd << " found." << "\n";
 			return (server.getServConfigs());
 		}
 	}
@@ -484,7 +494,6 @@ const vServer* ServerManager::findServerConfigByName(const std::vector<const vSe
 			}
 		}
 	}
-	std::cout << "No server config found for name: " << serverName << ", falling back to default config." << "\n";
 	return(defaultServConfig); // fallback
 }
 
@@ -518,8 +527,6 @@ const Location*	ServerManager::findLocationBlockByUri(const vServer& serverConfi
 		return (nullptr); // better to return nullptr if no default location is found as it inicates that something went wrogn with creation of default location
 		
 	}
-		
-	std::cout<< "No  location block found, fell back to default location block " << "\n";
 	return (defaultLocation);
 }
 
