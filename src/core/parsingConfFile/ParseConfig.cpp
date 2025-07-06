@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/06 13:09:04 by vshkonda          #+#    #+#             */
-/*   Updated: 2025/07/06 14:26:18 by amysiv           ###   ########.fr       */
+/*   Updated: 2025/07/06 15:47:50 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -383,7 +383,7 @@ std::pair< Token, std::vector<std::string>>	ParseConfig::makeKeyValuePair() {
 		throw ConfException(std::to_string(_tokens[currToken].line_number) + " :: This filed has no arguments.");
 	}
 	while (_tokens[currToken].type != SEMICOLON) {
-
+		std::cout << key.lexem << " " <<_tokens[currToken].lexem  << " " << _tokens[currToken].line_number << "\n";
 		if (_tokens[currToken].line_number == tokenLevel)
 			values.push_back(_tokens[currToken].lexem);
 		else
