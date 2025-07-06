@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   ServerManager.hpp                                  :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/07/06 13:08:15 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/07/06 13:08:16 by vshkonda      ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   ServerManager.hpp                                  :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/07/06 13:08:15 by vshkonda          #+#    #+#             */
+/*   Updated: 2025/07/06 14:29:37 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,7 @@ class ServerManager {
 		std::map<std::string, std::vector<const vServer*>>	_hostVserverMap;
 		std::vector<Server>									_servers;
 		std::map<int, Client>								_fdClientMap;
-		std::unordered_map<int, Client*>								_cgiFdClientPtrMap; // map to store pointers to Client objects by their file descriptors
+		std::unordered_map<int, Client*>					_cgiFdClientPtrMap; // map to store pointers to Client objects by their file descriptors
 	
 	
 	public:

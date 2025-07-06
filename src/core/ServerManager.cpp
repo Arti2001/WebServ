@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   ServerManager.cpp                                  :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/07/06 13:08:11 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/07/06 14:12:41 by vshkonda      ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   ServerManager.cpp                                  :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/07/06 13:08:11 by vshkonda          #+#    #+#             */
+/*   Updated: 2025/07/06 14:37:25 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -130,26 +130,36 @@ const char*	ServerManager::ServerManagerException::what() const noexcept {
 
 
 
+//void	ServerManager::groupServers(const std::vector<vServer>& _vServers) {
+//	std::unordered_map<std::string, std::unordered_set<std::string>> seenServerNames;
+//	bool skipServer = false;
+//	for (const vServer& vServer : _vServers) {
+//		const std::string& hostPort = vServer.getServerIpPort();
+//		for(const std::string& name : vServer.getServerNames()) {
+//			if (seenServerNames.count(name) ) {
+//				skipServer = true;
+//				break;
+//			}
+//			seenServerNames.insert(name);
+//		}
+//		if (!skipServer)
+//			_hostVserverMap[hostPort].push_back(&vServer);
+//		skipServer = false;
+//	}
+//	std::cout << "Grouped servers by host and port." << "\n";
+//}
+
+
+
+
 void	ServerManager::groupServers(const std::vector<vServer>& _vServers) {
-	std::unordered_set<std::string> seenServerNames;
-	bool skipServer = false;
+
 	for (const vServer& vServer : _vServers) {
 		const std::string& hostPort = vServer.getServerIpPort();
-		for(const std::string& name : vServer.getServerNames()) {
-			if (seenServerNames.count(name)) {
-				skipServer = true;
-				break;
-			}
-			seenServerNames.insert(name);
-		}
-		if (!skipServer)
-			_hostVserverMap[hostPort].push_back(&vServer);
-		skipServer = false;
+		_hostVserverMap[hostPort].push_back(&vServer);
 	}
 	std::cout << "Grouped servers by host and port." << "\n";
 }
-
-
 
 
 
@@ -166,6 +176,7 @@ void	ServerManager::setServers() {
 		_servers.emplace_back(socketFd, it->second);
 
 	}
+	std::cout << _servers.size() << "\n";
 }
 
 

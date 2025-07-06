@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   ParseConfig.hpp                                    :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/07/06 13:09:10 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/07/06 13:09:11 by vshkonda      ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   ParseConfig.hpp                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/07/06 13:09:10 by vshkonda          #+#    #+#             */
+/*   Updated: 2025/07/06 14:26:00 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,16 +85,11 @@ class ParseConfig {
 		void											isSeenDirective(Token directive);
 		bool											noRepeatDirective(TokenType type) const;
 		
-		
+	
 		//helper
 		bool											validBrace();
 		bool											isTokenDirective(TokenType type) const;
 
-
-		////getters
-		//std::vector<vServer>		getVSevers( void ) const;
-		
-		
 		class ConfException : public std::exception {
 			private:
 				std::string	_message;

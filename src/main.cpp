@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   main.cpp                                           :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/07/06 13:08:25 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/07/06 13:08:26 by vshkonda      ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   main.cpp                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/07/06 13:08:25 by vshkonda          #+#    #+#             */
+/*   Updated: 2025/07/06 15:08:25 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,12 +14,8 @@
 #include "core/Server.hpp"
 #include "core/Request/Request.hpp"
 #include "core/Response/Response.hpp"
-
 #include "core/Utils.hpp"
 
-
-
-//Server *g_server = nullptr;
 volatile sig_atomic_t	running = 1;
 
 

@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   CGIHandler.cpp                                     :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/06/30 12:13:01 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/07/06 14:11:31 by vshkonda      ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   CGIHandler.cpp                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/06/30 12:13:01 by vshkonda          #+#    #+#             */
+/*   Updated: 2025/07/06 15:02:46 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,9 +28,10 @@ CGIHandler::CGIHandler(const Request &request, const Location &location, std::st
     _queryString = request.getQuery();
     _bodyInput = request.getBody();
 	_cgiUploadPath = location.getLocationUploadPath();
+	_timeout = request.getTimeout();
 	std::unordered_map<std::string, std::string> envVariables = initEnvironmentVars(request);
     _envp = buildEnvironmentArray(envVariables);
-	_timeout = request.getTimeout();
+
 	_stderr_done = false;
 	_stdout_done = false;
 	_process_done = false;

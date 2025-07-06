@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   Client.hpp                                         :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/07/06 13:07:57 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/07/06 13:07:58 by vshkonda      ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   Client.hpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/07/06 13:07:57 by vshkonda          #+#    #+#             */
+/*   Updated: 2025/07/06 15:08:50 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,6 @@ class Response;
 class Client{
 
 	private:
-		//
 		Request					_request;
 		std::string				_startLineAndHeadersBuffer;
 		std::string				_bodyBuffer;
@@ -40,7 +39,7 @@ class Client{
 		std::string				_clientResponse;
 		int						_serverFd;
 		ServerManager*			_serverManager;
-		std::unique_ptr<Response> 	_response; // Pointer to the response object, if needed
+		std::unique_ptr<Response>_response;
 		std::time_t				_lastActiveTime;
 		bool					_closeAfterResponse;
 
