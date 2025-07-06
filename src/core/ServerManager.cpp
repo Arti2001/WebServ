@@ -396,8 +396,6 @@ void ServerManager::addCgiFdToMap(int cgiFd, int clientFd) {
 	setNonBlocking(cgiFd);
 	setEpollCtl(cgiFd, EPOLLIN, EPOLL_CTL_ADD);
 	_cgiFdClientPtrMap.emplace(cgiFd, clientPtr); // store pointer to Client object
-	std::cout << "Added CGI fd: " << cgiFd << " to map." << "\n";
-	std::cout << "Map size: " << _cgiFdClientPtrMap.size() << "\n";
 }
 
 
@@ -406,12 +404,6 @@ void ServerManager::addCgiFdToMap(int cgiFd, int clientFd) {
 void	ServerManager::manageEpollEvent(const struct epoll_event& currEvent) {
 
 	int	fd = currEvent.data.fd;
-	std::cout << "event for fd: " << fd << std::endl;
-	for (auto cgiFd : _cgiFdClientPtrMap) {
-		if (cgiFd.first) {
-			std::cout << "Current fd in the cgi map: " << cgiFd.first << "\n";
-		}
-	}
 	if (isListeningSocket(fd)) {
 		manageListenSocketEvent(currEvent);
 	}
@@ -422,46 +414,38 @@ void	ServerManager::manageEpollEvent(const struct epoll_event& currEvent) {
 		_fdClientMap.at(fd).handleResponse(fd);
 	}
 	else if (_cgiFdClientPtrMap.find(fd) != _cgiFdClientPtrMap.end()) {
-	std::cout << "got here" << std::endl;
-    Client* clientPtr = _cgiFdClientPtrMap[fd];
-    CGIHandler* cgiHandler = clientPtr->getResponse().getCgiHandler();
-	int stderr_fd = cgiHandler->getStderrFd();
-	int stdout_fd = cgiHandler->getStdoutFd();
-	std::cout << "stderr: " << stderr_fd << "stdout: " << stdout_fd << std::endl;
-    if (fd == stdout_fd || fd == stderr_fd) {
-        cgiHandler->handleEvent(fd);
-		
-        // If both stdout and stderr are done, and the process is done, clean up
-        if (cgiHandler->isDone()) {
-            clientPtr->getResponse().generateCGIResponse();
-			std::string cgiResponse = clientPtr->getResponse().getRawResponse();
-            int stdout_fd = cgiHandler->getStdoutFd();
-            int stderr_fd = cgiHandler->getStderrFd();
-			int clientFd = clientPtr->getResponse().getClientFd();
-			setEpollCtl(clientFd, EPOLLOUT, EPOLL_CTL_MOD);
-			clientPtr->sendResponse(cgiResponse, clientFd);
-            // Remove from epoll and tracking map before closing
-            setEpollCtl(stdout_fd, EPOLLIN, EPOLL_CTL_DEL);
-            setEpollCtl(stderr_fd, EPOLLIN, EPOLL_CTL_DEL);
-            _cgiFdClientPtrMap.erase(stderr_fd);
-            _cgiFdClientPtrMap.erase(stdout_fd);
+		Client* clientPtr = _cgiFdClientPtrMap[fd];
+		CGIHandler* cgiHandler = clientPtr->getResponse().getCgiHandler();
+		int stderr_fd = cgiHandler->getStderrFd();
+		int stdout_fd = cgiHandler->getStdoutFd();
+		if (fd == stdout_fd || fd == stderr_fd) {
+			cgiHandler->handleEvent(fd);
+			
+			// If both stdout and stderr are done, and the process is done, clean up
+			if (cgiHandler->isDone()) {
+				clientPtr->getResponse().generateCGIResponse();
+				std::string cgiResponse = clientPtr->getResponse().getRawResponse();
+				int clientFd = clientPtr->getResponse().getClientFd();
+				setEpollCtl(clientFd, EPOLLOUT, EPOLL_CTL_MOD);
+				clientPtr->sendResponse(cgiResponse, clientFd);
+				// Remove from epoll and tracking map before closing
+				setEpollCtl(stdout_fd, EPOLLIN, EPOLL_CTL_DEL);
+				setEpollCtl(stderr_fd, EPOLLIN, EPOLL_CTL_DEL);
+				_cgiFdClientPtrMap.erase(stderr_fd);
+				_cgiFdClientPtrMap.erase(stdout_fd);
 
-            // Only close if not already closed
-            if (stdout_fd >= 0) close(stdout_fd);
-            if (stderr_fd >= 0) close(stderr_fd);
-
-            std::cout << "Closed CGI stdout fd: " << stdout_fd << ", stderr fd: " << stderr_fd << "\n";
-        }
-    } else {
-        std::cerr << "Error: CGI handler is null." << std::endl;
-        setEpollCtl(fd, EPOLLIN, EPOLL_CTL_DEL);
-        _cgiFdClientPtrMap.erase(stderr_fd);
-        _cgiFdClientPtrMap.erase(stdout_fd);
-        close(fd);
-    }
-}
-	std::cout << "Epoll event handled for fd: " << fd << "\n";
-
+				// Only close if not already closed
+				if (stdout_fd >= 0) close(stdout_fd);
+				if (stderr_fd >= 0) close(stderr_fd);
+			}
+		} else {
+			std::cerr << "Error: CGI handler is null." << std::endl;
+			setEpollCtl(fd, EPOLLIN, EPOLL_CTL_DEL);
+			_cgiFdClientPtrMap.erase(stderr_fd);
+			_cgiFdClientPtrMap.erase(stdout_fd);
+			close(fd);
+		}
+	}
 }
 
 

@@ -6,7 +6,7 @@
 /*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/06/30 12:13:01 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/07/05 17:18:24 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/07/06 11:44:38 by vshkonda      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -230,7 +230,6 @@ std::string CGIHandler::parseOutput(const std::vector<char>& output) {
     rawResponse += startLine;
 
     std::string outputStr(output.begin(), output.end());
-    std::cout << "CGI output string: " << outputStr << std::endl;
     // separate any headers that might be in the output
     std::string headers;
     //find separator between headers and body

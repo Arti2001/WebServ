@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>                +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/07/05 17:20:37 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/07/06 11:47:20 by vshkonda      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,16 +72,13 @@ void Response::matchServer() {
 		setStatusCode(500);
         return ;
 	}
-    std::cout << "About to check host" << std::endl;
     std::string hostHeaderValue = Client::getAnyHeader(_request->getHeaders(), "Host");
     if (hostHeaderValue.empty()) {
         setStatusCode(400);
         return ;
     }
-    std::cout << "Host found:" << hostHeaderValue << std::endl;
     
     _serverConfig = _serverManager->findServerConfigByName(subServConfigs, hostHeaderValue);
-    std::cout << "Server config found: " << (_serverConfig ? "Yes" : "No") << std::endl;
     if (!_serverConfig) {
         setStatusCode(404);
         return ;
@@ -105,9 +102,6 @@ void Response::matchLocation() {
     if (_locationConfig->getLocationReturnPages().first) {
         setStatusCode(_locationConfig->getLocationReturnPages().first);
 	}
-	std::cout << "Location max client size: " << _locationConfig->getLocationClientMaxSize() << std::endl;
-	std::cout << "Request body size: " << _request->getBodySize() << std::endl;
-	std::cout << "Code: " << _statusCode << std::endl;
     if (_locationConfig->getLocationClientMaxSize() < static_cast<unsigned int>(_request->getBodySize()))
         setStatusCode(413);
 }
@@ -125,7 +119,6 @@ void Response::generateResponse() {
 
     if (_statusCode >= 300 && _statusCode < 400)
         return handleRedirectRequest();
-    std::cout << "Checking if it is a cgi request" << std::endl;
     if (isCgiRequest())
         return handleCGIRequest();
 
@@ -207,14 +200,12 @@ void Response::handleRedirectRequest() {
 bool Response::isCgiRequest() {
     // check if the uri has the cgi extension
     std::string path = _request->getUri(); // e.g., "/cgi-bin/script.cgi"
-    std::cout << "Path: " << path << std::endl;
     size_t extDot = path.find_last_of('.');
     std::string extension;
     if (extDot != std::string::npos)
         extension = path.substr(path.find_last_of('.')); // need to check whether the extension is extracted with a dot or not. if not remove +1
     else
         extension = "";
-    std::cout << "Extension: " << extension << std::endl;
     std::map <std::string, std::string> cgiExtensions = _locationConfig->getLocationAllowedCgi();
     if (cgiExtensions.empty()) {
         std::cerr << "No CGI extensions allowed for this location." << std::endl;
@@ -227,7 +218,6 @@ bool Response::isCgiRequest() {
             std::cerr << "No index files specified for this location." << std::endl;
             return false; // No index files specified
         }
-        std::cout << "Index files: " << indexFiles.size() << std::endl;
         for (const auto &indexFile : indexFiles) {
             extDot = indexFile.find_last_of('.');
             std::string indexExtension;
@@ -236,14 +226,12 @@ bool Response::isCgiRequest() {
             else
                 indexExtension = "";
             if (cgiExtensions.find(indexExtension) != cgiExtensions.end()) {
-                std::cout << "CGI request detected for index file: " << indexFile << std::endl;
 				_cgiIndexFile = indexFile; // Store the index file name for CGI handling
                 return true; // The request is a CGI request for an index file
             }
         }
     }
     else if (cgiExtensions.find(extension) != cgiExtensions.end()) {
-        std::cout << "CGI request detected for extension: " << extension << std::endl;
         return true; // The request is a CGI request
     } 
    return false; // The request is not a CGI request
@@ -251,8 +239,6 @@ bool Response::isCgiRequest() {
 
 void Response::handleCGIRequest() {
     // Handle CGI request logic here
-    std::cout << "Handling CGI request" << std::endl;
-    std::cout << "Request method: " << _request->getMethod() << std::endl;
     if (!isMethodAllowed(_request->getMethod())) {
         setStatusCode(405); // Method Not Allowed
         return generateErrorResponse();
@@ -408,7 +394,6 @@ std::string Response::generateUUID() {
 }
 
 void Response::handlePostRequest() {
-    std::cout << "Handling POST request" << std::endl;
     if (!isMethodAllowed("POST")) {
         setStatusCode(405); // Method Not Allowed
         return generateErrorResponse();
@@ -427,7 +412,6 @@ void Response::handlePostRequest() {
 }
 
 void Response::handleDeleteRequest() {
-    std::cout << "Handling DELETE request" << std::endl;
     if (!isMethodAllowed("DELETE")) {
         setStatusCode(405); // Method Not Allowed
         return generateErrorResponse();
