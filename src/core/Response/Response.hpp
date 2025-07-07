@@ -43,6 +43,7 @@ class Response {
         int _statusCode; // HTTP status code (e.g., 200, 404, 500)
         bool _validPath; // Flag to indicate if the path is valid
         std::string _rawResponse;
+		std::string _rawCGIResponse; // Raw CGI response string
         std::string _statusMessage; // HTTP status message (e.g., "OK", "Not Found", "Internal Server Error")
         std::unordered_map<std::string, std::string> _headers; // HTTP headers for the response
         std::string _body; // Body of the response

@@ -44,7 +44,6 @@ Response::Response(Request *request, ServerManager *ServerManager, int serverFd,
 		{500, "Internal Server Error"}
 	}),
 	_cgiIndexFile("")
-	
 {
     _statusCode = request->getStatusCode();
     _statusMessage = _statusMessages[_statusCode];

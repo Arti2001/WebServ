@@ -134,6 +134,7 @@ void    Client::handleRequest (int clientFd) {
 		}
 		_startLineAndHeadersBuffer.clear(); // Clear the buffer after parsing headers and body
 		_headersParsed = false; // Reset the headers parsed flag for the next request
+		std::cout << "Request start line: " << _request.getPath() << std::endl;
 		_serverManager->setEpollCtl(clientFd, EPOLLOUT, EPOLL_CTL_MOD);
         return ;
 		
