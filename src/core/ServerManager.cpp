@@ -114,7 +114,6 @@ const char*	ServerManager::ServerManagerException::what() const noexcept {
 	return (_message.c_str());
 }
 
-
 void	ServerManager::groupServers(const std::vector<vServer>& _vServers) {
 
 	for (const vServer& vServer : _vServers) {
@@ -139,7 +138,6 @@ void	ServerManager::setServers() {
 		_servers.emplace_back(socketFd, it->second);
 
 	}
-	std::cout << _servers.size() << "\n";
 }
 
 
@@ -367,6 +365,21 @@ void ServerManager::addClientToMap(int clientFd, int serverFd) {
 
 void ServerManager::addCgiFdToMap(int cgiFd, int clientFd) {
 
+	auto it = _fdClientMap.find(clientFd);
+	if (it == _fdClientMap.end()) {
+		std::cerr << "Error: Client fd not found in map." << std::endl;
+		return;
+	}
+	Client* clientPtr = &it->second; // get pointer to Client object
+
+	setNonBlocking(cgiFd);
+	setEpollCtl(cgiFd, EPOLLIN, EPOLL_CTL_ADD);
+	_cgiFdClientPtrMap.emplace(cgiFd, clientPtr); // store pointer to Client object
+}
+
+
+void ServerManager::addCgiFdToMap(int cgiFd, int clientFd) {
+	//callback function
 	auto it = _fdClientMap.find(clientFd);
 	if (it == _fdClientMap.end()) {
 		std::cerr << "Error: Client fd not found in map." << std::endl;

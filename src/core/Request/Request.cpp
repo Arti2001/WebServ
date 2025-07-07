@@ -6,7 +6,7 @@
 /*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/07/06 13:08:42 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/07/06 13:12:36 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/07/06 18:32:00 by vshkonda      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,10 +16,9 @@ Request::Request() : _currentPosition(0), _timeout(REQUEST_DEFAULT_TIMEOUT), _st
     // Default constructor
 }
 
-Request::Request(const std::string &rawRequest) : _currentPosition(0), _timeout(REQUEST_DEFAULT_TIMEOUT), _statusCode(REQUEST_DEFAULT_STATUS_CODE), _bodySize(REQUEST_DEFAULT_MAX_BODY_SIZE), _isChunked(false) {
+Request::Request(const std::string &rawRequest) : _rawRequest(rawRequest), _currentPosition(0), _method(""), _path(""), _httpVersion(""), _headers() ,_body(""), _query(""), _timeout(REQUEST_DEFAULT_TIMEOUT), _statusCode(REQUEST_DEFAULT_STATUS_CODE), _bodySize(REQUEST_DEFAULT_MAX_BODY_SIZE), _isChunked(false), _isCgi(false), _bodyExpected(false), _supportedMethods(), _seenHeaders() {
     // Constructor with raw request string
     registerSupportedMethods();
-    _rawRequest = rawRequest;
     if (_rawRequest.empty()) {
         std::cerr << "Empty request received." << std::endl;
         this->setStatusCode(400); // Bad Request
@@ -132,11 +131,12 @@ void Request::parseMethod(const std::string &method) {
     // Parse the HTTP method from the request
     if (method.empty()) {
         std::cerr << "Empty method in request." << std::endl;
-        return this->setStatusCode(400); // Bad Request
+        setStatusCode(400); // Bad Request
+		return ;
     }
     if (_supportedMethods.find(method) == _supportedMethods.end()) {
         std::cerr << "Unsupported method: " << method << std::endl;
-        return this->setStatusCode(405); // Method Not Allowed
+        this->setStatusCode(405); // Method Not Allowed
     }
     _method = method;
 }

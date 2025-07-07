@@ -1,6 +1,0 @@
-------WebKitFormBoundaryXYZ
-Content-Disposition: form-data; name="uploadFile"; filename="test.txt"
-Content-Type: text/plain
-
-Hello, this is a test file.
-------WebKitFormBoundaryXYZ--

@@ -6,10 +6,8 @@ import json
 print("Content-Type: application/json\r\n\r\n")
 
 SCRIPT_DIR   = os.path.dirname(os.path.realpath(__file__))
-UPLOAD_DIR = os.path.join(
-    SCRIPT_DIR, 
-    os.environ.get("UPLOAD_DIR")
-)
+EXEC_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "../../"))
+UPLOAD_DIR = os.path.join(EXEC_DIR, os.environ.get("UPLOAD_DIR"))   # absolute path is safer
 
 
 try:

@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>                +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/07/06 13:20:39 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/07/06 18:49:48 by vshkonda      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,27 @@ Response::Response(Request *request, ServerManager *ServerManager, int serverFd,
 	_clientFd(clientFd),
 	_isCgi(false),
 	_cgiHandler(nullptr),
-    _rawResponse("")
+	_statusCode(200), // Default status code
+	_validPath(false), // Initially set to false, will be updated later
+    _rawResponse(""),
+	_statusMessage("OK"), // Default status message
+	_headers(),
+	_body(""),
+	_statusMessages({
+		{200, "OK"},
+		{301, "Moved Permanently"},
+		{400, "Bad Request"},
+		{401, "Unauthorized"},
+		{403, "Forbidden"},
+		{404, "Not Found"},
+		{405, "Method Not Allowed"},
+		{408, "Request Timeout"},
+		{413, "Payload Too Large"},
+		{418, "I'm a teapot"},
+		{429, "Too Many Requests"},
+		{500, "Internal Server Error"}
+	}),
+	_cgiIndexFile("")
 {
     _statusCode = request->getStatusCode();
     _statusMessage = _statusMessages[_statusCode];
@@ -149,7 +169,9 @@ void Response::generateErrorResponse() {
     _body.clear();
     
 	// match the error code with the custom html error page if it exists
-	if (_locationConfig->getLocationErrorPages().find(_statusCode) != _locationConfig->getLocationErrorPages().end()) {
+	std::cout << "Checking for custom error page for status code: " << _statusCode << std::endl;
+	if (_locationConfig && _locationConfig->getLocationErrorPages().find(_statusCode) != _locationConfig->getLocationErrorPages().end()) {
+		std::cout << "Custom error page found for status code: " << _statusCode << std::endl;
 		std::string errorPagePath = _locationConfig->getLocationErrorPages().at(_statusCode);
 		std::string fullPath = _locationConfig->getLocationRoot() + resolveRelativePath(errorPagePath, _locationConfig->getLocationPath());
 		if (fileExists(fullPath)) {
@@ -169,9 +191,10 @@ void Response::generateErrorResponse() {
     addHeader("Connection", "close");
     
     // Generate the full response
-    // createStartLine();
-    // createHeaders();
-    // createBody();
+	_rawResponse.clear();
+    createStartLine();
+    createHeaders();
+    createBody();
 }
 
 void Response::handleRedirectRequest() {
@@ -223,7 +246,7 @@ bool Response::isCgiRequest() {
                 indexExtension = indexFile.substr(extDot);
             else
                 indexExtension = "";
-            if (cgiExtensions.find(indexExtension) != cgiExtensions.end()) {
+            if (cgiExtensions.find(indexExtension) != cgiExtensions.end() && fileExists(indexFile)) {
 				_cgiIndexFile = indexFile; // Store the index file name for CGI handling
                 return true; // The request is a CGI request for an index file
             }

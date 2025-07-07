@@ -6,7 +6,7 @@
 /*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/07/06 13:07:50 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/07/06 13:40:18 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/07/06 15:20:08 by vshkonda      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -128,7 +128,7 @@ void    Client::handleRequest (int clientFd) {
 				_bodyBuffer.clear(); // Clear the body buffer after parsing
 				
 			} else {
-				std::cout << "Body not complete yet, waiting for more data..." << std::endl;
+				// std::cout << "Body not complete yet, waiting for more data..." << std::endl;
 				return;
 			}
 		}
@@ -159,7 +159,7 @@ void	Client::handleResponse(int clientFd) {
 			_closeAfterResponse = true;
 		_clientResponse = _response->getRawResponse();
 		if (_response->getIsCGI()) {
-			std::cout << "CGI is coming" << std::endl;
+			// std::cout << "CGI is coming" << std::endl;
 			_serverManager->setEpollCtl(clientFd, EPOLLIN, EPOLL_CTL_MOD);
 			return;
 		}
