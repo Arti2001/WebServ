@@ -6,7 +6,7 @@
 /*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/07/06 13:07:50 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/07/06 15:20:08 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/07/08 09:16:04 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,7 +118,7 @@ void    Client::handleRequest (int clientFd) {
 		}
 		// If headers are parsed, we can now check for the body. It is optional depending on request type, 
 		// so it is separated from the headers parsing logic.
-		if (_headersParsed && _request.getBodyExpected())
+		if (_headersParsed && _request.getBodyExpected() && _request.getStatusCode() < 400)
 		{
 			_bodyBuffer += incomingData.substr(_bodyStart); // we append the chunk that may have been read with headers
 			_bodyStart = 0;

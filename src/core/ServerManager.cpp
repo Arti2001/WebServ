@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   ServerManager.cpp                                  :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/07/06 13:08:11 by vshkonda          #+#    #+#             */
-/*   Updated: 2025/07/06 18:44:04 by amysiv           ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   ServerManager.cpp                                  :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: amysiv <amysiv@student.42.fr>                +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/07/06 13:08:11 by vshkonda      #+#    #+#                 */
+/*   Updated: 2025/07/08 09:17:34 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -376,24 +376,6 @@ void ServerManager::addCgiFdToMap(int cgiFd, int clientFd) {
 	setEpollCtl(cgiFd, EPOLLIN, EPOLL_CTL_ADD);
 	_cgiFdClientPtrMap.emplace(cgiFd, clientPtr); // store pointer to Client object
 }
-
-
-void ServerManager::addCgiFdToMap(int cgiFd, int clientFd) {
-	//callback function
-	auto it = _fdClientMap.find(clientFd);
-	if (it == _fdClientMap.end()) {
-		std::cerr << "Error: Client fd not found in map." << std::endl;
-		return;
-	}
-	Client* clientPtr = &it->second; // get pointer to Client object
-
-	setNonBlocking(cgiFd);
-	setEpollCtl(cgiFd, EPOLLIN, EPOLL_CTL_ADD);
-	_cgiFdClientPtrMap.emplace(cgiFd, clientPtr); // store pointer to Client object
-}
-
-
-
 
 void	ServerManager::manageEpollEvent(const struct epoll_event& currEvent) {
 
