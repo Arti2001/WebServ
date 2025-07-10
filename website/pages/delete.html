@@ -327,7 +327,8 @@
 
       .upload-form input[type="file"],
       .upload-form input[type="text"],
-      .upload-form input[type="number"] {
+      .upload-form input[type="number"],
+      .upload-form select { /* Added select for styling */
         width: 100%;
         padding: 0.75rem;
         margin-bottom: 1.5rem;
@@ -337,7 +338,8 @@
         transition: border-color 0.3s;
       }
 
-      .upload-form input:focus {
+      .upload-form input:focus,
+      .upload-form select:focus { /* Added select for styling */
         border-color: var(--navy);
         outline: none;
         box-shadow: 0 0 0 2px rgba(10, 35, 66, 0.1);
@@ -382,6 +384,23 @@
 
       .button-group .btn {
         margin: 0.5rem;
+      }
+      
+      #response {
+        margin-top: 20px; 
+        padding: 1rem;
+        border-radius: 6px;
+        display: none; /* Hidden by default */
+      }
+      #response.success {
+        background-color: #e6f9f0;
+        color: #00642e;
+        border: 1px solid #b3e6c9;
+      }
+      #response.error {
+        background-color: #fdeaea;
+        color: #9b1c1c;
+        border: 1px solid #f9c5c5;
       }
 
       /* Main content wrapper */
@@ -466,48 +485,21 @@
       </div>
     </header>
 
-    <main>
+   <main>
       <section class="features">
         <div class="container">
           <h1>Delete a File</h1>
-          <p>Enter the name of the file you want to remove from the server.</p>
-          <form
-			action="/cgi-bin/delete.py"
-			method="DELETE"
-			class="upload-form"
-			id="deleteForm"
-			>
-			<select name="filename" id="filename" required>
-				<option value="">-- Select a file to delete --</option>
-			</select>
-			<button type="submit" class="btn primary-btn">Delete File</button>
-			</form>
+          <p>Select a file to remove from the server.</p>
+          <form class="upload-form" id="deleteForm" onsubmit="return false;">
+            <select name="filename" id="filename" required>
+              <option value="">-- Select a file to delete --</option>
+            </select>
+            <button type="button" id="deleteButton" class="btn primary-btn">Delete File</button>
+          </form>
 
-          <div id="response" style="margin-top: 20px; display: none"></div>
-
-          <script>
-            window.onload = function () {
-			fetch("/cgi-bin/list_files.py")
-				.then((response) => response.json())
-				.then((data) => {
-				if (data.status === "success") {
-					const select = document.getElementById("filename");
-					data.files.forEach((file) => {
-					const option = document.createElement("option");
-					option.value = file;
-					option.textContent = file;
-					select.appendChild(option);
-					});
-				} else {
-					alert("Error fetching files: " + data.message);
-				}
-				})
-				.catch((error) => {
-				alert("Fetch error: " + error.message);
-				});
-			};
-          </script>
+          <div id="response"></div>
         </div>
+      </section>
     </main>
 
     <footer>
@@ -515,5 +507,78 @@
         <p>&copy; 2025 Webserv. All rights reserved.</p>
       </div>
     </footer>
+    
+    <script>
+      // Function to fetch the list of files and populate the dropdown
+      function populateFiles() {
+        fetch("/cgi-bin/list_files.py")
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.status === "success") {
+              const select = document.getElementById("filename");
+              select.innerHTML = '<option value="">-- Select a file to delete --</option>';
+              data.files.forEach((file) => {
+                const option = document.createElement("option");
+                option.value = file;
+                option.textContent = file;
+                select.appendChild(option);
+              });
+            } else {
+              alert("Error fetching files: " + data.message);
+            }
+          })
+          .catch((error) => {
+            alert("Fetch error: " + error.message);
+          });
+      }
+
+      // Handle the button click event
+      document.getElementById("deleteButton").addEventListener("click", function (event) {
+        const select = document.getElementById("filename");
+        const filename = select.value;
+        const responseDiv = document.getElementById("response");
+
+        if (!filename) {
+          responseDiv.textContent = "Please select a file to delete.";
+          responseDiv.className = "error";
+          responseDiv.style.display = "block";
+          return;
+        }
+
+        // Use the Fetch API to send a DELETE request with the filename in the query string
+        fetch(`/cgi-bin/delete.py?filename=${encodeURIComponent(filename)}`, {
+          method: "DELETE" // Using the correct HTTP verb
+          // No body or Content-Type header is needed
+        })
+        .then(response => {
+            if (!response.headers.get("content-type")?.includes("application/json")) {
+                return response.text().then(html => {
+                    document.body.innerHTML = html;
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data) {
+                responseDiv.textContent = data.message;
+                if (data.status === "success") {
+                    responseDiv.className = "success";
+                    populateFiles(); 
+                } else {
+                    responseDiv.className = "error";
+                }
+                responseDiv.style.display = "block";
+            }
+        })
+        .catch(error => {
+            responseDiv.textContent = "An error occurred: " + error.message;
+            responseDiv.className = "error";
+            responseDiv.style.display = "block";
+        });
+      });
+
+      // Populate the file list when the page loads
+      window.onload = populateFiles;
+    </script>
   </body>
 </html>
