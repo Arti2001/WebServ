@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>                +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/07/06 18:49:48 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/07/10 15:38:56 by pminialg      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -155,6 +155,9 @@ void Response::generateResponse() {
         setStatusCode(405); // Method Not Allowed
         return generateErrorResponse(); // Method Not Allowed
     }
+    if (_statusCode >= 400) {
+        return;
+    }
     createStartLine();
     createHeaders();
     createBody();
@@ -173,8 +176,8 @@ void Response::generateErrorResponse() {
 	if (_locationConfig && _locationConfig->getLocationErrorPages().find(_statusCode) != _locationConfig->getLocationErrorPages().end()) {
 		std::cout << "Custom error page found for status code: " << _statusCode << std::endl;
 		std::string errorPagePath = _locationConfig->getLocationErrorPages().at(_statusCode);
-		std::string fullPath = _locationConfig->getLocationRoot() + resolveRelativePath(errorPagePath, _locationConfig->getLocationPath());
-		if (fileExists(fullPath)) {
+        std::string fullPath = _locationConfig->getLocationRoot() + resolveRelativePath(errorPagePath, _locationConfig->getLocationPath());
+        if (fileExists(fullPath)) {
 			std::ifstream file(fullPath);
 			std::ostringstream oss;
     		oss << file.rdbuf(); // Read the entire file into a string
