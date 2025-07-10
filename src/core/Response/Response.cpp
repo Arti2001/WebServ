@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>                +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/07/06 18:49:48 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/07/10 15:30:50 by pminialg      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -155,6 +155,9 @@ void Response::generateResponse() {
         setStatusCode(405); // Method Not Allowed
         return generateErrorResponse(); // Method Not Allowed
     }
+    if (_statusCode >= 400) {
+        return;
+    }
     createStartLine();
     createHeaders();
     createBody();
@@ -173,7 +176,7 @@ void Response::generateErrorResponse() {
 	if (_locationConfig && _locationConfig->getLocationErrorPages().find(_statusCode) != _locationConfig->getLocationErrorPages().end()) {
 		std::cout << "Custom error page found for status code: " << _statusCode << std::endl;
 		std::string errorPagePath = _locationConfig->getLocationErrorPages().at(_statusCode);
-		std::string fullPath = _locationConfig->getLocationRoot() + resolveRelativePath(errorPagePath, _locationConfig->getLocationPath());
+        std::string fullPath = _locationConfig->getLocationRoot() + resolveRelativePath(errorPagePath, _locationConfig->getLocationPath());
 		if (fileExists(fullPath)) {
 			std::ifstream file(fullPath);
 			std::ostringstream oss;
@@ -539,8 +542,12 @@ void Response::createBody() {
 
 std::string Response::resolveRelativePath(const std::string &path, const std::string &locationPath) const {
     // Resolve relative path based on location path
-    if (path.empty() || path[0] == '/') {
+    std::string copy_path = path;
+    if (copy_path.empty()) {
         return path; // Absolute path, return as is
+    }
+    if (copy_path[0] == '/') {
+        return copy_path.erase(0, 1);
     }
     return locationPath + "/" + path; // Relative path, prepend location path
 }
