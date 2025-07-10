@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>                +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/07/10 15:30:50 by pminialg      ########   odam.nl         */
+/*   Updated: 2025/07/10 15:38:56 by pminialg      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -177,7 +177,7 @@ void Response::generateErrorResponse() {
 		std::cout << "Custom error page found for status code: " << _statusCode << std::endl;
 		std::string errorPagePath = _locationConfig->getLocationErrorPages().at(_statusCode);
         std::string fullPath = _locationConfig->getLocationRoot() + resolveRelativePath(errorPagePath, _locationConfig->getLocationPath());
-		if (fileExists(fullPath)) {
+        if (fileExists(fullPath)) {
 			std::ifstream file(fullPath);
 			std::ostringstream oss;
     		oss << file.rdbuf(); // Read the entire file into a string
@@ -542,12 +542,8 @@ void Response::createBody() {
 
 std::string Response::resolveRelativePath(const std::string &path, const std::string &locationPath) const {
     // Resolve relative path based on location path
-    std::string copy_path = path;
-    if (copy_path.empty()) {
+    if (path.empty() || path[0] == '/') {
         return path; // Absolute path, return as is
-    }
-    if (copy_path[0] == '/') {
-        return copy_path.erase(0, 1);
     }
     return locationPath + "/" + path; // Relative path, prepend location path
 }
