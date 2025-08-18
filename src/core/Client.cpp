@@ -6,7 +6,7 @@
 /*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/07/06 13:07:50 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/07/08 09:16:04 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/07/10 18:58:52 by vshkonda      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,7 +134,7 @@ void    Client::handleRequest (int clientFd) {
 		}
 		_startLineAndHeadersBuffer.clear(); // Clear the buffer after parsing headers and body
 		_headersParsed = false; // Reset the headers parsed flag for the next request
-		std::cout << "Request start line: " << _request.getPath() << std::endl;
+		// std::cout << "Request start line: " << _request.getPath() << std::endl;
 		_serverManager->setEpollCtl(clientFd, EPOLLOUT, EPOLL_CTL_MOD);
         return ;
 		

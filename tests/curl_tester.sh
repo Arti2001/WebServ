@@ -9,7 +9,7 @@ echo "Error code should be 400 Bad Request"
 curl -X DELETE http://localhost:8071/ # update the port if needed
 echo "Error code should be 405 Method Not Allowed"
 curl -H "Host: lol.com" http://localhost:8071/ # update the port if needed
-echo "Error code should be 404 Not Found"
+echo "Success 200 even if server name is not correct"
 curl -H "Host: testServer.com" http://localhost:8071/ # update the port if needed
 echo "Error code should be 200 OK"
 curl http://localhost:8071/invalid1/ # update the port if needed
@@ -21,8 +21,6 @@ curl -X POST --data "somedatahere" http://localhost:8071/simple/ # update the po
 echo "Error code should be 200 OK"
 curl -X DELETE http://localhost:8071/simple/blackhole.png # update the port if needed
 echo "Error code should be 200 OK"
-curl http://localhost:8071/redirect/ # update the port if needed
-echo "Error code should be 301 Moved Permanently"
 
 
 

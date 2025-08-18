@@ -6,7 +6,7 @@
 /*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/07/06 13:08:19 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/07/06 13:08:20 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/07/10 18:50:21 by vshkonda      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,5 +23,6 @@ class Utils {
         static std::string currentDateString();
         static std::string serverNameString();
         static void trim(std::string& line);
+		static std::string joinPaths(const std::string& path1, const std::string& path2);
 };
 #endif

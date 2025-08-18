@@ -6,7 +6,7 @@
 /*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/07/06 13:08:42 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/07/06 18:32:00 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/07/10 18:43:00 by vshkonda      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,7 +86,7 @@ void Request::parseRequest() {
     // Check if body is expected
     _bodyExpected = checkBodyRelatedHeaders();
     if (_bodyExpected && _headers.find("Content-Length") != _headers.end()) {
-        _bodySize = std::stoi(_headers["Content-Length"]);
+        _bodySize = std::stoul(_headers["Content-Length"]);
     }  
 	if (!_bodyExpected)
 		_bodySize = 0;
@@ -97,7 +97,7 @@ bool Request::checkBodyRelatedHeaders() {
     auto it2 = _headers.find("Transfer-Encoding");
     if (it == _headers.end() && it2 == _headers.end())
         return false;
-    if (it != _headers.end() && !it->second.empty() && std::stoi(it->second) > _bodySize) {
+    if (it != _headers.end() && !it->second.empty() && std::stoul(it->second) > _bodySize) {
         std::cerr << "Request body size exceeds the limit." << std::endl;
         this->setStatusCode(413); // Payload Too Large
         return false;

@@ -10,7 +10,7 @@ SCRIPT_DIR   = os.path.dirname(os.path.realpath(__file__))
 PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, ".."))
 # The path to the uploads directory is now calculated directly and reliably.
 UPLOAD_DIR = os.path.join(PROJECT_ROOT, "uploads")
-MAX_BYTES    = 1 * 1024 * 1024                     # 1 MB
+MAX_BYTES    = 1000 * 1024 * 1024                     # 1 MB
 # ---------------------------------------------------------------------------
 
 def reply(status: str, message: str, http_code: str = "200 OK"):

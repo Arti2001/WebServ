@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   vServer.cpp                                        :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: amysiv <amysiv@student.42.fr>                +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/07/06 13:09:17 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/07/10 16:01:03 by pminialg      ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   vServer.cpp                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/07/06 13:09:17 by vshkonda          #+#    #+#             */
+/*   Updated: 2025/08/18 13:19:41 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ vServer::vServer() {
 	_vServerPort = "8080";
 	_vServerIpPort = "0.0.0.0:8080";
 	_vServerNames = {"localhost"};
-	_vServerRoot = "website/pages/";
+	_vServerRoot = "website/";
 	_vServerIndex = {"index.html"};
 	_vServerAutoIndex = false;
 	_vServerClientMaxSize = 1024 * 1024 * 1024;

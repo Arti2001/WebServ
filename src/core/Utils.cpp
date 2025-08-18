@@ -6,7 +6,7 @@
 /*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/07/06 13:08:21 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/07/06 13:08:22 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/07/10 18:50:02 by vshkonda      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,4 +34,17 @@ void Utils::trim(std::string& line) {
 
     size_t end = line.find_last_not_of(" \t\r\n");
     line = line.substr(start, end - start + 1);
+}
+
+std::string Utils::joinPaths(const std::string& path1, const std::string& path2) {
+    if (path1.empty()) return path2;
+    if (path2.empty()) return path1;
+    
+    if (path1.back() == '/' && path2.front() == '/') {
+        return path1 + path2.substr(1);
+    } else if (path1.back() == '/' || path2.front() == '/') {
+        return path1 + path2;
+    } else {
+        return path1 + "/" + path2;
+    }
 }

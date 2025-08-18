@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   CGIHandler.cpp                                     :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/06/30 12:13:01 by vshkonda          #+#    #+#             */
-/*   Updated: 2025/07/06 15:02:46 by amysiv           ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   CGIHandler.cpp                                     :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: amysiv <amysiv@student.42.fr>                +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/06/30 12:13:01 by vshkonda      #+#    #+#                 */
+/*   Updated: 2025/07/10 18:50:35 by vshkonda      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,9 +45,9 @@ CGIHandler::~CGIHandler()
 std::string CGIHandler::resolveScriptPath(const std::string& rootPath, const std::string& uri, const std::string& cgiIndexFile)
 {
     std::string scriptPath;
-    scriptPath = joinPaths(rootPath, uri);
+    scriptPath = Utils::joinPaths(rootPath, uri);
     if (!cgiIndexFile.empty())
-        scriptPath = joinPaths(scriptPath, cgiIndexFile);
+        scriptPath = Utils::joinPaths(scriptPath, cgiIndexFile);
 
     struct stat fileStat;
     if (stat(scriptPath.c_str(), &fileStat) < 0) {
@@ -260,15 +260,3 @@ std::string CGIHandler::parseOutput(const std::vector<char>& output) {
 }
 
 
-std::string CGIHandler::joinPaths(const std::string& path1, const std::string& path2) {
-    if (path1.empty()) return path2;
-    if (path2.empty()) return path1;
-    
-    if (path1.back() == '/' && path2.front() == '/') {
-        return path1 + path2.substr(1);
-    } else if (path1.back() == '/' || path2.front() == '/') {
-        return path1 + path2;
-    } else {
-        return path1 + "/" + path2;
-    }
-}

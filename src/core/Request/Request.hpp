@@ -6,7 +6,7 @@
 /*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/07/06 13:08:38 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/07/06 13:08:39 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/07/10 18:43:38 by vshkonda      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ class Request
         std::string _query; // Query string from the URL
         time_t _timeout; // Timeout for the request
         int _statusCode; // Status code for the request (e.g., 200, 404, 500)
-        int _bodySize; // Size of the request body
+        unsigned _bodySize; // Size of the request body
         bool _isChunked; // Flag to indicate if the request body is chunked
         bool _isCgi; // Flag to indicate if the request is a CGI request
         bool _bodyExpected; // Flag to indicate if the body is expected in the request
@@ -70,7 +70,7 @@ class Request
         const std::string &getHttpVersion() const; // Get the HTTP version
         const std::unordered_map<std::string, std::string> &getHeaders() const; // Get the request headers
         const std::string &getBody() const; // Get the request body
-        int getBodySize() const { return _bodySize; } // Get the size of the request body
+        unsigned int getBodySize() const { return _bodySize; } // Get the size of the request body
         const std::string &getQuery() const; // Get the query string
         time_t getTimeout() const; // Get the timeout for the request
         int getStatusCode() const; // Get the status code for the request
