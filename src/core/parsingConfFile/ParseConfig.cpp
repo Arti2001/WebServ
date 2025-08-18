@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/06 13:09:04 by vshkonda          #+#    #+#             */
-/*   Updated: 2025/07/06 18:41:46 by amysiv           ###   ########.fr       */
+/*   Updated: 2025/08/18 18:22:36 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,13 +27,12 @@ ParseConfig::ParseConfig() : depth(0), currToken(0) {
 	_keywords["server"] = SERVER_BLOCK;
 	_keywords["location"] = LOCATION_BLOCK;
 	_keywords["allowed_cgi"] = ALLOWED_CGI;
-	_keywords["autoindex"] = AUTO_INDEX_DIR; // by convention, autoindex is a directive
+	_keywords["autoindex"] = AUTO_INDEX_DIR;
 	_keywords["upload_path"] = UPLOAD_PATH;
-	_keywords["server_name"] = SERVER_NAME_DIR; // by convention, server_name is a directive
-	_keywords["error_page"] = ERROR_PAGE_DIR; // by convention, error_pages is a directive
+	_keywords["server_name"] = SERVER_NAME_DIR;
+	_keywords["error_page"] = ERROR_PAGE_DIR;
 	_keywords["allowed_methods"] = ALLOWED_METHODS;
-	_keywords["client_max_body_size"] = BODY_MAX_SIZE; // by convention, client_max_body_size is a directive
-	// need to add keywords for upload path, cgi in the location block
+	_keywords["client_max_body_size"] = BODY_MAX_SIZE;
 }
 
 ParseConfig::ConfException::ConfException(const std::string& msg) : _message(msg) {
@@ -42,28 +41,23 @@ ParseConfig::ConfException::ConfException(const std::string& msg) : _message(msg
 
 
 const char*	ParseConfig::ConfException::what() const noexcept {
-	
 	return (_message.c_str());
 }
 
-//std::vector<vServer>	ParseConfig::getVSevers() const {
 
-//	return (_vServers);
-//}
-
-
-Token::Token() {}
 
 Token::Token(size_t	lineNumber, std::string word, TokenType tokenType) {
 
 	this->line_number = lineNumber;
 	this->lexem = word;
 	this->type = tokenType;
-
 }
+
+
 
 ParseConfig::~ParseConfig() {
 }
+
 
 bool	ParseConfig::isTokenDirective(TokenType type) const {
 	return (type == LISTEN_DIR || type == ROOT_DIR || 
@@ -103,35 +97,38 @@ const vServer	ParseConfig::createDefaultConfig() {
 	return(defaultConfig);
 }
 
+/*
+	This method parses and validates tokens from a config file
+	@param reference to a vector of virtual servers
+*/
 void	ParseConfig::parseConfigFileTokens(std::vector<vServer>& _vServers) {
-	
-	if (!validBrace())
+
+	if (!validBrace()) //check for  enclosed braces
 		throw ConfException("Floating closing brace in the configuration file");
 	for (; currToken < _tokens.size();currToken++) {
-		
-		
-		if (_tokens[currToken].type == SERVER_BLOCK) {
-			if (_tokens[currToken + 1].type != OPENED_BRACE) {
+
+		if (_tokens[currToken].type == SERVER_BLOCK) { //we encountered a keyword server
+			if (_tokens[currToken + 1].type != OPENED_BRACE) { // if server block is not folowed by a {  we throw an exception
 				throw ConfException("Expected ' { ' after ' server '");
 			}
-			
-			vServer	vserv;
-			depth = LEVEL;
-			currToken += 2;
-			parsevServerBlock(vserv);
-			if (vserv.getServerLocations().find("/") == vserv.getServerLocations().end())
+
+			vServer	vserv; // create an instance of a server
+			depth = LEVEL; // I neeed it to understand in what type of block I am currently at. If depth != 0  means I am in location block. Helps to track the depth of nested structure basically
+			currToken += 2; // this variable I will increase when I pass a keyword, here by 2 because `server`, `{` are two keywords
+			parsevServerBlock(vserv);//here the whole parsing magic happends
+			if (vserv.getServerLocations().find("/") == vserv.getServerLocations().end()) //this is a map  path = Location instance, if config does not have a default location block we basically create one, and  add it to the vector of locations for current server
 				vserv.getServerLocations().emplace("/", Location(vserv));
-			_vServers.push_back(vserv);
-			seenDirectives.clear();
+			_vServers.push_back(vserv); // here I add  a virtual server into the vector of  vServers
+			seenDirectives.clear();//clearing a set of seen directives
 		}
 		else {
-			throw ConfException("Alien object is detected at the line: " + std::to_string(_tokens[currToken].line_number));
+			throw ConfException("Alien object is detected at the line: " + std::to_string(_tokens[currToken].line_number)); // check for alien object before the server keyword
 		}
 	}
-	if (_vServers.empty())
+	if (_vServers.empty()) // we create a default instance of a vServer with default values, that are in the object constructor.
 		_vServers.push_back(createDefaultConfig());
-		
-	std::cout << _vServers;
+
+	std::cout << _vServers; // an overload, shows directives and their values.
 }
 
 
@@ -210,13 +207,15 @@ std::ostream& operator<<(std::ostream& os, const vServer& server) {
 	return os;
 }
 
+/*
+	This method parses a server block.
+	@param reference to single virtual server object
+*/
+void	ParseConfig::parsevServerBlock(vServer& serv) {
 
-void	ParseConfig::	parsevServerBlock( vServer& serv) {
-	
-	while (depth > 0) {
+	while (depth > 0) { //here depth is 1, we are in the server block
 
 		if (_tokens[currToken].type == CLOSED_BRACE) {
-			//std::cout << "Closing brace is encountered"<< "\n";
 			depth--;
 			continue;
 		}
@@ -239,7 +238,6 @@ void	ParseConfig::	parsevServerBlock( vServer& serv) {
 
 
 std::string	ParseConfig::findLocationPath() {
-	
 	currToken++;//move to the path
 	if (_tokens[currToken].lexem.at(0) != '/')
 		throw ConfException(std::to_string(_tokens[currToken].line_number) + ":: Location directive must be followed by a '/path'");
@@ -269,13 +267,13 @@ void	ParseConfig::isSeenDirective(Token directive) {
 
 
 void	ParseConfig::validateLocationBlockDirectives(vServer& vServer) {
-	
+
 Location	loc(vServer);
 
 std::string locationPath = findLocationPath();
 loc.setLocationPath(locationPath);
 for (; _tokens[currToken].type != CLOSED_BRACE; currToken++) {
-	
+
 	if (_tokens[currToken].type == COMMENT) {
 		std::cout << "FOUND COMENT : " + _tokens[currToken].lexem<<"\n";
 		continue;
@@ -286,11 +284,11 @@ for (; _tokens[currToken].type != CLOSED_BRACE; currToken++) {
 		case ROOT_DIR:
 			loc.setLocationRoot(vServer::onlyOneArgumentCheck(pair.second, "root"));
 		break;
-		
+
 		case INDEX_DIR:
 			loc.setLocationIndex(pair.second);
 		break;
-		
+
 		case UPLOAD_PATH:
 			loc.setLocationUploadPath(vServer::onlyOneArgumentCheck(pair.second, "upload_path"));
 		break;
@@ -298,7 +296,7 @@ for (; _tokens[currToken].type != CLOSED_BRACE; currToken++) {
 		case AUTO_INDEX_DIR:
 			loc.setLocationAutoIndex(vServer::validateAutoIndexDirective(pair.second));
 		break;
-			
+
 		case BODY_MAX_SIZE:
 			loc.setLocationClientMaxSize(vServer::validateClientMaxSizeDirective(pair.second));
 		break;
@@ -306,7 +304,7 @@ for (; _tokens[currToken].type != CLOSED_BRACE; currToken++) {
 		case RETURN_DIR:
 			loc.setLocationReturnPages(Location::setLocationReturnPages(pair.second));
 		break;
-			
+
 		case ALLOWED_METHODS:
 			loc.validateAllowedMethodsDirective(pair.second);
 		break;
@@ -318,19 +316,19 @@ for (; _tokens[currToken].type != CLOSED_BRACE; currToken++) {
 		case ERROR_PAGE_DIR:
 			loc.setLocationErrorPages(vServer::validateErrorPagesDirective(pair.second));
 		break;
-			
+
 		default:
 			throw ConfException("Invalid directive name: " + pair.first.lexem + " not found!");
 		}
 	}
-	//std::cout << &vServer.getServerLocations() << std::endl;
+
 	if (vServer.getServerLocations().find(locationPath) == vServer.getServerLocations().end())
 		vServer.getServerLocations().emplace(locationPath, loc);
 	else
 		throw ConfException("Double location block detected.");
 }
 
-// it is better to have validation inside of the vServer class
+
 void	ParseConfig::validateServerBlockDirectives(vServer& serv) {
 
 	std::pair< Token, std::vector<std::string>> pair = makeKeyValuePair();
@@ -340,31 +338,31 @@ void	ParseConfig::validateServerBlockDirectives(vServer& serv) {
 		case LISTEN_DIR:
 			serv.validateServerListen(pair.second);
 		break;
-		
+
 		case SERVER_NAME_DIR:
 			serv.validateServerNames(pair.second);
 		break;
-		
+
 		case ROOT_DIR:
 			serv.setServerRoot(vServer::onlyOneArgumentCheck(pair.second, "root"));
 		break;
-		
+
 		case INDEX_DIR:
 			serv.setServerIndex(pair.second);
 		break;
-		
+
 		case AUTO_INDEX_DIR:
 			serv.setServerAutoIndex(vServer::validateAutoIndexDirective(pair.second));
 		break;
-		
+
 		case BODY_MAX_SIZE:
 			serv.setServerClientMaxSize(vServer::validateClientMaxSizeDirective(pair.second));
 		break;
-		
+
 		case ERROR_PAGE_DIR:
 			serv.setServerErrorPages(vServer::validateErrorPagesDirective(pair.second));
 		break;
-		
+
 		default:
 			throw ConfException("Invalid directive name: " + pair.first.lexem + " not found!");
 	}

@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   vServer.hpp                                        :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/07/06 13:09:20 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/07/06 13:09:21 by vshkonda      ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   vServer.hpp                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/07/06 13:09:20 by vshkonda          #+#    #+#             */
+/*   Updated: 2025/08/18 18:10:04 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@
 #include <set>
 #include <exception>
 
-#include "ParseConfig.hpp" 
+#include "ParseConfig.hpp"
 #include "LocationConfig.hpp"
 
 
@@ -61,7 +61,7 @@ class vServer {
 	std::string									getServerRoot( void ) const;
 	std::unordered_set<std::string>				getServerNames( void ) const;
 	std::vector<std::string>					getServerIndex( void ) const;
-	
+
 
 	std::map<std::string, Location>	&			getServerLocations(); // allows writing
 	const std::map<std::string, Location>&		getServerLocations() const; // allows reading
@@ -75,15 +75,15 @@ class vServer {
 	void	setServerAutoIndex(const int mode);
 	void	setServerClientMaxSize(const uint64_t size);
 	void	setServerErrorPages(const std::unordered_map<int, std::string>& pages);
-	
-	
-	
-	
+
+
+
+
 	//validators
 	void																	validateServerListen(const std::vector<std::string>& addressVector);
 	void																	validateServerNames(std::vector<std::string>& names);
 
-	//common validators for vServer and Location calss	
+	//common validators for vServer and Location calss
 	static	bool															validateAutoIndexDirective(const std::vector<std::string>& flagVector);
 	static	uint64_t														validateClientMaxSizeDirective(const std::vector<std::string>& sizeVector);
 	static	std::unordered_map<int, std::string>							validateErrorPagesDirective(const std::vector<std::string>& errorPagesVector);

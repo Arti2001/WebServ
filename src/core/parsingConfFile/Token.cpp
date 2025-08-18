@@ -6,23 +6,24 @@
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/06 13:09:14 by vshkonda          #+#    #+#             */
-/*   Updated: 2025/07/06 18:47:09 by amysiv           ###   ########.fr       */
+/*   Updated: 2025/08/18 18:10:24 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ParseConfig.hpp"
 
 bool	isComment(const std::string& line) {
-	
 	for (char c : line) {
 		if (isspace(c)) {
 			continue;
 		}
 		return(c == '#'); 
-		
 	}
 	return (false);
 }
+
+
+
 std::string	addSpace(const std::string& str) {
 
 	std::string	new_string;
@@ -41,6 +42,8 @@ std::string	addSpace(const std::string& str) {
 	}
 	return (new_string);
 }
+
+
 
 std::map<size_t, std::vector<std::string>>	ParseConfig::prepToTokenizeConfigData(std::ifstream& configFile) {
 
@@ -78,11 +81,12 @@ std::vector<std::string>	split(const std::string& str) {
 }
 
 
+
 void	ParseConfig::tokenizeConfigData(std::map<size_t, std::vector<std::string>> lineNumbLexemes) {
 
 	TokenType													tokenType;
 	for(std::map<size_t, std::vector<std::string>>::iterator	itMap = lineNumbLexemes.begin(); itMap != lineNumbLexemes.end(); itMap++) {
-		
+
 		TokenType	prevTokenType = UNKNOWN;
 		size_t		lineNumber = itMap->first;
 
