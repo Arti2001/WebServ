@@ -5,21 +5,23 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/07/06 13:09:04 by vshkonda          #+#    #+#             */
-/*   Updated: 2025/08/18 18:22:36 by amysiv           ###   ########.fr       */
+/*   Created: 2025/08/18 19:16:45 by amysiv            #+#    #+#             */
+/*   Updated: 2025/08/18 19:16:54 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+
+
 
 #include "ParseConfig.hpp"
 
 
-ParseConfig::ParseConfig() : depth(0), currToken(0) {
 
+
+ParseConfig::ParseConfig() : depth(0), currToken(0) {
 	_keywords[";"] = SEMICOLON;
 	_keywords["{"] = OPENED_BRACE;
 	_keywords["}"] = CLOSED_BRACE;
-
-
 	_keywords["root"] = ROOT_DIR;
 	_keywords["index"] = INDEX_DIR;
 	_keywords["listen"] = LISTEN_DIR;
@@ -35,9 +37,20 @@ ParseConfig::ParseConfig() : depth(0), currToken(0) {
 	_keywords["client_max_body_size"] = BODY_MAX_SIZE;
 }
 
+
+
+
 ParseConfig::ConfException::ConfException(const std::string& msg) : _message(msg) {
+}
+
+
+
+
+ParseConfig::~ParseConfig() {
 
 }
+
+
 
 
 const char*	ParseConfig::ConfException::what() const noexcept {
@@ -46,17 +59,14 @@ const char*	ParseConfig::ConfException::what() const noexcept {
 
 
 
-Token::Token(size_t	lineNumber, std::string word, TokenType tokenType) {
 
+Token::Token(size_t	lineNumber, std::string word, TokenType tokenType) {
 	this->line_number = lineNumber;
 	this->lexem = word;
 	this->type = tokenType;
 }
 
 
-
-ParseConfig::~ParseConfig() {
-}
 
 
 bool	ParseConfig::isTokenDirective(TokenType type) const {
@@ -68,8 +78,9 @@ bool	ParseConfig::isTokenDirective(TokenType type) const {
 }
 
 
-bool	ParseConfig::validBrace() {
 
+
+bool	ParseConfig::validBrace(void) {
 	int	lvl = 0;
 
 	for (size_t i = 0; i < _tokens.size(); i++) {
@@ -81,30 +92,30 @@ bool	ParseConfig::validBrace() {
 			lvl--;
 		}
 	}
-
 	if(lvl == 0) {
 		return (true);
 	}
 	return (false);
 }
-const vServer	ParseConfig::createDefaultConfig() {
 
-	vServer	defaultConfig;
-	Location location (defaultConfig);
+
+
+
+const vServer	ParseConfig::createDefaultConfig(void) {
+	vServer		defaultConfig;
+	Location	location (defaultConfig);
 
 	defaultConfig.getServerLocations().emplace("/", location);
-
 	return(defaultConfig);
 }
 
-/*
-	This method parses and validates tokens from a config file
-	@param reference to a vector of virtual servers
-*/
-void	ParseConfig::parseConfigFileTokens(std::vector<vServer>& _vServers) {
 
+
+
+void	ParseConfig::parseConfigFileTokens(std::vector<vServer>& _vServers) {
 	if (!validBrace()) //check for  enclosed braces
 		throw ConfException("Floating closing brace in the configuration file");
+
 	for (; currToken < _tokens.size();currToken++) {
 
 		if (_tokens[currToken].type == SERVER_BLOCK) { //we encountered a keyword server
@@ -112,7 +123,7 @@ void	ParseConfig::parseConfigFileTokens(std::vector<vServer>& _vServers) {
 				throw ConfException("Expected ' { ' after ' server '");
 			}
 
-			vServer	vserv; // create an instance of a server
+			vServer	vserv; // creates an instance of a virtual server
 			depth = LEVEL; // I neeed it to understand in what type of block I am currently at. If depth != 0  means I am in location block. Helps to track the depth of nested structure basically
 			currToken += 2; // this variable I will increase when I pass a keyword, here by 2 because `server`, `{` are two keywords
 			parsevServerBlock(vserv);//here the whole parsing magic happends
@@ -130,6 +141,7 @@ void	ParseConfig::parseConfigFileTokens(std::vector<vServer>& _vServers) {
 
 	std::cout << _vServers; // an overload, shows directives and their values.
 }
+
 
 
 std::ostream& operator<<(std::ostream& os, const std::vector<vServer>& servers) {
@@ -187,8 +199,6 @@ std::ostream& operator<<(std::ostream& os, const vServer& server) {
 		os << "  Allowed Methods:";
 		for (auto itSet = loc.getLocationAllowedMethods().begin(); itSet != loc.getLocationAllowedMethods().end(); ++itSet)
 			os << " " << *itSet;
-		//for (size_t j = 0; j < loc.getLocationAllowedMethods().size(); ++j)
-		//	os << " " << loc.getLocationAllowedMethods().begin();
 		os << "\n";
 		os << "  Error Pages:";
 		const std::unordered_map<int, std::string>& errorPages = loc.getLocationErrorPages();
@@ -199,20 +209,15 @@ std::ostream& operator<<(std::ostream& os, const vServer& server) {
 		const std::map<std::string, std::string>& allowedCgi = loc.getLocationAllowedCgi();
 		for (std::map<std::string, std::string>::const_iterator it = allowedCgi.begin(); it != allowedCgi.end(); ++it)
 			os << "    " << it->first << ": " << it->second << "\n" << "\n";
-
-
 	}
-
 	os << "=======================================================\n";
 	return os;
 }
 
-/*
-	This method parses a server block.
-	@param reference to single virtual server object
-*/
-void	ParseConfig::parsevServerBlock(vServer& serv) {
 
+
+
+void	ParseConfig::parsevServerBlock(vServer& serv) {
 	while (depth > 0) { //here depth is 1, we are in the server block
 
 		if (_tokens[currToken].type == CLOSED_BRACE) {
@@ -237,7 +242,9 @@ void	ParseConfig::parsevServerBlock(vServer& serv) {
 }
 
 
-std::string	ParseConfig::findLocationPath() {
+
+
+std::string	ParseConfig::findLocationPath(void) {
 	currToken++;//move to the path
 	if (_tokens[currToken].lexem.at(0) != '/')
 		throw ConfException(std::to_string(_tokens[currToken].line_number) + ":: Location directive must be followed by a '/path'");
@@ -249,12 +256,14 @@ std::string	ParseConfig::findLocationPath() {
 	return (path);
 }
 
+
+
+
 bool ParseConfig::noRepeatDirective(TokenType type) const {
 	return (type == LISTEN_DIR || type == SERVER_NAME_DIR);
 }
 
 void	ParseConfig::isSeenDirective(Token directive) {
-
 	TokenType type = directive.type;
 
 	if (noRepeatDirective(type)) {
@@ -266,11 +275,12 @@ void	ParseConfig::isSeenDirective(Token directive) {
 }
 
 
+
+
 void	ParseConfig::validateLocationBlockDirectives(vServer& vServer) {
-
 Location	loc(vServer);
-
 std::string locationPath = findLocationPath();
+
 loc.setLocationPath(locationPath);
 for (; _tokens[currToken].type != CLOSED_BRACE; currToken++) {
 
@@ -279,7 +289,6 @@ for (; _tokens[currToken].type != CLOSED_BRACE; currToken++) {
 		continue;
 	}
 	std::pair<Token, std::vector<std::string>> pair = makeKeyValuePair();
-
 	switch (pair.first.type) {
 		case ROOT_DIR:
 			loc.setLocationRoot(vServer::onlyOneArgumentCheck(pair.second, "root"));
@@ -329,12 +338,13 @@ for (; _tokens[currToken].type != CLOSED_BRACE; currToken++) {
 }
 
 
-void	ParseConfig::validateServerBlockDirectives(vServer& serv) {
 
+
+void	ParseConfig::validateServerBlockDirectives(vServer& serv) {
 	std::pair< Token, std::vector<std::string>> pair = makeKeyValuePair();
 	isSeenDirective(pair.first);
-	switch (pair.first.type) {
 
+	switch (pair.first.type) {
 		case LISTEN_DIR:
 			serv.validateServerListen(pair.second);
 		break;
@@ -369,8 +379,9 @@ void	ParseConfig::validateServerBlockDirectives(vServer& serv) {
 }
 
 
-std::pair< Token, std::vector<std::string>>	ParseConfig::makeKeyValuePair() {
 
+
+std::pair< Token, std::vector<std::string>>	ParseConfig::makeKeyValuePair(void) {
 	Token										key = _tokens[currToken];
 	ssize_t										tokenLevel = _tokens[currToken].line_number;
 	std::vector<std::string>					values;
@@ -383,15 +394,17 @@ std::pair< Token, std::vector<std::string>>	ParseConfig::makeKeyValuePair() {
 	if (_tokens[currToken].type == SEMICOLON) {
 		throw ConfException(std::to_string(_tokens[currToken].line_number) + " :: This filed has no arguments.");
 	}
+
 	while (_tokens[currToken].type != SEMICOLON) {
 		std::cout << key.lexem << " " <<_tokens[currToken].lexem  << " " << _tokens[currToken].line_number << "\n";
 		if (_tokens[currToken].line_number == tokenLevel)
 			values.push_back(_tokens[currToken].lexem);
 		else
 			throw ConfException(std::to_string(_tokens[currToken].line_number - 1) + " :: No semicolon at the end of the line.");
-			
+
 		currToken++;
 	}
+
 	if (_tokens[currToken].type == SEMICOLON && _tokens[currToken].line_number != tokenLevel) {
 			throw ConfException(std::to_string(_tokens[currToken].line_number - 1 ) + " :: No semicolon at the end of the line.");
 	}

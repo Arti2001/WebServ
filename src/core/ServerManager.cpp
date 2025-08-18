@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   ServerManager.cpp                                  :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: amysiv <amysiv@student.42.fr>                +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/07/06 13:08:11 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/07/08 09:17:34 by vovashko      ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   ServerManager.cpp                                  :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/07/06 13:08:11 by vshkonda          #+#    #+#             */
+/*   Updated: 2025/08/18 19:26:45 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,15 +92,15 @@ std::vector<Server>&	ServerManager::getServers(void) {
 //methods
 
 void	ServerManager::parsConfigFile(std::vector<vServer>& _vServers) {
-	
+
 	ParseConfig									parser;
 	std::map<size_t, std::vector<std::string>>	roughData;
-	
+
 	try{
 		roughData = parser.prepToTokenizeConfigData(getConfigFileFd());
 		parser.tokenizeConfigData(roughData);
 		parser.parseConfigFileTokens(_vServers);
-		
+
 	}catch(ParseConfig::ConfException& ex){
 		std::cerr << "ConfigParser::Error: " << ex.what()<< "\n";
 		exit(EXIT_FAILURE);
