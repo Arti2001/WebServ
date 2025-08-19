@@ -103,10 +103,10 @@ Syntax is similar to NGINX, but not fully the same.
 
 
 ⚠️ **Notes**:
-
+* We do not support nested location blocks.
 * Location blocks inherit defaults from the server block unless overridden.
-* All directives must end with ; .
-* You can specify the size in bytes, or append M/m for megabytes and G/g for gigabytes
+* All directives must end with ` ; `.
+* You can specify the size in bytes, or append M/m for megabytes and G/g for gigabytes.
 * All bracket must be closed!
 
 
