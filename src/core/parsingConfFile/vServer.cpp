@@ -5,16 +5,20 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/07/06 13:09:17 by vshkonda          #+#    #+#             */
-/*   Updated: 2025/08/18 13:19:41 by amysiv           ###   ########.fr       */
+/*   Created: 2025/08/19 10:34:01 by amysiv            #+#    #+#             */
+/*   Updated: 2025/08/19 11:06:19 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
-#include "vServer.hpp" 
+
+
+#include "vServer.hpp"
+
+
+
 
 vServer::vServer() {
-
 	_vServerIp = "0.0.0.0";
 	_vServerPort = "8080";
 	_vServerIpPort = "0.0.0.0:8080";
@@ -24,7 +28,6 @@ vServer::vServer() {
 	_vServerAutoIndex = false;
 	_vServerClientMaxSize = 1024 * 1024 * 1024;
 	_vServerErrorPages = {
-		
 		{400, "/errors/400.html"},
 		{403, "/errors/403.html"},
 		{404, "/errors/404.html"},
@@ -37,84 +40,98 @@ vServer::vServer() {
 }
 
 
+
+
 vServer::~vServer() {
 
 }
 
 
 
+
 //setters
-
-
 void	vServer::setServerRoot(const std::string& path) {
 	_vServerRoot = path;
 }
 
+
 void	vServer::setServerLocations(const std::map<std::string, Location>& loc) {
 _vServerLocations = loc;
 }
+
+
 void	vServer::setServerIndex(const std::vector<std::string>& index) {
 	_vServerIndex = index;
 }
+
 
 void	vServer::setServerAutoIndex(const int mode) {
 	_vServerAutoIndex = mode;
 }
 
+
 void	vServer::setServerClientMaxSize(const uint64_t size) {
 	_vServerClientMaxSize = size;
 }
 
-void	vServer::setServerErrorPages(const std::unordered_map<int, std::string>& pages) {
 
+void	vServer::setServerErrorPages(const std::unordered_map<int, std::string>& pages) {
 	_vServerErrorPages = pages;
 }
 
 
+
+
 //getters
-bool									vServer::getServerAutoIndex( void ) const {
+bool									vServer::getServerAutoIndex(void) const {
 	return (_vServerAutoIndex);
 }
 
-std::string								vServer::getServerIp( void ) const {
+
+std::string								vServer::getServerIp(void) const {
 	return (_vServerIp);
 }
 
-std::string								vServer::getServerPort( void ) const {
+
+std::string								vServer::getServerPort(void) const {
 	return (_vServerPort);
 }
 
-std::string								vServer::getServerIpPort( void ) const {
+
+std::string								vServer::getServerIpPort(void) const {
 	return (_vServerIpPort);
 }
 
-std::string								vServer::getServerRoot( void ) const {
+
+std::string								vServer::getServerRoot(void) const {
 	return(_vServerRoot);
 }
 
-//std::string								vServer::getServerIndex( void ) const {
-//	return (_vServerIndex);
-//}
 
-std::vector<std::string>				vServer::getServerIndex( void ) const {
+std::vector<std::string>				vServer::getServerIndex(void) const {
 	return (_vServerIndex);
 }
 
-std::map<std::string, Location>&		vServer::getServerLocations() {
+
+std::map<std::string, Location>&		vServer::getServerLocations(void) {
 	return _vServerLocations;
 }
 
-const std::map<std::string, Location>&	vServer::getServerLocations() const {
+
+const std::map<std::string, Location>&	vServer::getServerLocations(void) const {
 	return _vServerLocations;
 }
+
 
 std::unordered_map<int, std::string>	vServer::getServerErrorPages( void ) const {
 	return(_vServerErrorPages);
 }
 
+
 std::unordered_set<std::string>			vServer::getServerNames( void ) const {
 	return (_vServerNames);
 }
+
 
 uint64_t								vServer::getServerClientMaxSize( void ) const {
 	return(_vServerClientMaxSize);
@@ -125,26 +142,24 @@ uint64_t								vServer::getServerClientMaxSize( void ) const {
 
 
 //validators
-
-
-
 void vServer::validateServerListen(const std::vector<std::string>& addressVector) {
 	if (addressVector.size() != 1) {
 		throw ParseConfig::ConfException("Invalid listen directive: expected one argument (e.g., IP:Port, Port, or IP).");
 	}
 
 	const std::string& input = addressVector.at(0);
-	std::smatch matches;
+	std::smatch 		matches;
+	std::string 		ipStr;
+	std::string 		portStr;
 
 	// Patterns
-	std::regex ipv4WithPort(R"(^(\d{1,3}(?:\.\d{1,3}){3}):(\d{1,5})$)");
-	std::regex portOnly(R"(^(\d{1,5})$)");
+	std::regex ipv4WithPort(R"(^(\d{1,3}(?:\.\d{1,3}){3}):([0-9]{1,5})$)");
+	std::regex portOnly(R"(^([0-9]{1,5})$)");
 	std::regex ipv4Only(R"(^(\d{1,3}(?:\.\d{1,3}){3})$)");
-	std::regex ipv6WithPort(R"(^\[(.+)\]:(\d{1,5})$)");
+	std::regex ipv6WithPort(R"(^\[(.+)\]:([0-9]{1,5})$)");
 	std::regex ipv6Only(R"(^\[(.+)\]$)");
-
-	std::string ipStr = "0.0.0.0";
-	std::string portStr = "8080";
+	std::regex localhostPort(R"(^(localhost):([0-9]{1,5})$)");
+	std::regex localhost(R"(^(localhost)$)");
 
 	if (std::regex_match(input, matches, ipv4WithPort)) {
 		ipStr = matches[1];
@@ -158,23 +173,31 @@ void vServer::validateServerListen(const std::vector<std::string>& addressVector
 		portStr = matches[2];
 	} else if (std::regex_match(input, matches, ipv6Only)) {
 		ipStr = matches[1];
-	} else {
+	} else if (std::regex_match(input, matches, localhost)){
+		ipStr = matches[1];
+	} else if (std::regex_match(input, matches, localhostPort)){
+		ipStr = matches[1];
+		portStr = matches[2];
+	}else {
 		throw ParseConfig::ConfException("Listen directive format is invalid. Acceptable formats: IP:Port, IP, Port, [IPv6]:Port, [IPv6]");
 	}
+	if (!portStr.empty()) {
 
-	int portInt;
-	try {
-		portInt = std::stoi(portStr);
-	} catch (...) {
-		throw ParseConfig::ConfException("Port is not a valid number.");
+		int portInt;
+		try {
+			portInt = std::stoi(portStr);
+		} catch (...) {
+			throw ParseConfig::ConfException("Port is not a valid number.");
+		}
+		if (portInt < MIN_PORT_NUMB || portInt > MAX_PORT_NUMB) {
+			throw ParseConfig::ConfException("Port number is out of valid range (1–65535).");
+		}
 	}
 
-	if (portInt < MIN_PORT_NUMB || portInt > MAX_PORT_NUMB) {
-		throw ParseConfig::ConfException("Port number is out of valid range (1–65535).");
-	}
-
-	_vServerIp = ipStr;
-	_vServerPort = portStr;
+	if (!ipStr.empty())
+		_vServerIp = ipStr;
+	if (!portStr.empty())
+		_vServerPort = portStr;
 
 	std::string ipFormatted;
 

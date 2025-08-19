@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/18 19:17:08 by amysiv            #+#    #+#             */
-/*   Updated: 2025/08/18 19:28:43 by amysiv           ###   ########.fr       */
+/*   Updated: 2025/08/19 10:32:09 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,8 +79,8 @@ struct Token {
 
 class ParseConfig {
 	private:
-		std::vector<Token>							_tokens;
-		std::unordered_map<std::string, TokenType>	_keywords;
+		std::vector<Token>							_tokens; //vector of tokens
+		std::unordered_map<std::string, TokenType>	_keywords; // map  ; = SEMICOLON;
 
 
 
@@ -217,9 +217,9 @@ class ParseConfig {
 
 
 	public:
-		int								depth;
-		size_t							currToken;
-		std::unordered_set<TokenType>	seenDirectives;
+		int								depth; // depth counter
+		size_t							currToken; // current token countre to iterate on _tokens vector
+		std::unordered_set<TokenType>	seenDirectives; // set register of seen directives
 
 		ParseConfig();
 		~ParseConfig();
@@ -290,8 +290,16 @@ class ParseConfig {
 		};
 	};
 
-	std::vector<std::string>	split(const std::string& str);
-	std::ostream& operator<<(std::ostream& os, const vServer& server);
-	std::ostream& operator<<(std::ostream& os, const std::vector<vServer>& servers);
+	std::vector<std::string>							split(const std::string& str);
+
+
+
+
+	std::ostream& 										operator<<(std::ostream& os, const vServer& server);
+
+
+
+
+	std::ostream&										operator<<(std::ostream& os, const std::vector<vServer>& servers);
 
 #endif

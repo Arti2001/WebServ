@@ -6,26 +6,12 @@
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/06 13:09:20 by vshkonda          #+#    #+#             */
-/*   Updated: 2025/08/18 18:10:04 by amysiv           ###   ########.fr       */
+/*   Updated: 2025/08/19 10:25:47 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef vServer_HPP
 #define vServer_HPP
-
-#include <string>
-#include <vector>
-#include <unordered_map>
-#include <unordered_set>
-#include <iostream>
-#include <regex>
-#include <set>
-#include <exception>
-
-#include "ParseConfig.hpp"
-#include "LocationConfig.hpp"
-
-
 #define MAX_PORT_NUMB 65535
 #define MIN_PORT_NUMB 1
 #define MAX_SERVER_NAME_NUMB 2
@@ -33,6 +19,21 @@
 #define MAX_CLIENT_BODY_SIZE 10
 #define MIN_CLIENT_BODY_SIZE 1
 #define MAX_ARG_ERROR_PAGE	2
+
+
+
+
+#include <string>
+#include <vector>
+#include <unordered_set>
+#include <iostream>
+#include <regex>
+#include <set>
+#include <exception>
+#include "ParseConfig.hpp"
+#include "LocationConfig.hpp"
+
+
 
 
 class vServer {

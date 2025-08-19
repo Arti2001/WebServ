@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/06 13:09:14 by vshkonda          #+#    #+#             */
-/*   Updated: 2025/08/18 18:10:24 by amysiv           ###   ########.fr       */
+/*   Updated: 2025/08/19 10:33:28 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ bool	isComment(const std::string& line) {
 		if (isspace(c)) {
 			continue;
 		}
-		return(c == '#'); 
+		return(c == '#');
 	}
 	return (false);
 }
@@ -25,7 +25,6 @@ bool	isComment(const std::string& line) {
 
 
 std::string	addSpace(const std::string& str) {
-
 	std::string	new_string;
 
 	for (char c : str) {
@@ -46,7 +45,6 @@ std::string	addSpace(const std::string& str) {
 
 
 std::map<size_t, std::vector<std::string>>	ParseConfig::prepToTokenizeConfigData(std::ifstream& configFile) {
-
 	std::vector<std::string>					lexemes;
 	std::map<size_t, std::vector<std::string>>	lineNumbLexemes;
 	std::string									line, spacedLine;
@@ -68,7 +66,6 @@ std::map<size_t, std::vector<std::string>>	ParseConfig::prepToTokenizeConfigData
 
 
 std::vector<std::string>	split(const std::string& str) {
-
 	std::vector<std::string>	lexemes;
 	std::stringstream			iss(str);
 	std::string					lexeme;
@@ -83,8 +80,8 @@ std::vector<std::string>	split(const std::string& str) {
 
 
 void	ParseConfig::tokenizeConfigData(std::map<size_t, std::vector<std::string>> lineNumbLexemes) {
+	TokenType		tokenType;
 
-	TokenType													tokenType;
 	for(std::map<size_t, std::vector<std::string>>::iterator	itMap = lineNumbLexemes.begin(); itMap != lineNumbLexemes.end(); itMap++) {
 
 		TokenType	prevTokenType = UNKNOWN;
