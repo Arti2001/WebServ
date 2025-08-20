@@ -1,0 +1,326 @@
+\hypertarget{classLocation}{}\doxysection{Location Class Reference}
+\label{classLocation}\index{Location@{Location}}
+
+
+{\ttfamily \#include $<$Location\+Config.\+hpp$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classLocation_a87790c14997fd8cdd12080c78c9794bb}{Location}} ()
+\item 
+\mbox{\hyperlink{classLocation_af5be2c6550bbd96137cbb3144ec3c529}{$\sim$\+Location}} ()
+\item 
+\mbox{\hyperlink{classLocation_a6f3fa2655b40065837b8d0ea7e9e556e}{Location}} (const \mbox{\hyperlink{classvServer}{v\+Server}} \&serv)
+\item 
+\mbox{\hyperlink{classLocation_a2b29ecf5a3fd0c9be14c89cf2e8de7f1}{Location}} (const \mbox{\hyperlink{classLocation}{Location}} \&other)
+\item 
+const \mbox{\hyperlink{classLocation}{Location}} \& \mbox{\hyperlink{classLocation_a8e71ea883ef60628e36f8e7c5d626df3}{operator=}} (const \mbox{\hyperlink{classLocation}{Location}} \&other)
+\item 
+const std\+::string \& \mbox{\hyperlink{classLocation_adcfa97e8f5dce558cc65df3eb12ce568}{get\+Location\+Path}} (void) const
+\item 
+const std\+::string \& \mbox{\hyperlink{classLocation_ab37bf50940b0126002eea323f6ba0351}{get\+Location\+Upload\+Path}} (void) const
+\item 
+const std\+::string \& \mbox{\hyperlink{classLocation_a3480d849bb07b2c1895217ce82609866}{get\+Location\+Root}} (void) const
+\item 
+const std\+::vector$<$ std\+::string $>$ \& \mbox{\hyperlink{classLocation_aecde81303a7516fb4f1140d4508cc22f}{get\+Location\+Index}} (void) const
+\item 
+const int \& \mbox{\hyperlink{classLocation_a9580b5b8a46d0853549300ba241bd192}{get\+Location\+Auto\+Index}} (void) const
+\item 
+const unsigned \& \mbox{\hyperlink{classLocation_ae12de76b146a887f1213482306b8f55b}{get\+Location\+Client\+Max\+Size}} (void) const
+\item 
+const std\+::unordered\+\_\+set$<$ std\+::string $>$ \& \mbox{\hyperlink{classLocation_aded5e19e6ef0f71e014521bff76c11f6}{get\+Location\+Allowed\+Methods}} (void) const
+\item 
+const std\+::map$<$ std\+::string, std\+::string $>$ \& \mbox{\hyperlink{classLocation_a8a17f16df6ad76476e12f8916d32b803}{get\+Location\+Allowed\+Cgi}} (void) const
+\item 
+const std\+::pair$<$ int, std\+::string $>$ \& \mbox{\hyperlink{classLocation_af3e8efe83970f73c453bbfa2663d0664}{get\+Location\+Return\+Pages}} (void) const
+\item 
+const std\+::unordered\+\_\+map$<$ int, std\+::string $>$ \& \mbox{\hyperlink{classLocation_ad0c530687ddea9c1262a2871d0e58e76}{get\+Location\+Error\+Pages}} (void) const
+\item 
+void \mbox{\hyperlink{classLocation_a1cef416938e86c14691f84c6a547c3c2}{set\+Location\+Path}} (const std\+::string \&path)
+\item 
+void \mbox{\hyperlink{classLocation_aa4a640bde024adb6fb98b00617a63924}{set\+Location\+Upload\+Path}} (const std\+::string \&path)
+\item 
+void \mbox{\hyperlink{classLocation_acd3d2c75f6b1f48a1ecd03c3f0e48fcc}{set\+Location\+Root}} (const std\+::string \&root)
+\item 
+void \mbox{\hyperlink{classLocation_a8528403c3d5e16864a4fafe1ad6077ce}{set\+Location\+Index}} (const std\+::vector$<$ std\+::string $>$ \&index)
+\item 
+void \mbox{\hyperlink{classLocation_acb22dab86312c8dafbadad9b8c4e3e84}{set\+Location\+Auto\+Index}} (const int auto\+Index)
+\item 
+void \mbox{\hyperlink{classLocation_a3946166cc1f491beb15a83cc2c662416}{set\+Location\+Client\+Max\+Size}} (const unsigned max\+Size)
+\item 
+void \mbox{\hyperlink{classLocation_a6492a8661285f62bf1c57981df7b4ed0}{set\+Location\+Allowed\+Methods}} (const std\+::unordered\+\_\+set$<$ std\+::string $>$ \&methods)
+\item 
+void \mbox{\hyperlink{classLocation_acf5344f6eb0245d3d6bc460b92c35a2e}{set\+Location\+Return\+Pages}} (const std\+::pair$<$ int, std\+::string $>$ \&return\+Pages)
+\item 
+void \mbox{\hyperlink{classLocation_acbe58aae1136b2548b6cbf3527900da9}{set\+Location\+Error\+Pages}} (const std\+::unordered\+\_\+map$<$ int, std\+::string $>$ \&error\+Pages)
+\item 
+void \mbox{\hyperlink{classLocation_ad537d2094200e31146d77d65126d47cf}{validate\+Allowed\+Methods\+Directive}} (const std\+::vector$<$ std\+::string $>$ \&allowed\+Methods\+Vector)
+\item 
+void \mbox{\hyperlink{classLocation_abe80a5933784d5e7ffaac1fc82c8a6e0}{validate\+Allowed\+Cgi\+Directive}} (const std\+::vector$<$ std\+::string $>$ \&allowed\+Cgi\+Vector)
+\end{DoxyCompactItemize}
+\doxysubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static std\+::pair$<$ int, std\+::string $>$ \mbox{\hyperlink{classLocation_a0174019cc2195a53ba0c6df036096e0f}{set\+Location\+Return\+Pages}} (std\+::vector$<$ std\+::string $>$ \&return\+Page\+Vector)
+\end{DoxyCompactItemize}
+\doxysubsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+std\+::string \mbox{\hyperlink{classLocation_a1864eec68391fde39721171ad79c7579}{\+\_\+location\+Path}}
+\item 
+std\+::string \mbox{\hyperlink{classLocation_ada8a733f7502a0067bd4dd05c78279e9}{\+\_\+location\+Upload\+Path}}
+\item 
+std\+::string \mbox{\hyperlink{classLocation_a07752844316062e126d3e6c7301fc1d3}{\+\_\+location\+Root}}
+\item 
+std\+::vector$<$ std\+::string $>$ \mbox{\hyperlink{classLocation_a9e4ef921f7475b2061e01f8d1544d351}{\+\_\+location\+Index}}
+\item 
+int \mbox{\hyperlink{classLocation_a675f2928b47d3fc8dbcd02bd33b9df22}{\+\_\+location\+Auto\+Index}}
+\item 
+unsigned \mbox{\hyperlink{classLocation_abfe804f153ab3c90037fb6371385afd2}{\+\_\+location\+Client\+Max\+Size}}
+\item 
+std\+::unordered\+\_\+set$<$ std\+::string $>$ \mbox{\hyperlink{classLocation_a7bff7de5f86cd2c9053bfa7c7d0ed548}{\+\_\+location\+Allowed\+Methods}}
+\item 
+std\+::map$<$ std\+::string, std\+::string $>$ \mbox{\hyperlink{classLocation_a66294429f0d86b830d54305765797eb8}{\+\_\+location\+Allowed\+Cgi}}
+\item 
+std\+::pair$<$ int, std\+::string $>$ \mbox{\hyperlink{classLocation_aad87606ba82ee3e6656278dadee3e3e1}{\+\_\+location\+Return\+Pages}}
+\item 
+std\+::unordered\+\_\+map$<$ int, std\+::string $>$ \mbox{\hyperlink{classLocation_a9b29fd1e4279d94ac7b573e18703c9cf}{\+\_\+location\+Error\+Pages}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{classLocation_a87790c14997fd8cdd12080c78c9794bb}\label{classLocation_a87790c14997fd8cdd12080c78c9794bb}} 
+\index{Location@{Location}!Location@{Location}}
+\index{Location@{Location}!Location@{Location}}
+\doxysubsubsection{\texorpdfstring{Location()}{Location()}\hspace{0.1cm}{\footnotesize\ttfamily [1/3]}}
+{\footnotesize\ttfamily Location\+::\+Location (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{classLocation_af5be2c6550bbd96137cbb3144ec3c529}\label{classLocation_af5be2c6550bbd96137cbb3144ec3c529}} 
+\index{Location@{Location}!````~Location@{$\sim$Location}}
+\index{````~Location@{$\sim$Location}!Location@{Location}}
+\doxysubsubsection{\texorpdfstring{$\sim$Location()}{~Location()}}
+{\footnotesize\ttfamily Location\+::$\sim$\+Location (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{classLocation_a6f3fa2655b40065837b8d0ea7e9e556e}\label{classLocation_a6f3fa2655b40065837b8d0ea7e9e556e}} 
+\index{Location@{Location}!Location@{Location}}
+\index{Location@{Location}!Location@{Location}}
+\doxysubsubsection{\texorpdfstring{Location()}{Location()}\hspace{0.1cm}{\footnotesize\ttfamily [2/3]}}
+{\footnotesize\ttfamily Location\+::\+Location (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classvServer}{v\+Server}} \&}]{serv }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{classLocation_a2b29ecf5a3fd0c9be14c89cf2e8de7f1}\label{classLocation_a2b29ecf5a3fd0c9be14c89cf2e8de7f1}} 
+\index{Location@{Location}!Location@{Location}}
+\index{Location@{Location}!Location@{Location}}
+\doxysubsubsection{\texorpdfstring{Location()}{Location()}\hspace{0.1cm}{\footnotesize\ttfamily [3/3]}}
+{\footnotesize\ttfamily Location\+::\+Location (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classLocation}{Location}} \&}]{other }\end{DoxyParamCaption})}
+
+
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{classLocation_a8a17f16df6ad76476e12f8916d32b803}\label{classLocation_a8a17f16df6ad76476e12f8916d32b803}} 
+\index{Location@{Location}!getLocationAllowedCgi@{getLocationAllowedCgi}}
+\index{getLocationAllowedCgi@{getLocationAllowedCgi}!Location@{Location}}
+\doxysubsubsection{\texorpdfstring{getLocationAllowedCgi()}{getLocationAllowedCgi()}}
+{\footnotesize\ttfamily const std\+::map$<$ std\+::string, std\+::string $>$ \& Location\+::get\+Location\+Allowed\+Cgi (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{classLocation_aded5e19e6ef0f71e014521bff76c11f6}\label{classLocation_aded5e19e6ef0f71e014521bff76c11f6}} 
+\index{Location@{Location}!getLocationAllowedMethods@{getLocationAllowedMethods}}
+\index{getLocationAllowedMethods@{getLocationAllowedMethods}!Location@{Location}}
+\doxysubsubsection{\texorpdfstring{getLocationAllowedMethods()}{getLocationAllowedMethods()}}
+{\footnotesize\ttfamily const std\+::unordered\+\_\+set$<$ std\+::string $>$ \& Location\+::get\+Location\+Allowed\+Methods (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{classLocation_a9580b5b8a46d0853549300ba241bd192}\label{classLocation_a9580b5b8a46d0853549300ba241bd192}} 
+\index{Location@{Location}!getLocationAutoIndex@{getLocationAutoIndex}}
+\index{getLocationAutoIndex@{getLocationAutoIndex}!Location@{Location}}
+\doxysubsubsection{\texorpdfstring{getLocationAutoIndex()}{getLocationAutoIndex()}}
+{\footnotesize\ttfamily const int \& Location\+::get\+Location\+Auto\+Index (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{classLocation_ae12de76b146a887f1213482306b8f55b}\label{classLocation_ae12de76b146a887f1213482306b8f55b}} 
+\index{Location@{Location}!getLocationClientMaxSize@{getLocationClientMaxSize}}
+\index{getLocationClientMaxSize@{getLocationClientMaxSize}!Location@{Location}}
+\doxysubsubsection{\texorpdfstring{getLocationClientMaxSize()}{getLocationClientMaxSize()}}
+{\footnotesize\ttfamily const unsigned \& Location\+::get\+Location\+Client\+Max\+Size (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{classLocation_ad0c530687ddea9c1262a2871d0e58e76}\label{classLocation_ad0c530687ddea9c1262a2871d0e58e76}} 
+\index{Location@{Location}!getLocationErrorPages@{getLocationErrorPages}}
+\index{getLocationErrorPages@{getLocationErrorPages}!Location@{Location}}
+\doxysubsubsection{\texorpdfstring{getLocationErrorPages()}{getLocationErrorPages()}}
+{\footnotesize\ttfamily const std\+::unordered\+\_\+map$<$ int, std\+::string $>$ \& Location\+::get\+Location\+Error\+Pages (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{classLocation_aecde81303a7516fb4f1140d4508cc22f}\label{classLocation_aecde81303a7516fb4f1140d4508cc22f}} 
+\index{Location@{Location}!getLocationIndex@{getLocationIndex}}
+\index{getLocationIndex@{getLocationIndex}!Location@{Location}}
+\doxysubsubsection{\texorpdfstring{getLocationIndex()}{getLocationIndex()}}
+{\footnotesize\ttfamily const std\+::vector$<$ std\+::string $>$ \& Location\+::get\+Location\+Index (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{classLocation_adcfa97e8f5dce558cc65df3eb12ce568}\label{classLocation_adcfa97e8f5dce558cc65df3eb12ce568}} 
+\index{Location@{Location}!getLocationPath@{getLocationPath}}
+\index{getLocationPath@{getLocationPath}!Location@{Location}}
+\doxysubsubsection{\texorpdfstring{getLocationPath()}{getLocationPath()}}
+{\footnotesize\ttfamily const std\+::string \& Location\+::get\+Location\+Path (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{classLocation_af3e8efe83970f73c453bbfa2663d0664}\label{classLocation_af3e8efe83970f73c453bbfa2663d0664}} 
+\index{Location@{Location}!getLocationReturnPages@{getLocationReturnPages}}
+\index{getLocationReturnPages@{getLocationReturnPages}!Location@{Location}}
+\doxysubsubsection{\texorpdfstring{getLocationReturnPages()}{getLocationReturnPages()}}
+{\footnotesize\ttfamily const std\+::pair$<$ int, std\+::string $>$ \& Location\+::get\+Location\+Return\+Pages (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{classLocation_a3480d849bb07b2c1895217ce82609866}\label{classLocation_a3480d849bb07b2c1895217ce82609866}} 
+\index{Location@{Location}!getLocationRoot@{getLocationRoot}}
+\index{getLocationRoot@{getLocationRoot}!Location@{Location}}
+\doxysubsubsection{\texorpdfstring{getLocationRoot()}{getLocationRoot()}}
+{\footnotesize\ttfamily const std\+::string \& Location\+::get\+Location\+Root (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{classLocation_ab37bf50940b0126002eea323f6ba0351}\label{classLocation_ab37bf50940b0126002eea323f6ba0351}} 
+\index{Location@{Location}!getLocationUploadPath@{getLocationUploadPath}}
+\index{getLocationUploadPath@{getLocationUploadPath}!Location@{Location}}
+\doxysubsubsection{\texorpdfstring{getLocationUploadPath()}{getLocationUploadPath()}}
+{\footnotesize\ttfamily const std\+::string \& Location\+::get\+Location\+Upload\+Path (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{classLocation_a8e71ea883ef60628e36f8e7c5d626df3}\label{classLocation_a8e71ea883ef60628e36f8e7c5d626df3}} 
+\index{Location@{Location}!operator=@{operator=}}
+\index{operator=@{operator=}!Location@{Location}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}}
+{\footnotesize\ttfamily const \mbox{\hyperlink{classLocation}{Location}} \& Location\+::operator= (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classLocation}{Location}} \&}]{other }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{classLocation_a6492a8661285f62bf1c57981df7b4ed0}\label{classLocation_a6492a8661285f62bf1c57981df7b4ed0}} 
+\index{Location@{Location}!setLocationAllowedMethods@{setLocationAllowedMethods}}
+\index{setLocationAllowedMethods@{setLocationAllowedMethods}!Location@{Location}}
+\doxysubsubsection{\texorpdfstring{setLocationAllowedMethods()}{setLocationAllowedMethods()}}
+{\footnotesize\ttfamily void Location\+::set\+Location\+Allowed\+Methods (\begin{DoxyParamCaption}\item[{const std\+::unordered\+\_\+set$<$ std\+::string $>$ \&}]{methods }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{classLocation_acb22dab86312c8dafbadad9b8c4e3e84}\label{classLocation_acb22dab86312c8dafbadad9b8c4e3e84}} 
+\index{Location@{Location}!setLocationAutoIndex@{setLocationAutoIndex}}
+\index{setLocationAutoIndex@{setLocationAutoIndex}!Location@{Location}}
+\doxysubsubsection{\texorpdfstring{setLocationAutoIndex()}{setLocationAutoIndex()}}
+{\footnotesize\ttfamily void Location\+::set\+Location\+Auto\+Index (\begin{DoxyParamCaption}\item[{const int}]{auto\+Index }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{classLocation_a3946166cc1f491beb15a83cc2c662416}\label{classLocation_a3946166cc1f491beb15a83cc2c662416}} 
+\index{Location@{Location}!setLocationClientMaxSize@{setLocationClientMaxSize}}
+\index{setLocationClientMaxSize@{setLocationClientMaxSize}!Location@{Location}}
+\doxysubsubsection{\texorpdfstring{setLocationClientMaxSize()}{setLocationClientMaxSize()}}
+{\footnotesize\ttfamily void Location\+::set\+Location\+Client\+Max\+Size (\begin{DoxyParamCaption}\item[{const unsigned}]{max\+Size }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{classLocation_acbe58aae1136b2548b6cbf3527900da9}\label{classLocation_acbe58aae1136b2548b6cbf3527900da9}} 
+\index{Location@{Location}!setLocationErrorPages@{setLocationErrorPages}}
+\index{setLocationErrorPages@{setLocationErrorPages}!Location@{Location}}
+\doxysubsubsection{\texorpdfstring{setLocationErrorPages()}{setLocationErrorPages()}}
+{\footnotesize\ttfamily void Location\+::set\+Location\+Error\+Pages (\begin{DoxyParamCaption}\item[{const std\+::unordered\+\_\+map$<$ int, std\+::string $>$ \&}]{error\+Pages }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{classLocation_a8528403c3d5e16864a4fafe1ad6077ce}\label{classLocation_a8528403c3d5e16864a4fafe1ad6077ce}} 
+\index{Location@{Location}!setLocationIndex@{setLocationIndex}}
+\index{setLocationIndex@{setLocationIndex}!Location@{Location}}
+\doxysubsubsection{\texorpdfstring{setLocationIndex()}{setLocationIndex()}}
+{\footnotesize\ttfamily void Location\+::set\+Location\+Index (\begin{DoxyParamCaption}\item[{const std\+::vector$<$ std\+::string $>$ \&}]{index }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{classLocation_a1cef416938e86c14691f84c6a547c3c2}\label{classLocation_a1cef416938e86c14691f84c6a547c3c2}} 
+\index{Location@{Location}!setLocationPath@{setLocationPath}}
+\index{setLocationPath@{setLocationPath}!Location@{Location}}
+\doxysubsubsection{\texorpdfstring{setLocationPath()}{setLocationPath()}}
+{\footnotesize\ttfamily void Location\+::set\+Location\+Path (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{path }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{classLocation_acf5344f6eb0245d3d6bc460b92c35a2e}\label{classLocation_acf5344f6eb0245d3d6bc460b92c35a2e}} 
+\index{Location@{Location}!setLocationReturnPages@{setLocationReturnPages}}
+\index{setLocationReturnPages@{setLocationReturnPages}!Location@{Location}}
+\doxysubsubsection{\texorpdfstring{setLocationReturnPages()}{setLocationReturnPages()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily void Location\+::set\+Location\+Return\+Pages (\begin{DoxyParamCaption}\item[{const std\+::pair$<$ int, std\+::string $>$ \&}]{return\+Pages }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{classLocation_a0174019cc2195a53ba0c6df036096e0f}\label{classLocation_a0174019cc2195a53ba0c6df036096e0f}} 
+\index{Location@{Location}!setLocationReturnPages@{setLocationReturnPages}}
+\index{setLocationReturnPages@{setLocationReturnPages}!Location@{Location}}
+\doxysubsubsection{\texorpdfstring{setLocationReturnPages()}{setLocationReturnPages()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily std\+::pair$<$ int, std\+::string $>$ Location\+::set\+Location\+Return\+Pages (\begin{DoxyParamCaption}\item[{std\+::vector$<$ std\+::string $>$ \&}]{return\+Page\+Vector }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\mbox{\Hypertarget{classLocation_acd3d2c75f6b1f48a1ecd03c3f0e48fcc}\label{classLocation_acd3d2c75f6b1f48a1ecd03c3f0e48fcc}} 
+\index{Location@{Location}!setLocationRoot@{setLocationRoot}}
+\index{setLocationRoot@{setLocationRoot}!Location@{Location}}
+\doxysubsubsection{\texorpdfstring{setLocationRoot()}{setLocationRoot()}}
+{\footnotesize\ttfamily void Location\+::set\+Location\+Root (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{root }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{classLocation_aa4a640bde024adb6fb98b00617a63924}\label{classLocation_aa4a640bde024adb6fb98b00617a63924}} 
+\index{Location@{Location}!setLocationUploadPath@{setLocationUploadPath}}
+\index{setLocationUploadPath@{setLocationUploadPath}!Location@{Location}}
+\doxysubsubsection{\texorpdfstring{setLocationUploadPath()}{setLocationUploadPath()}}
+{\footnotesize\ttfamily void Location\+::set\+Location\+Upload\+Path (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{path }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{classLocation_abe80a5933784d5e7ffaac1fc82c8a6e0}\label{classLocation_abe80a5933784d5e7ffaac1fc82c8a6e0}} 
+\index{Location@{Location}!validateAllowedCgiDirective@{validateAllowedCgiDirective}}
+\index{validateAllowedCgiDirective@{validateAllowedCgiDirective}!Location@{Location}}
+\doxysubsubsection{\texorpdfstring{validateAllowedCgiDirective()}{validateAllowedCgiDirective()}}
+{\footnotesize\ttfamily void Location\+::validate\+Allowed\+Cgi\+Directive (\begin{DoxyParamCaption}\item[{const std\+::vector$<$ std\+::string $>$ \&}]{allowed\+Cgi\+Vector }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{classLocation_ad537d2094200e31146d77d65126d47cf}\label{classLocation_ad537d2094200e31146d77d65126d47cf}} 
+\index{Location@{Location}!validateAllowedMethodsDirective@{validateAllowedMethodsDirective}}
+\index{validateAllowedMethodsDirective@{validateAllowedMethodsDirective}!Location@{Location}}
+\doxysubsubsection{\texorpdfstring{validateAllowedMethodsDirective()}{validateAllowedMethodsDirective()}}
+{\footnotesize\ttfamily void Location\+::validate\+Allowed\+Methods\+Directive (\begin{DoxyParamCaption}\item[{const std\+::vector$<$ std\+::string $>$ \&}]{allowed\+Methods\+Vector }\end{DoxyParamCaption})}
+
+
+
+\doxysubsection{Member Data Documentation}
+\mbox{\Hypertarget{classLocation_a66294429f0d86b830d54305765797eb8}\label{classLocation_a66294429f0d86b830d54305765797eb8}} 
+\index{Location@{Location}!\_locationAllowedCgi@{\_locationAllowedCgi}}
+\index{\_locationAllowedCgi@{\_locationAllowedCgi}!Location@{Location}}
+\doxysubsubsection{\texorpdfstring{\_locationAllowedCgi}{\_locationAllowedCgi}}
+{\footnotesize\ttfamily std\+::map$<$std\+::string, std\+::string$>$ Location\+::\+\_\+location\+Allowed\+Cgi\hspace{0.3cm}{\ttfamily [private]}}
+
+\mbox{\Hypertarget{classLocation_a7bff7de5f86cd2c9053bfa7c7d0ed548}\label{classLocation_a7bff7de5f86cd2c9053bfa7c7d0ed548}} 
+\index{Location@{Location}!\_locationAllowedMethods@{\_locationAllowedMethods}}
+\index{\_locationAllowedMethods@{\_locationAllowedMethods}!Location@{Location}}
+\doxysubsubsection{\texorpdfstring{\_locationAllowedMethods}{\_locationAllowedMethods}}
+{\footnotesize\ttfamily std\+::unordered\+\_\+set$<$std\+::string$>$ Location\+::\+\_\+location\+Allowed\+Methods\hspace{0.3cm}{\ttfamily [private]}}
+
+\mbox{\Hypertarget{classLocation_a675f2928b47d3fc8dbcd02bd33b9df22}\label{classLocation_a675f2928b47d3fc8dbcd02bd33b9df22}} 
+\index{Location@{Location}!\_locationAutoIndex@{\_locationAutoIndex}}
+\index{\_locationAutoIndex@{\_locationAutoIndex}!Location@{Location}}
+\doxysubsubsection{\texorpdfstring{\_locationAutoIndex}{\_locationAutoIndex}}
+{\footnotesize\ttfamily int Location\+::\+\_\+location\+Auto\+Index\hspace{0.3cm}{\ttfamily [private]}}
+
+\mbox{\Hypertarget{classLocation_abfe804f153ab3c90037fb6371385afd2}\label{classLocation_abfe804f153ab3c90037fb6371385afd2}} 
+\index{Location@{Location}!\_locationClientMaxSize@{\_locationClientMaxSize}}
+\index{\_locationClientMaxSize@{\_locationClientMaxSize}!Location@{Location}}
+\doxysubsubsection{\texorpdfstring{\_locationClientMaxSize}{\_locationClientMaxSize}}
+{\footnotesize\ttfamily unsigned Location\+::\+\_\+location\+Client\+Max\+Size\hspace{0.3cm}{\ttfamily [private]}}
+
+\mbox{\Hypertarget{classLocation_a9b29fd1e4279d94ac7b573e18703c9cf}\label{classLocation_a9b29fd1e4279d94ac7b573e18703c9cf}} 
+\index{Location@{Location}!\_locationErrorPages@{\_locationErrorPages}}
+\index{\_locationErrorPages@{\_locationErrorPages}!Location@{Location}}
+\doxysubsubsection{\texorpdfstring{\_locationErrorPages}{\_locationErrorPages}}
+{\footnotesize\ttfamily std\+::unordered\+\_\+map$<$int, std\+::string$>$ Location\+::\+\_\+location\+Error\+Pages\hspace{0.3cm}{\ttfamily [private]}}
+
+\mbox{\Hypertarget{classLocation_a9e4ef921f7475b2061e01f8d1544d351}\label{classLocation_a9e4ef921f7475b2061e01f8d1544d351}} 
+\index{Location@{Location}!\_locationIndex@{\_locationIndex}}
+\index{\_locationIndex@{\_locationIndex}!Location@{Location}}
+\doxysubsubsection{\texorpdfstring{\_locationIndex}{\_locationIndex}}
+{\footnotesize\ttfamily std\+::vector$<$std\+::string$>$ Location\+::\+\_\+location\+Index\hspace{0.3cm}{\ttfamily [private]}}
+
+\mbox{\Hypertarget{classLocation_a1864eec68391fde39721171ad79c7579}\label{classLocation_a1864eec68391fde39721171ad79c7579}} 
+\index{Location@{Location}!\_locationPath@{\_locationPath}}
+\index{\_locationPath@{\_locationPath}!Location@{Location}}
+\doxysubsubsection{\texorpdfstring{\_locationPath}{\_locationPath}}
+{\footnotesize\ttfamily std\+::string Location\+::\+\_\+location\+Path\hspace{0.3cm}{\ttfamily [private]}}
+
+\mbox{\Hypertarget{classLocation_aad87606ba82ee3e6656278dadee3e3e1}\label{classLocation_aad87606ba82ee3e6656278dadee3e3e1}} 
+\index{Location@{Location}!\_locationReturnPages@{\_locationReturnPages}}
+\index{\_locationReturnPages@{\_locationReturnPages}!Location@{Location}}
+\doxysubsubsection{\texorpdfstring{\_locationReturnPages}{\_locationReturnPages}}
+{\footnotesize\ttfamily std\+::pair$<$int, std\+::string$>$ Location\+::\+\_\+location\+Return\+Pages\hspace{0.3cm}{\ttfamily [private]}}
+
+\mbox{\Hypertarget{classLocation_a07752844316062e126d3e6c7301fc1d3}\label{classLocation_a07752844316062e126d3e6c7301fc1d3}} 
+\index{Location@{Location}!\_locationRoot@{\_locationRoot}}
+\index{\_locationRoot@{\_locationRoot}!Location@{Location}}
+\doxysubsubsection{\texorpdfstring{\_locationRoot}{\_locationRoot}}
+{\footnotesize\ttfamily std\+::string Location\+::\+\_\+location\+Root\hspace{0.3cm}{\ttfamily [private]}}
+
+\mbox{\Hypertarget{classLocation_ada8a733f7502a0067bd4dd05c78279e9}\label{classLocation_ada8a733f7502a0067bd4dd05c78279e9}} 
+\index{Location@{Location}!\_locationUploadPath@{\_locationUploadPath}}
+\index{\_locationUploadPath@{\_locationUploadPath}!Location@{Location}}
+\doxysubsubsection{\texorpdfstring{\_locationUploadPath}{\_locationUploadPath}}
+{\footnotesize\ttfamily std\+::string Location\+::\+\_\+location\+Upload\+Path\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/core/parsing\+Conf\+File/\mbox{\hyperlink{LocationConfig_8hpp}{Location\+Config.\+hpp}}\item 
+src/core/parsing\+Conf\+File/\mbox{\hyperlink{LocationConfig_8cpp}{Location\+Config.\+cpp}}\end{DoxyCompactItemize}

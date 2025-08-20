@@ -1,0 +1,105 @@
+\hypertarget{namespaceupload}{}\doxysection{upload Namespace Reference}
+\label{namespaceupload}\index{upload@{upload}}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+def \mbox{\hyperlink{namespaceupload_a74de02dc9b8bce5e0eb0437e125e2956}{reply}} (str status, str message, str http\+\_\+code=\char`\"{}200 OK\char`\"{})
+\item 
+def \mbox{\hyperlink{namespaceupload_ad133ac6e54a54de66df095f1920b4801}{reply\+\_\+with\+\_\+html\+\_\+page}} (str http\+\_\+code\+\_\+with\+\_\+message, str file\+\_\+path)
+\item 
+def \mbox{\hyperlink{namespaceupload_a135fb65a84c6ae5899ac63226df93a67}{reply\+\_\+with\+\_\+success\+\_\+page}} (str message)
+\item 
+def \mbox{\hyperlink{namespaceupload_a4a0f807918a7bab9916e0a59891b560a}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespaceupload_a7d7b431ab4b7de54ab5b3d59083b023d}{SCRIPT\+\_\+\+DIR}} = os.\+path.\+dirname(os.\+path.\+realpath(\+\_\+\+\_\+file\+\_\+\+\_\+))
+\item 
+\mbox{\hyperlink{namespaceupload_ab5c82c498eaba02712bd0624af2d541a}{PROJECT\+\_\+\+ROOT}} = os.\+path.\+abspath(os.\+path.\+join(\mbox{\hyperlink{namespaceupload_a7d7b431ab4b7de54ab5b3d59083b023d}{SCRIPT\+\_\+\+DIR}}, \char`\"{}..\char`\"{}))
+\item 
+\mbox{\hyperlink{namespaceupload_a9fd53259bfbb26888c2569a0f06c3ae8}{UPLOAD\+\_\+\+DIR}} = os.\+path.\+join(\mbox{\hyperlink{namespaceupload_ab5c82c498eaba02712bd0624af2d541a}{PROJECT\+\_\+\+ROOT}}, \char`\"{}uploads\char`\"{})
+\item 
+int \mbox{\hyperlink{namespaceupload_a3e8728cb6931f5f4630ab58a38281730}{MAX\+\_\+\+BYTES}} = 1000 $\ast$ 1024 $\ast$ 1024
+\item 
+\mbox{\hyperlink{namespaceupload_a7f63771c0b37197c924d9c455b6a1588}{file}}
+\item 
+\mbox{\hyperlink{namespaceupload_a4e0d59e8022f9a41adfe31b841d5f7e1}{project\+\_\+root}} = os.\+path.\+abspath(os.\+path.\+join(\mbox{\hyperlink{namespaceupload_a7d7b431ab4b7de54ab5b3d59083b023d}{SCRIPT\+\_\+\+DIR}}, \char`\"{}..\char`\"{}))
+\item 
+\mbox{\hyperlink{namespaceupload_ad2f2dfb561db4decbdd75d4c2048a646}{error\+\_\+page\+\_\+500}} = os.\+path.\+join(\mbox{\hyperlink{namespaceupload_a4e0d59e8022f9a41adfe31b841d5f7e1}{project\+\_\+root}}, \char`\"{}pages\char`\"{}, \char`\"{}errors\char`\"{}, \char`\"{}500.html\char`\"{})
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{namespaceupload_a4a0f807918a7bab9916e0a59891b560a}\label{namespaceupload_a4a0f807918a7bab9916e0a59891b560a}} 
+\index{upload@{upload}!main@{main}}
+\index{main@{main}!upload@{upload}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily def upload.\+main (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{namespaceupload_a74de02dc9b8bce5e0eb0437e125e2956}\label{namespaceupload_a74de02dc9b8bce5e0eb0437e125e2956}} 
+\index{upload@{upload}!reply@{reply}}
+\index{reply@{reply}!upload@{upload}}
+\doxysubsubsection{\texorpdfstring{reply()}{reply()}}
+{\footnotesize\ttfamily def upload.\+reply (\begin{DoxyParamCaption}\item[{str}]{status,  }\item[{str}]{message,  }\item[{str }]{http\+\_\+code = {\ttfamily \char`\"{}200~OK\char`\"{}} }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Send a small JSON response and exit.\end{DoxyVerb}
+ \mbox{\Hypertarget{namespaceupload_ad133ac6e54a54de66df095f1920b4801}\label{namespaceupload_ad133ac6e54a54de66df095f1920b4801}} 
+\index{upload@{upload}!reply\_with\_html\_page@{reply\_with\_html\_page}}
+\index{reply\_with\_html\_page@{reply\_with\_html\_page}!upload@{upload}}
+\doxysubsubsection{\texorpdfstring{reply\_with\_html\_page()}{reply\_with\_html\_page()}}
+{\footnotesize\ttfamily def upload.\+reply\+\_\+with\+\_\+html\+\_\+page (\begin{DoxyParamCaption}\item[{str}]{http\+\_\+code\+\_\+with\+\_\+message,  }\item[{str}]{file\+\_\+path }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Sends a full HTML page as a response and exits.\end{DoxyVerb}
+ \mbox{\Hypertarget{namespaceupload_a135fb65a84c6ae5899ac63226df93a67}\label{namespaceupload_a135fb65a84c6ae5899ac63226df93a67}} 
+\index{upload@{upload}!reply\_with\_success\_page@{reply\_with\_success\_page}}
+\index{reply\_with\_success\_page@{reply\_with\_success\_page}!upload@{upload}}
+\doxysubsubsection{\texorpdfstring{reply\_with\_success\_page()}{reply\_with\_success\_page()}}
+{\footnotesize\ttfamily def upload.\+reply\+\_\+with\+\_\+success\+\_\+page (\begin{DoxyParamCaption}\item[{str}]{message }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Generates and sends a full HTML page with a styled success message.\end{DoxyVerb}
+ 
+
+\doxysubsection{Variable Documentation}
+\mbox{\Hypertarget{namespaceupload_ad2f2dfb561db4decbdd75d4c2048a646}\label{namespaceupload_ad2f2dfb561db4decbdd75d4c2048a646}} 
+\index{upload@{upload}!error\_page\_500@{error\_page\_500}}
+\index{error\_page\_500@{error\_page\_500}!upload@{upload}}
+\doxysubsubsection{\texorpdfstring{error\_page\_500}{error\_page\_500}}
+{\footnotesize\ttfamily upload.\+error\+\_\+page\+\_\+500 = os.\+path.\+join(\mbox{\hyperlink{namespaceupload_a4e0d59e8022f9a41adfe31b841d5f7e1}{project\+\_\+root}}, \char`\"{}pages\char`\"{}, \char`\"{}errors\char`\"{}, \char`\"{}500.html\char`\"{})}
+
+\mbox{\Hypertarget{namespaceupload_a7f63771c0b37197c924d9c455b6a1588}\label{namespaceupload_a7f63771c0b37197c924d9c455b6a1588}} 
+\index{upload@{upload}!file@{file}}
+\index{file@{file}!upload@{upload}}
+\doxysubsubsection{\texorpdfstring{file}{file}}
+{\footnotesize\ttfamily upload.\+file}
+
+\mbox{\Hypertarget{namespaceupload_a3e8728cb6931f5f4630ab58a38281730}\label{namespaceupload_a3e8728cb6931f5f4630ab58a38281730}} 
+\index{upload@{upload}!MAX\_BYTES@{MAX\_BYTES}}
+\index{MAX\_BYTES@{MAX\_BYTES}!upload@{upload}}
+\doxysubsubsection{\texorpdfstring{MAX\_BYTES}{MAX\_BYTES}}
+{\footnotesize\ttfamily int upload.\+MAX\+\_\+\+BYTES = 1000 $\ast$ 1024 $\ast$ 1024}
+
+\mbox{\Hypertarget{namespaceupload_ab5c82c498eaba02712bd0624af2d541a}\label{namespaceupload_ab5c82c498eaba02712bd0624af2d541a}} 
+\index{upload@{upload}!PROJECT\_ROOT@{PROJECT\_ROOT}}
+\index{PROJECT\_ROOT@{PROJECT\_ROOT}!upload@{upload}}
+\doxysubsubsection{\texorpdfstring{PROJECT\_ROOT}{PROJECT\_ROOT}}
+{\footnotesize\ttfamily upload.\+PROJECT\+\_\+\+ROOT = os.\+path.\+abspath(os.\+path.\+join(\mbox{\hyperlink{namespaceupload_a7d7b431ab4b7de54ab5b3d59083b023d}{SCRIPT\+\_\+\+DIR}}, \char`\"{}..\char`\"{}))}
+
+\mbox{\Hypertarget{namespaceupload_a4e0d59e8022f9a41adfe31b841d5f7e1}\label{namespaceupload_a4e0d59e8022f9a41adfe31b841d5f7e1}} 
+\index{upload@{upload}!project\_root@{project\_root}}
+\index{project\_root@{project\_root}!upload@{upload}}
+\doxysubsubsection{\texorpdfstring{project\_root}{project\_root}}
+{\footnotesize\ttfamily upload.\+project\+\_\+root = os.\+path.\+abspath(os.\+path.\+join(\mbox{\hyperlink{namespaceupload_a7d7b431ab4b7de54ab5b3d59083b023d}{SCRIPT\+\_\+\+DIR}}, \char`\"{}..\char`\"{}))}
+
+\mbox{\Hypertarget{namespaceupload_a7d7b431ab4b7de54ab5b3d59083b023d}\label{namespaceupload_a7d7b431ab4b7de54ab5b3d59083b023d}} 
+\index{upload@{upload}!SCRIPT\_DIR@{SCRIPT\_DIR}}
+\index{SCRIPT\_DIR@{SCRIPT\_DIR}!upload@{upload}}
+\doxysubsubsection{\texorpdfstring{SCRIPT\_DIR}{SCRIPT\_DIR}}
+{\footnotesize\ttfamily upload.\+SCRIPT\+\_\+\+DIR = os.\+path.\+dirname(os.\+path.\+realpath(\+\_\+\+\_\+file\+\_\+\+\_\+))}
+
+\mbox{\Hypertarget{namespaceupload_a9fd53259bfbb26888c2569a0f06c3ae8}\label{namespaceupload_a9fd53259bfbb26888c2569a0f06c3ae8}} 
+\index{upload@{upload}!UPLOAD\_DIR@{UPLOAD\_DIR}}
+\index{UPLOAD\_DIR@{UPLOAD\_DIR}!upload@{upload}}
+\doxysubsubsection{\texorpdfstring{UPLOAD\_DIR}{UPLOAD\_DIR}}
+{\footnotesize\ttfamily upload.\+UPLOAD\+\_\+\+DIR = os.\+path.\+join(\mbox{\hyperlink{namespaceupload_ab5c82c498eaba02712bd0624af2d541a}{PROJECT\+\_\+\+ROOT}}, \char`\"{}uploads\char`\"{})}
+

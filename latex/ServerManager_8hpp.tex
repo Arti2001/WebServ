@@ -1,0 +1,93 @@
+\hypertarget{ServerManager_8hpp}{}\doxysection{src/core/\+Server\+Manager.hpp File Reference}
+\label{ServerManager_8hpp}\index{src/core/ServerManager.hpp@{src/core/ServerManager.hpp}}
+{\ttfamily \#include \char`\"{}parsing\+Conf\+File/\+Parse\+Config.\+hpp\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}Server.\+hpp\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}parsing\+Conf\+File/v\+Server.\+hpp\char`\"{}}\newline
+{\ttfamily \#include $<$fstream$>$}\newline
+{\ttfamily \#include \char`\"{}Request/\+Request.\+hpp\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}Client.\+hpp\char`\"{}}\newline
+{\ttfamily \#include $<$cerrno$>$}\newline
+{\ttfamily \#include $<$cstring$>$}\newline
+{\ttfamily \#include \char`\"{}CGIHandler/\+CGIHandler.\+hpp\char`\"{}}\newline
+{\ttfamily \#include $<$map$>$}\newline
+Include dependency graph for Server\+Manager.\+hpp\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{ServerManager_8hpp__incl}
+\end{center}
+\end{figure}
+This graph shows which files directly or indirectly include this file\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{ServerManager_8hpp__dep__incl}
+\end{center}
+\end{figure}
+\doxysubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \mbox{\hyperlink{classServerManager}{Server\+Manager}}
+\item 
+class \mbox{\hyperlink{classServerManager_1_1ServerManagerException}{Server\+Manager\+::\+Server\+Manager\+Exception}}
+\end{DoxyCompactItemize}
+\doxysubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{ServerManager_8hpp_a23abceb73cf76bf3929956241c502638}{EPOLL\+\_\+\+CAPACITY}}~20
+\item 
+\#define \mbox{\hyperlink{ServerManager_8hpp_a1a5879813a97e1caf90ad77a5f4432a2}{DEFAULT\+\_\+\+CONFIG\+\_\+\+FILE\+\_\+\+PATH}}~\char`\"{}./webserv.\+conf\char`\"{}
+\item 
+\#define \mbox{\hyperlink{ServerManager_8hpp_a514ad415fb6125ba296793df7d1a468a}{ENABLE}}~1
+\item 
+\#define \mbox{\hyperlink{ServerManager_8hpp_a99496f7308834e8b220f7894efa0b6ab}{DISABLE}}~0
+\item 
+\#define \mbox{\hyperlink{ServerManager_8hpp_a655c84af1b0034986ff56e12e84f983d}{NONE}}~0
+\end{DoxyCompactItemize}
+\doxysubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+volatile sig\+\_\+atomic\+\_\+t \mbox{\hyperlink{ServerManager_8hpp_af3270a6e782fe74a057a44a74d4b29f9}{running}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Macro Definition Documentation}
+\mbox{\Hypertarget{ServerManager_8hpp_a1a5879813a97e1caf90ad77a5f4432a2}\label{ServerManager_8hpp_a1a5879813a97e1caf90ad77a5f4432a2}} 
+\index{ServerManager.hpp@{ServerManager.hpp}!DEFAULT\_CONFIG\_FILE\_PATH@{DEFAULT\_CONFIG\_FILE\_PATH}}
+\index{DEFAULT\_CONFIG\_FILE\_PATH@{DEFAULT\_CONFIG\_FILE\_PATH}!ServerManager.hpp@{ServerManager.hpp}}
+\doxysubsubsection{\texorpdfstring{DEFAULT\_CONFIG\_FILE\_PATH}{DEFAULT\_CONFIG\_FILE\_PATH}}
+{\footnotesize\ttfamily \#define DEFAULT\+\_\+\+CONFIG\+\_\+\+FILE\+\_\+\+PATH~\char`\"{}./webserv.\+conf\char`\"{}}
+
+\mbox{\Hypertarget{ServerManager_8hpp_a99496f7308834e8b220f7894efa0b6ab}\label{ServerManager_8hpp_a99496f7308834e8b220f7894efa0b6ab}} 
+\index{ServerManager.hpp@{ServerManager.hpp}!DISABLE@{DISABLE}}
+\index{DISABLE@{DISABLE}!ServerManager.hpp@{ServerManager.hpp}}
+\doxysubsubsection{\texorpdfstring{DISABLE}{DISABLE}}
+{\footnotesize\ttfamily \#define DISABLE~0}
+
+\mbox{\Hypertarget{ServerManager_8hpp_a514ad415fb6125ba296793df7d1a468a}\label{ServerManager_8hpp_a514ad415fb6125ba296793df7d1a468a}} 
+\index{ServerManager.hpp@{ServerManager.hpp}!ENABLE@{ENABLE}}
+\index{ENABLE@{ENABLE}!ServerManager.hpp@{ServerManager.hpp}}
+\doxysubsubsection{\texorpdfstring{ENABLE}{ENABLE}}
+{\footnotesize\ttfamily \#define ENABLE~1}
+
+\mbox{\Hypertarget{ServerManager_8hpp_a23abceb73cf76bf3929956241c502638}\label{ServerManager_8hpp_a23abceb73cf76bf3929956241c502638}} 
+\index{ServerManager.hpp@{ServerManager.hpp}!EPOLL\_CAPACITY@{EPOLL\_CAPACITY}}
+\index{EPOLL\_CAPACITY@{EPOLL\_CAPACITY}!ServerManager.hpp@{ServerManager.hpp}}
+\doxysubsubsection{\texorpdfstring{EPOLL\_CAPACITY}{EPOLL\_CAPACITY}}
+{\footnotesize\ttfamily \#define EPOLL\+\_\+\+CAPACITY~20}
+
+\mbox{\Hypertarget{ServerManager_8hpp_a655c84af1b0034986ff56e12e84f983d}\label{ServerManager_8hpp_a655c84af1b0034986ff56e12e84f983d}} 
+\index{ServerManager.hpp@{ServerManager.hpp}!NONE@{NONE}}
+\index{NONE@{NONE}!ServerManager.hpp@{ServerManager.hpp}}
+\doxysubsubsection{\texorpdfstring{NONE}{NONE}}
+{\footnotesize\ttfamily \#define NONE~0}
+
+
+
+\doxysubsection{Variable Documentation}
+\mbox{\Hypertarget{ServerManager_8hpp_af3270a6e782fe74a057a44a74d4b29f9}\label{ServerManager_8hpp_af3270a6e782fe74a057a44a74d4b29f9}} 
+\index{ServerManager.hpp@{ServerManager.hpp}!running@{running}}
+\index{running@{running}!ServerManager.hpp@{ServerManager.hpp}}
+\doxysubsubsection{\texorpdfstring{running}{running}}
+{\footnotesize\ttfamily volatile sig\+\_\+atomic\+\_\+t running\hspace{0.3cm}{\ttfamily [extern]}}
+

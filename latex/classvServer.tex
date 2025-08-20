@@ -1,0 +1,322 @@
+\hypertarget{classvServer}{}\doxysection{v\+Server Class Reference}
+\label{classvServer}\index{vServer@{vServer}}
+
+
+{\ttfamily \#include $<$v\+Server.\+hpp$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classvServer_a1ce942755c233953a9bb7e3173bd9b60}{v\+Server}} ()
+\item 
+\mbox{\hyperlink{classvServer_a3f9cbb1f2d73b355cfa7fbd213ead613}{$\sim$v\+Server}} ()
+\item 
+void \mbox{\hyperlink{classvServer_a6a868dd0fe6bfd65e4700bb99b65df57}{set\+Server\+Locations}} (const std\+::map$<$ std\+::string, \mbox{\hyperlink{classLocation}{Location}} $>$ \&loc)
+\item 
+void \mbox{\hyperlink{classvServer_ae55a91be3464f97b6d2378a52f9fe957}{set\+Server\+Root}} (const std\+::string \&path)
+\item 
+void \mbox{\hyperlink{classvServer_afbe0c369e6d988e40e6c00f5e3560f61}{set\+Server\+Index}} (const std\+::vector$<$ std\+::string $>$ \&index)
+\item 
+void \mbox{\hyperlink{classvServer_a6c05e26de964874c0e0085b0963cef13}{set\+Server\+Auto\+Index}} (const int mode)
+\item 
+void \mbox{\hyperlink{classvServer_aa3da38d3ae4b38a340b6cd83c5a5838d}{set\+Server\+Client\+Max\+Size}} (const uint64\+\_\+t size)
+\item 
+void \mbox{\hyperlink{classvServer_a695f3ad3537b80634cf581c890c62cf1}{set\+Server\+Error\+Pages}} (const std\+::unordered\+\_\+map$<$ int, std\+::string $>$ \&pages)
+\item 
+void \mbox{\hyperlink{classvServer_a6b6e0150b6b7cba77aa196a2b645b3c3}{validate\+Server\+Listen}} (const std\+::vector$<$ std\+::string $>$ \&address\+Vector)
+\item 
+void \mbox{\hyperlink{classvServer_a1b9b1f49becae5d9ff427682ea2cbdec}{validate\+Server\+Names}} (std\+::vector$<$ std\+::string $>$ \&names)
+\end{DoxyCompactItemize}
+\begin{Indent}\textbf{ Server Configuration Getters}\par
+{\em Accessors for server configuration settings. These methods provide read-\/only access to the server’s runtime configuration. }\begin{DoxyCompactItemize}
+\item 
+bool \mbox{\hyperlink{classvServer_a2b6afd414c1084684c53a4979cc9a3ad}{get\+Server\+Auto\+Index}} (void) const
+\item 
+std\+::string \mbox{\hyperlink{classvServer_ae3c52266e089536c9e1e0f2681c50693}{get\+Server\+Ip}} (void) const
+\item 
+std\+::string \mbox{\hyperlink{classvServer_ac7f9f61e0ed74d0fc6a651dae41790c3}{get\+Server\+Port}} (void) const
+\item 
+std\+::string \mbox{\hyperlink{classvServer_a433cd88bcf451a17f4c685312426d1fd}{get\+Server\+Ip\+Port}} (void) const
+\item 
+uint64\+\_\+t \mbox{\hyperlink{classvServer_a9f9b157322ce5434dba107cbf170c255}{get\+Server\+Client\+Max\+Size}} (void) const
+\item 
+std\+::string \mbox{\hyperlink{classvServer_a8e0c6583d8649c57db701d7b207dcc4e}{get\+Server\+Root}} (void) const
+\item 
+std\+::unordered\+\_\+set$<$ std\+::string $>$ \mbox{\hyperlink{classvServer_a30d8f22da022160a15029d47b8ae9b6e}{get\+Server\+Names}} (void) const
+\item 
+std\+::vector$<$ std\+::string $>$ \mbox{\hyperlink{classvServer_a4c0854ef79e60974e11ff2d8a8c29925}{get\+Server\+Index}} (void) const
+\item 
+std\+::map$<$ std\+::string, \mbox{\hyperlink{classLocation}{Location}} $>$ \& \mbox{\hyperlink{classvServer_a8c4a87d23970aac5d1b70b3a3116ec4e}{get\+Server\+Locations}} ()
+\begin{DoxyCompactList}\small\item\em allows writing \end{DoxyCompactList}\item 
+const std\+::map$<$ std\+::string, \mbox{\hyperlink{classLocation}{Location}} $>$ \& \mbox{\hyperlink{classvServer_a85e8ab8913d8db7a37f422fa2a0fa525}{get\+Server\+Locations}} () const
+\begin{DoxyCompactList}\small\item\em allows reading \end{DoxyCompactList}\item 
+std\+::unordered\+\_\+map$<$ int, std\+::string $>$ \mbox{\hyperlink{classvServer_aa95d35fb495a0e66017770a9d8baae3e}{get\+Server\+Error\+Pages}} (void) const
+\end{DoxyCompactItemize}
+\end{Indent}
+\doxysubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static bool \mbox{\hyperlink{classvServer_a8e5c0afdb05dea7b326f36a609473b46}{validate\+Auto\+Index\+Directive}} (const std\+::vector$<$ std\+::string $>$ \&flag\+Vector)
+\item 
+static uint64\+\_\+t \mbox{\hyperlink{classvServer_a1c5e42c63376937e554fa164913edcea}{validate\+Client\+Max\+Size\+Directive}} (const std\+::vector$<$ std\+::string $>$ \&size\+Vector)
+\item 
+static std\+::unordered\+\_\+map$<$ int, std\+::string $>$ \mbox{\hyperlink{classvServer_a0c72a1f7579641941c8d84527f88f1d9}{validate\+Error\+Pages\+Directive}} (const std\+::vector$<$ std\+::string $>$ \&error\+Pages\+Vector)
+\item 
+static const std\+::string \& \mbox{\hyperlink{classvServer_af8ff7162d4ed16d300441ef3688ce8ed}{only\+One\+Argument\+Check}} (const std\+::vector$<$ std\+::string $>$ \&path\+Vector, std\+::string directive\+Name)
+\end{DoxyCompactItemize}
+\doxysubsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+std\+::string \mbox{\hyperlink{classvServer_a0efa3bfc6bf1135d23b7c355703dd760}{\+\_\+v\+Server\+Ip}}
+\item 
+std\+::string \mbox{\hyperlink{classvServer_a3c336e7c69105eb82a905d083ce2492f}{\+\_\+v\+Server\+Port}}
+\item 
+std\+::string \mbox{\hyperlink{classvServer_a6fc5b6ad4fbed6b8a10a108212884fb5}{\+\_\+v\+Server\+Ip\+Port}}
+\item 
+std\+::unordered\+\_\+set$<$ std\+::string $>$ \mbox{\hyperlink{classvServer_a02ff40a3a1bb87eadfcef8271bf6a31e}{\+\_\+v\+Server\+Names}}
+\item 
+std\+::map$<$ std\+::string, \mbox{\hyperlink{classLocation}{Location}} $>$ \mbox{\hyperlink{classvServer_a07552cd547fdaf4f230a22b4af435c78}{\+\_\+v\+Server\+Locations}}
+\item 
+std\+::string \mbox{\hyperlink{classvServer_a29875f08dd1cdf87555b606e7c4eb07d}{\+\_\+v\+Server\+Root}}
+\item 
+std\+::vector$<$ std\+::string $>$ \mbox{\hyperlink{classvServer_a7baec0874120f30e101807ce1de24435}{\+\_\+v\+Server\+Index}}
+\item 
+bool \mbox{\hyperlink{classvServer_a75f1103bd0c4fd8af4121316e9ca9d97}{\+\_\+v\+Server\+Auto\+Index}}
+\item 
+uint64\+\_\+t \mbox{\hyperlink{classvServer_afa0cc05a7ae5419c78ac82dfd053e096}{\+\_\+v\+Server\+Client\+Max\+Size}}
+\item 
+std\+::unordered\+\_\+map$<$ int, std\+::string $>$ \mbox{\hyperlink{classvServer_ab4ec945735545b62cbc4c254dfa0d51b}{\+\_\+v\+Server\+Error\+Pages}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{classvServer_a1ce942755c233953a9bb7e3173bd9b60}\label{classvServer_a1ce942755c233953a9bb7e3173bd9b60}} 
+\index{vServer@{vServer}!vServer@{vServer}}
+\index{vServer@{vServer}!vServer@{vServer}}
+\doxysubsubsection{\texorpdfstring{vServer()}{vServer()}}
+{\footnotesize\ttfamily v\+Server\+::v\+Server (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{classvServer_a3f9cbb1f2d73b355cfa7fbd213ead613}\label{classvServer_a3f9cbb1f2d73b355cfa7fbd213ead613}} 
+\index{vServer@{vServer}!````~vServer@{$\sim$vServer}}
+\index{````~vServer@{$\sim$vServer}!vServer@{vServer}}
+\doxysubsubsection{\texorpdfstring{$\sim$vServer()}{~vServer()}}
+{\footnotesize\ttfamily v\+Server\+::$\sim$v\+Server (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{classvServer_a2b6afd414c1084684c53a4979cc9a3ad}\label{classvServer_a2b6afd414c1084684c53a4979cc9a3ad}} 
+\index{vServer@{vServer}!getServerAutoIndex@{getServerAutoIndex}}
+\index{getServerAutoIndex@{getServerAutoIndex}!vServer@{vServer}}
+\doxysubsubsection{\texorpdfstring{getServerAutoIndex()}{getServerAutoIndex()}}
+{\footnotesize\ttfamily bool v\+Server\+::get\+Server\+Auto\+Index (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{classvServer_a9f9b157322ce5434dba107cbf170c255}\label{classvServer_a9f9b157322ce5434dba107cbf170c255}} 
+\index{vServer@{vServer}!getServerClientMaxSize@{getServerClientMaxSize}}
+\index{getServerClientMaxSize@{getServerClientMaxSize}!vServer@{vServer}}
+\doxysubsubsection{\texorpdfstring{getServerClientMaxSize()}{getServerClientMaxSize()}}
+{\footnotesize\ttfamily uint64\+\_\+t v\+Server\+::get\+Server\+Client\+Max\+Size (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{classvServer_aa95d35fb495a0e66017770a9d8baae3e}\label{classvServer_aa95d35fb495a0e66017770a9d8baae3e}} 
+\index{vServer@{vServer}!getServerErrorPages@{getServerErrorPages}}
+\index{getServerErrorPages@{getServerErrorPages}!vServer@{vServer}}
+\doxysubsubsection{\texorpdfstring{getServerErrorPages()}{getServerErrorPages()}}
+{\footnotesize\ttfamily std\+::unordered\+\_\+map$<$ int, std\+::string $>$ v\+Server\+::get\+Server\+Error\+Pages (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{classvServer_a4c0854ef79e60974e11ff2d8a8c29925}\label{classvServer_a4c0854ef79e60974e11ff2d8a8c29925}} 
+\index{vServer@{vServer}!getServerIndex@{getServerIndex}}
+\index{getServerIndex@{getServerIndex}!vServer@{vServer}}
+\doxysubsubsection{\texorpdfstring{getServerIndex()}{getServerIndex()}}
+{\footnotesize\ttfamily std\+::vector$<$ std\+::string $>$ v\+Server\+::get\+Server\+Index (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{classvServer_ae3c52266e089536c9e1e0f2681c50693}\label{classvServer_ae3c52266e089536c9e1e0f2681c50693}} 
+\index{vServer@{vServer}!getServerIp@{getServerIp}}
+\index{getServerIp@{getServerIp}!vServer@{vServer}}
+\doxysubsubsection{\texorpdfstring{getServerIp()}{getServerIp()}}
+{\footnotesize\ttfamily std\+::string v\+Server\+::get\+Server\+Ip (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{classvServer_a433cd88bcf451a17f4c685312426d1fd}\label{classvServer_a433cd88bcf451a17f4c685312426d1fd}} 
+\index{vServer@{vServer}!getServerIpPort@{getServerIpPort}}
+\index{getServerIpPort@{getServerIpPort}!vServer@{vServer}}
+\doxysubsubsection{\texorpdfstring{getServerIpPort()}{getServerIpPort()}}
+{\footnotesize\ttfamily std\+::string v\+Server\+::get\+Server\+Ip\+Port (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{classvServer_a8c4a87d23970aac5d1b70b3a3116ec4e}\label{classvServer_a8c4a87d23970aac5d1b70b3a3116ec4e}} 
+\index{vServer@{vServer}!getServerLocations@{getServerLocations}}
+\index{getServerLocations@{getServerLocations}!vServer@{vServer}}
+\doxysubsubsection{\texorpdfstring{getServerLocations()}{getServerLocations()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily std\+::map$<$ std\+::string, \mbox{\hyperlink{classLocation}{Location}} $>$ \& v\+Server\+::get\+Server\+Locations (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+allows writing 
+
+\mbox{\Hypertarget{classvServer_a85e8ab8913d8db7a37f422fa2a0fa525}\label{classvServer_a85e8ab8913d8db7a37f422fa2a0fa525}} 
+\index{vServer@{vServer}!getServerLocations@{getServerLocations}}
+\index{getServerLocations@{getServerLocations}!vServer@{vServer}}
+\doxysubsubsection{\texorpdfstring{getServerLocations()}{getServerLocations()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily const std\+::map$<$ std\+::string, \mbox{\hyperlink{classLocation}{Location}} $>$ \& v\+Server\+::get\+Server\+Locations (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption}) const}
+
+
+
+allows reading 
+
+\mbox{\Hypertarget{classvServer_a30d8f22da022160a15029d47b8ae9b6e}\label{classvServer_a30d8f22da022160a15029d47b8ae9b6e}} 
+\index{vServer@{vServer}!getServerNames@{getServerNames}}
+\index{getServerNames@{getServerNames}!vServer@{vServer}}
+\doxysubsubsection{\texorpdfstring{getServerNames()}{getServerNames()}}
+{\footnotesize\ttfamily std\+::unordered\+\_\+set$<$ std\+::string $>$ v\+Server\+::get\+Server\+Names (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{classvServer_ac7f9f61e0ed74d0fc6a651dae41790c3}\label{classvServer_ac7f9f61e0ed74d0fc6a651dae41790c3}} 
+\index{vServer@{vServer}!getServerPort@{getServerPort}}
+\index{getServerPort@{getServerPort}!vServer@{vServer}}
+\doxysubsubsection{\texorpdfstring{getServerPort()}{getServerPort()}}
+{\footnotesize\ttfamily std\+::string v\+Server\+::get\+Server\+Port (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{classvServer_a8e0c6583d8649c57db701d7b207dcc4e}\label{classvServer_a8e0c6583d8649c57db701d7b207dcc4e}} 
+\index{vServer@{vServer}!getServerRoot@{getServerRoot}}
+\index{getServerRoot@{getServerRoot}!vServer@{vServer}}
+\doxysubsubsection{\texorpdfstring{getServerRoot()}{getServerRoot()}}
+{\footnotesize\ttfamily std\+::string v\+Server\+::get\+Server\+Root (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{classvServer_af8ff7162d4ed16d300441ef3688ce8ed}\label{classvServer_af8ff7162d4ed16d300441ef3688ce8ed}} 
+\index{vServer@{vServer}!onlyOneArgumentCheck@{onlyOneArgumentCheck}}
+\index{onlyOneArgumentCheck@{onlyOneArgumentCheck}!vServer@{vServer}}
+\doxysubsubsection{\texorpdfstring{onlyOneArgumentCheck()}{onlyOneArgumentCheck()}}
+{\footnotesize\ttfamily const std\+::string \& v\+Server\+::only\+One\+Argument\+Check (\begin{DoxyParamCaption}\item[{const std\+::vector$<$ std\+::string $>$ \&}]{path\+Vector,  }\item[{std\+::string}]{directive\+Name }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\mbox{\Hypertarget{classvServer_a6c05e26de964874c0e0085b0963cef13}\label{classvServer_a6c05e26de964874c0e0085b0963cef13}} 
+\index{vServer@{vServer}!setServerAutoIndex@{setServerAutoIndex}}
+\index{setServerAutoIndex@{setServerAutoIndex}!vServer@{vServer}}
+\doxysubsubsection{\texorpdfstring{setServerAutoIndex()}{setServerAutoIndex()}}
+{\footnotesize\ttfamily void v\+Server\+::set\+Server\+Auto\+Index (\begin{DoxyParamCaption}\item[{const int}]{mode }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{classvServer_aa3da38d3ae4b38a340b6cd83c5a5838d}\label{classvServer_aa3da38d3ae4b38a340b6cd83c5a5838d}} 
+\index{vServer@{vServer}!setServerClientMaxSize@{setServerClientMaxSize}}
+\index{setServerClientMaxSize@{setServerClientMaxSize}!vServer@{vServer}}
+\doxysubsubsection{\texorpdfstring{setServerClientMaxSize()}{setServerClientMaxSize()}}
+{\footnotesize\ttfamily void v\+Server\+::set\+Server\+Client\+Max\+Size (\begin{DoxyParamCaption}\item[{const uint64\+\_\+t}]{size }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{classvServer_a695f3ad3537b80634cf581c890c62cf1}\label{classvServer_a695f3ad3537b80634cf581c890c62cf1}} 
+\index{vServer@{vServer}!setServerErrorPages@{setServerErrorPages}}
+\index{setServerErrorPages@{setServerErrorPages}!vServer@{vServer}}
+\doxysubsubsection{\texorpdfstring{setServerErrorPages()}{setServerErrorPages()}}
+{\footnotesize\ttfamily void v\+Server\+::set\+Server\+Error\+Pages (\begin{DoxyParamCaption}\item[{const std\+::unordered\+\_\+map$<$ int, std\+::string $>$ \&}]{pages }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{classvServer_afbe0c369e6d988e40e6c00f5e3560f61}\label{classvServer_afbe0c369e6d988e40e6c00f5e3560f61}} 
+\index{vServer@{vServer}!setServerIndex@{setServerIndex}}
+\index{setServerIndex@{setServerIndex}!vServer@{vServer}}
+\doxysubsubsection{\texorpdfstring{setServerIndex()}{setServerIndex()}}
+{\footnotesize\ttfamily void v\+Server\+::set\+Server\+Index (\begin{DoxyParamCaption}\item[{const std\+::vector$<$ std\+::string $>$ \&}]{index }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{classvServer_a6a868dd0fe6bfd65e4700bb99b65df57}\label{classvServer_a6a868dd0fe6bfd65e4700bb99b65df57}} 
+\index{vServer@{vServer}!setServerLocations@{setServerLocations}}
+\index{setServerLocations@{setServerLocations}!vServer@{vServer}}
+\doxysubsubsection{\texorpdfstring{setServerLocations()}{setServerLocations()}}
+{\footnotesize\ttfamily void v\+Server\+::set\+Server\+Locations (\begin{DoxyParamCaption}\item[{const std\+::map$<$ std\+::string, \mbox{\hyperlink{classLocation}{Location}} $>$ \&}]{loc }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{classvServer_ae55a91be3464f97b6d2378a52f9fe957}\label{classvServer_ae55a91be3464f97b6d2378a52f9fe957}} 
+\index{vServer@{vServer}!setServerRoot@{setServerRoot}}
+\index{setServerRoot@{setServerRoot}!vServer@{vServer}}
+\doxysubsubsection{\texorpdfstring{setServerRoot()}{setServerRoot()}}
+{\footnotesize\ttfamily void v\+Server\+::set\+Server\+Root (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{path }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{classvServer_a8e5c0afdb05dea7b326f36a609473b46}\label{classvServer_a8e5c0afdb05dea7b326f36a609473b46}} 
+\index{vServer@{vServer}!validateAutoIndexDirective@{validateAutoIndexDirective}}
+\index{validateAutoIndexDirective@{validateAutoIndexDirective}!vServer@{vServer}}
+\doxysubsubsection{\texorpdfstring{validateAutoIndexDirective()}{validateAutoIndexDirective()}}
+{\footnotesize\ttfamily bool v\+Server\+::validate\+Auto\+Index\+Directive (\begin{DoxyParamCaption}\item[{const std\+::vector$<$ std\+::string $>$ \&}]{flag\+Vector }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\mbox{\Hypertarget{classvServer_a1c5e42c63376937e554fa164913edcea}\label{classvServer_a1c5e42c63376937e554fa164913edcea}} 
+\index{vServer@{vServer}!validateClientMaxSizeDirective@{validateClientMaxSizeDirective}}
+\index{validateClientMaxSizeDirective@{validateClientMaxSizeDirective}!vServer@{vServer}}
+\doxysubsubsection{\texorpdfstring{validateClientMaxSizeDirective()}{validateClientMaxSizeDirective()}}
+{\footnotesize\ttfamily uint64\+\_\+t v\+Server\+::validate\+Client\+Max\+Size\+Directive (\begin{DoxyParamCaption}\item[{const std\+::vector$<$ std\+::string $>$ \&}]{size\+Vector }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\mbox{\Hypertarget{classvServer_a0c72a1f7579641941c8d84527f88f1d9}\label{classvServer_a0c72a1f7579641941c8d84527f88f1d9}} 
+\index{vServer@{vServer}!validateErrorPagesDirective@{validateErrorPagesDirective}}
+\index{validateErrorPagesDirective@{validateErrorPagesDirective}!vServer@{vServer}}
+\doxysubsubsection{\texorpdfstring{validateErrorPagesDirective()}{validateErrorPagesDirective()}}
+{\footnotesize\ttfamily std\+::unordered\+\_\+map$<$ int, std\+::string $>$ v\+Server\+::validate\+Error\+Pages\+Directive (\begin{DoxyParamCaption}\item[{const std\+::vector$<$ std\+::string $>$ \&}]{error\+Pages\+Vector }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\mbox{\Hypertarget{classvServer_a6b6e0150b6b7cba77aa196a2b645b3c3}\label{classvServer_a6b6e0150b6b7cba77aa196a2b645b3c3}} 
+\index{vServer@{vServer}!validateServerListen@{validateServerListen}}
+\index{validateServerListen@{validateServerListen}!vServer@{vServer}}
+\doxysubsubsection{\texorpdfstring{validateServerListen()}{validateServerListen()}}
+{\footnotesize\ttfamily void v\+Server\+::validate\+Server\+Listen (\begin{DoxyParamCaption}\item[{const std\+::vector$<$ std\+::string $>$ \&}]{address\+Vector }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{classvServer_a1b9b1f49becae5d9ff427682ea2cbdec}\label{classvServer_a1b9b1f49becae5d9ff427682ea2cbdec}} 
+\index{vServer@{vServer}!validateServerNames@{validateServerNames}}
+\index{validateServerNames@{validateServerNames}!vServer@{vServer}}
+\doxysubsubsection{\texorpdfstring{validateServerNames()}{validateServerNames()}}
+{\footnotesize\ttfamily void v\+Server\+::validate\+Server\+Names (\begin{DoxyParamCaption}\item[{std\+::vector$<$ std\+::string $>$ \&}]{names }\end{DoxyParamCaption})}
+
+
+
+\doxysubsection{Member Data Documentation}
+\mbox{\Hypertarget{classvServer_a75f1103bd0c4fd8af4121316e9ca9d97}\label{classvServer_a75f1103bd0c4fd8af4121316e9ca9d97}} 
+\index{vServer@{vServer}!\_vServerAutoIndex@{\_vServerAutoIndex}}
+\index{\_vServerAutoIndex@{\_vServerAutoIndex}!vServer@{vServer}}
+\doxysubsubsection{\texorpdfstring{\_vServerAutoIndex}{\_vServerAutoIndex}}
+{\footnotesize\ttfamily bool v\+Server\+::\+\_\+v\+Server\+Auto\+Index\hspace{0.3cm}{\ttfamily [private]}}
+
+\mbox{\Hypertarget{classvServer_afa0cc05a7ae5419c78ac82dfd053e096}\label{classvServer_afa0cc05a7ae5419c78ac82dfd053e096}} 
+\index{vServer@{vServer}!\_vServerClientMaxSize@{\_vServerClientMaxSize}}
+\index{\_vServerClientMaxSize@{\_vServerClientMaxSize}!vServer@{vServer}}
+\doxysubsubsection{\texorpdfstring{\_vServerClientMaxSize}{\_vServerClientMaxSize}}
+{\footnotesize\ttfamily uint64\+\_\+t v\+Server\+::\+\_\+v\+Server\+Client\+Max\+Size\hspace{0.3cm}{\ttfamily [private]}}
+
+\mbox{\Hypertarget{classvServer_ab4ec945735545b62cbc4c254dfa0d51b}\label{classvServer_ab4ec945735545b62cbc4c254dfa0d51b}} 
+\index{vServer@{vServer}!\_vServerErrorPages@{\_vServerErrorPages}}
+\index{\_vServerErrorPages@{\_vServerErrorPages}!vServer@{vServer}}
+\doxysubsubsection{\texorpdfstring{\_vServerErrorPages}{\_vServerErrorPages}}
+{\footnotesize\ttfamily std\+::unordered\+\_\+map$<$int, std\+::string$>$ v\+Server\+::\+\_\+v\+Server\+Error\+Pages\hspace{0.3cm}{\ttfamily [private]}}
+
+\mbox{\Hypertarget{classvServer_a7baec0874120f30e101807ce1de24435}\label{classvServer_a7baec0874120f30e101807ce1de24435}} 
+\index{vServer@{vServer}!\_vServerIndex@{\_vServerIndex}}
+\index{\_vServerIndex@{\_vServerIndex}!vServer@{vServer}}
+\doxysubsubsection{\texorpdfstring{\_vServerIndex}{\_vServerIndex}}
+{\footnotesize\ttfamily std\+::vector$<$std\+::string$>$ v\+Server\+::\+\_\+v\+Server\+Index\hspace{0.3cm}{\ttfamily [private]}}
+
+\mbox{\Hypertarget{classvServer_a0efa3bfc6bf1135d23b7c355703dd760}\label{classvServer_a0efa3bfc6bf1135d23b7c355703dd760}} 
+\index{vServer@{vServer}!\_vServerIp@{\_vServerIp}}
+\index{\_vServerIp@{\_vServerIp}!vServer@{vServer}}
+\doxysubsubsection{\texorpdfstring{\_vServerIp}{\_vServerIp}}
+{\footnotesize\ttfamily std\+::string v\+Server\+::\+\_\+v\+Server\+Ip\hspace{0.3cm}{\ttfamily [private]}}
+
+\mbox{\Hypertarget{classvServer_a6fc5b6ad4fbed6b8a10a108212884fb5}\label{classvServer_a6fc5b6ad4fbed6b8a10a108212884fb5}} 
+\index{vServer@{vServer}!\_vServerIpPort@{\_vServerIpPort}}
+\index{\_vServerIpPort@{\_vServerIpPort}!vServer@{vServer}}
+\doxysubsubsection{\texorpdfstring{\_vServerIpPort}{\_vServerIpPort}}
+{\footnotesize\ttfamily std\+::string v\+Server\+::\+\_\+v\+Server\+Ip\+Port\hspace{0.3cm}{\ttfamily [private]}}
+
+\mbox{\Hypertarget{classvServer_a07552cd547fdaf4f230a22b4af435c78}\label{classvServer_a07552cd547fdaf4f230a22b4af435c78}} 
+\index{vServer@{vServer}!\_vServerLocations@{\_vServerLocations}}
+\index{\_vServerLocations@{\_vServerLocations}!vServer@{vServer}}
+\doxysubsubsection{\texorpdfstring{\_vServerLocations}{\_vServerLocations}}
+{\footnotesize\ttfamily std\+::map$<$std\+::string, \mbox{\hyperlink{classLocation}{Location}}$>$ v\+Server\+::\+\_\+v\+Server\+Locations\hspace{0.3cm}{\ttfamily [private]}}
+
+\mbox{\Hypertarget{classvServer_a02ff40a3a1bb87eadfcef8271bf6a31e}\label{classvServer_a02ff40a3a1bb87eadfcef8271bf6a31e}} 
+\index{vServer@{vServer}!\_vServerNames@{\_vServerNames}}
+\index{\_vServerNames@{\_vServerNames}!vServer@{vServer}}
+\doxysubsubsection{\texorpdfstring{\_vServerNames}{\_vServerNames}}
+{\footnotesize\ttfamily std\+::unordered\+\_\+set$<$std\+::string$>$ v\+Server\+::\+\_\+v\+Server\+Names\hspace{0.3cm}{\ttfamily [private]}}
+
+\mbox{\Hypertarget{classvServer_a3c336e7c69105eb82a905d083ce2492f}\label{classvServer_a3c336e7c69105eb82a905d083ce2492f}} 
+\index{vServer@{vServer}!\_vServerPort@{\_vServerPort}}
+\index{\_vServerPort@{\_vServerPort}!vServer@{vServer}}
+\doxysubsubsection{\texorpdfstring{\_vServerPort}{\_vServerPort}}
+{\footnotesize\ttfamily std\+::string v\+Server\+::\+\_\+v\+Server\+Port\hspace{0.3cm}{\ttfamily [private]}}
+
+\mbox{\Hypertarget{classvServer_a29875f08dd1cdf87555b606e7c4eb07d}\label{classvServer_a29875f08dd1cdf87555b606e7c4eb07d}} 
+\index{vServer@{vServer}!\_vServerRoot@{\_vServerRoot}}
+\index{\_vServerRoot@{\_vServerRoot}!vServer@{vServer}}
+\doxysubsubsection{\texorpdfstring{\_vServerRoot}{\_vServerRoot}}
+{\footnotesize\ttfamily std\+::string v\+Server\+::\+\_\+v\+Server\+Root\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/core/parsing\+Conf\+File/\mbox{\hyperlink{vServer_8hpp}{v\+Server.\+hpp}}\item 
+src/core/parsing\+Conf\+File/\mbox{\hyperlink{vServer_8cpp}{v\+Server.\+cpp}}\end{DoxyCompactItemize}

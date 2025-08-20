@@ -1,0 +1,62 @@
+\hypertarget{CGIHandler_8hpp}{}\doxysection{src/core/\+CGIHandler/\+CGIHandler.hpp File Reference}
+\label{CGIHandler_8hpp}\index{src/core/CGIHandler/CGIHandler.hpp@{src/core/CGIHandler/CGIHandler.hpp}}
+{\ttfamily \#include $<$string$>$}\newline
+{\ttfamily \#include $<$vector$>$}\newline
+{\ttfamily \#include $<$map$>$}\newline
+{\ttfamily \#include $<$iostream$>$}\newline
+{\ttfamily \#include $<$exception$>$}\newline
+{\ttfamily \#include $<$algorithm$>$}\newline
+{\ttfamily \#include $<$string\+\_\+view$>$}\newline
+{\ttfamily \#include $<$sys/stat.\+h$>$}\newline
+{\ttfamily \#include $<$unistd.\+h$>$}\newline
+{\ttfamily \#include $<$fcntl.\+h$>$}\newline
+{\ttfamily \#include $<$sys/wait.\+h$>$}\newline
+{\ttfamily \#include $<$sys/select.\+h$>$}\newline
+{\ttfamily \#include $<$signal.\+h$>$}\newline
+{\ttfamily \#include $<$cstring$>$}\newline
+{\ttfamily \#include $<$cstdio$>$}\newline
+{\ttfamily \#include \char`\"{}../\+Request/\+Request.\+hpp\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}../\+Response/\+Response.\+hpp\char`\"{}}\newline
+Include dependency graph for CGIHandler.\+hpp\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{CGIHandler_8hpp__incl}
+\end{center}
+\end{figure}
+This graph shows which files directly or indirectly include this file\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{CGIHandler_8hpp__dep__incl}
+\end{center}
+\end{figure}
+\doxysubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \mbox{\hyperlink{classCGIHandler}{CGIHandler}}
+\item 
+class \mbox{\hyperlink{classCGIHandler_1_1CGIException}{CGIHandler\+::\+CGIException}}
+\end{DoxyCompactItemize}
+\doxysubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{CGIHandler_8hpp_a28d683cf067736d76f867f30c066317e}{MAX\+\_\+\+OUTPUT\+\_\+\+SIZE}}~10 $\ast$ 1024 $\ast$ 1024
+\item 
+\#define \mbox{\hyperlink{CGIHandler_8hpp_aea3cfda4f3a9f978ec759f206cf186fe}{CHUNK\+\_\+\+SIZE}}~8192
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Macro Definition Documentation}
+\mbox{\Hypertarget{CGIHandler_8hpp_aea3cfda4f3a9f978ec759f206cf186fe}\label{CGIHandler_8hpp_aea3cfda4f3a9f978ec759f206cf186fe}} 
+\index{CGIHandler.hpp@{CGIHandler.hpp}!CHUNK\_SIZE@{CHUNK\_SIZE}}
+\index{CHUNK\_SIZE@{CHUNK\_SIZE}!CGIHandler.hpp@{CGIHandler.hpp}}
+\doxysubsubsection{\texorpdfstring{CHUNK\_SIZE}{CHUNK\_SIZE}}
+{\footnotesize\ttfamily \#define CHUNK\+\_\+\+SIZE~8192}
+
+\mbox{\Hypertarget{CGIHandler_8hpp_a28d683cf067736d76f867f30c066317e}\label{CGIHandler_8hpp_a28d683cf067736d76f867f30c066317e}} 
+\index{CGIHandler.hpp@{CGIHandler.hpp}!MAX\_OUTPUT\_SIZE@{MAX\_OUTPUT\_SIZE}}
+\index{MAX\_OUTPUT\_SIZE@{MAX\_OUTPUT\_SIZE}!CGIHandler.hpp@{CGIHandler.hpp}}
+\doxysubsubsection{\texorpdfstring{MAX\_OUTPUT\_SIZE}{MAX\_OUTPUT\_SIZE}}
+{\footnotesize\ttfamily \#define MAX\+\_\+\+OUTPUT\+\_\+\+SIZE~10 $\ast$ 1024 $\ast$ 1024}
+

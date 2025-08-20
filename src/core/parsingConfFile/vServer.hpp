@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/06 13:09:20 by vshkonda          #+#    #+#             */
-/*   Updated: 2025/08/19 10:25:47 by amysiv           ###   ########.fr       */
+/*   Updated: 2025/08/20 22:00:54 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,43 +52,137 @@ class vServer {
 	public:
 		vServer();
 		~vServer();
+		/**
+		 * @name Server Configuration Getters
+		 * @brief Accessors for server configuration settings.
+		 *
+		 * These methods provide read-only access to the server’s runtime configuration.
+		 * @{
+		 */
 
-	//Getters
-	bool										getServerAutoIndex( void ) const;
-	std::string									getServerIp( void ) const;
-	std::string									getServerPort( void ) const;
-	std::string									getServerIpPort( void ) const;
-	uint64_t									getServerClientMaxSize( void ) const;
-	std::string									getServerRoot( void ) const;
-	std::unordered_set<std::string>				getServerNames( void ) const;
-	std::vector<std::string>					getServerIndex( void ) const;
+		/// @brief Returns whether autoindexing is enabled for the server.
+		bool getServerAutoIndex(void) const;
+
+		/// @brief Returns the server’s IP address as a string.
+		std::string getServerIp(void) const;
+
+		/// @brief Returns the server’s listening port as a string.
+		std::string getServerPort(void) const;
+
+		/// @brief Returns the combined "IP:Port" string of the server.
+		std::string getServerIpPort(void) const;
+
+		/// @brief Returns the maximum allowed client request body size (in bytes).
+		uint64_t getServerClientMaxSize(void) const;
+
+		/// @brief Returns the server’s root directory path.
+		std::string getServerRoot(void) const;
+
+		/// @brief Returns the set of server names (hostnames) defined.
+		std::unordered_set<std::string> getServerNames(void) const;
+
+		/// @brief Returns the list of index files to look for in directories.
+		std::vector<std::string> getServerIndex(void) const;
+
+		/// @brief Returns a modifiable reference to the server’s location blocks.
+		std::map<std::string, Location>& getServerLocations();
+
+		/// @brief Returns a read-only reference to the server’s location blocks.
+		const std::map<std::string, Location>& getServerLocations() const;
+
+		/// @brief Returns the mapping of error codes to error page paths.
+		std::unordered_map<int, std::string> getServerErrorPages(void) const;
+
+		/** @} */
 
 
-	std::map<std::string, Location>	&			getServerLocations(); // allows writing
-	const std::map<std::string, Location>&		getServerLocations() const; // allows reading
-	std::unordered_map<int, std::string>		getServerErrorPages( void ) const;
+
+	/**
+	 * @name Server Configuration Setters
+	 * @brief Mutators for server configuration settings.
+	 *
+	 * These methods allow modifying the server’s runtime configuration.
+	 * @{
+	 */
+
+	/// @brief Sets the server’s location blocks.
+	void setServerLocations(const std::map<std::string, Location>& loc);
+
+	/// @brief Sets the server’s root directory path.
+	void setServerRoot(const std::string& path);
+
+	/// @brief Sets the list of index files to look for in directories.
+	void setServerIndex(const std::vector<std::string>& index);
+
+	/// @brief Enables or disables directory autoindexing.
+	void setServerAutoIndex(const int mode);
+
+	/// @brief Sets the maximum allowed client request body size (in bytes).
+	void setServerClientMaxSize(const uint64_t size);
+
+	/// @brief Sets the mapping of error codes to error page paths.
+	void setServerErrorPages(const std::unordered_map<int, std::string>& pages);
+
+	/** @} */
 
 
-	// Setters
-	void	setServerLocations(const std::map<std::string, Location>& loc);
-	void	setServerRoot(const std::string& path);
-	void	setServerIndex(const std::vector<std::string>& index);
-	void	setServerAutoIndex(const int mode);
-	void	setServerClientMaxSize(const uint64_t size);
-	void	setServerErrorPages(const std::unordered_map<int, std::string>& pages);
+
+
+
+	/**
+	 * @name Server Configuration Validators
+	 * @brief Validation utilities for server and location directives.
+	 *
+	 * These methods check and enforce the correctness of configuration
+	 * directives for the server and location blocks.
+	 * @{
+	 */
+
+	/// @brief Validates the `listen` directive (IP/port format).
+	/// @param addressVector Vector containing address and port tokens.
+	void validateServerListen(const std::vector<std::string>& addressVector);
+
+	/// @brief Validates the list of server names.
+	/// @param names Vector of server names (may be modified if invalid).
+	void validateServerNames(std::vector<std::string>& names);
+
+	/** @} */
 
 
 
 
-	//validators
-	void																	validateServerListen(const std::vector<std::string>& addressVector);
-	void																	validateServerNames(std::vector<std::string>& names);
+	/**
+	 * @name Common Validators
+	 * @brief Shared validation functions for both server and location classes.
+	 *
+	 * These are static helpers used across configuration parsing.
+	 * @{
+	 */
 
-	//common validators for vServer and Location calss
-	static	bool															validateAutoIndexDirective(const std::vector<std::string>& flagVector);
-	static	uint64_t														validateClientMaxSizeDirective(const std::vector<std::string>& sizeVector);
-	static	std::unordered_map<int, std::string>							validateErrorPagesDirective(const std::vector<std::string>& errorPagesVector);
-	static const	std::string&											onlyOneArgumentCheck(const std::vector<std::string>& pathVector, std::string directiveName);
+	/// @brief Validates the `autoindex` directive.
+	/// @param flagVector Vector containing the directive arguments.
+	/// @return `true` if autoindex is enabled, `false` otherwise.
+	static bool validateAutoIndexDirective(const std::vector<std::string>& flagVector);
+
+	/// @brief Validates and converts the `client_max_body_size` directive.
+	/// @param sizeVector Vector containing the size argument (supports M/G suffix).
+	/// @return Parsed size in bytes.
+	static uint64_t validateClientMaxSizeDirective(const std::vector<std::string>& sizeVector);
+
+	/// @brief Validates the `error_page` directive.
+	/// @param errorPagesVector Vector containing error codes and paths.
+	/// @return Mapping of error codes to error page paths.
+	static std::unordered_map<int, std::string> validateErrorPagesDirective(const std::vector<std::string>& errorPagesVector);
+
+	/// @brief Ensures that only one argument is provided for a directive.
+	/// @param pathVector Vector of directive arguments.
+	/// @param directiveName Name of the directive (for error reporting).
+	/// @return Reference to the single valid argument.
+	/// @throws std::runtime_error if more than one argument is provided.
+	static const std::string& onlyOneArgumentCheck(const std::vector<std::string>& pathVector, std::string directiveName);
+
+	/** @} */
+
 };
 
 bool	isNumber(std::string number);
