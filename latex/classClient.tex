@@ -1,0 +1,290 @@
+\hypertarget{classClient}{}\doxysection{Client Class Reference}
+\label{classClient}\index{Client@{Client}}
+
+
+{\ttfamily \#include $<$Client.\+hpp$>$}
+
+
+
+Collaboration diagram for Client\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=266pt]{classClient__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classClient_a275ea4a44773f248ed20f0e495b8b957}{Client}} (int server\+Fd, \mbox{\hyperlink{classServerManager}{Server\+Manager}} $\ast$serv\+Manager)
+\item 
+\mbox{\hyperlink{classClient_a840e519ca781888cbd54181572ebe3a7}{$\sim$\+Client}} ()
+\item 
+\mbox{\hyperlink{classClient_a9500b28b17943a6e99ba2e4e98fb1732}{Client}} (const \mbox{\hyperlink{classClient}{Client}} \&)
+\item 
+\mbox{\hyperlink{classClient}{Client}} \& \mbox{\hyperlink{classClient_a255f4905a3a0176a194e4a675d0a172b}{operator=}} (const \mbox{\hyperlink{classClient}{Client}} \&)=delete
+\item 
+void \mbox{\hyperlink{classClient_a6442580a81db0df10b098622d5c85e0d}{set\+Last\+Active\+Time}} (std\+::time\+\_\+t time\+Stamp)
+\item 
+void \mbox{\hyperlink{classClient_ae735528cc84f67290f96c97afd73cd11}{set\+Is\+Closed}} (bool flag)
+\item 
+std\+::time\+\_\+t \mbox{\hyperlink{classClient_a029c27ee009949ce36ca366cbb80daee}{get\+Last\+Active\+Time}} (void) const
+\item 
+int \mbox{\hyperlink{classClient_adf01db9c210bbfe458f750cd50ee26ef}{get\+Server\+Fd}} (void) const
+\item 
+size\+\_\+t \& \mbox{\hyperlink{classClient_ae56abe385f55b7f9f0fbd80356a361dc}{get\+Clients\+Bytes\+Sent}} (void)
+\item 
+\mbox{\hyperlink{classRequest}{Request}} \& \mbox{\hyperlink{classClient_ae221d4d56415ebe1a002bf69c243ed44}{get\+Request}} (void)
+\item 
+\mbox{\hyperlink{classResponse}{Response}} \& \mbox{\hyperlink{classClient_a4b48fdf1de07521dfbde1865466e4b37}{get\+Response}} (void)
+\item 
+void \mbox{\hyperlink{classClient_abb4f5c5c200b2a7ec667d35c817f3f18}{handle\+Request}} (int client\+Fd)
+\item 
+void \mbox{\hyperlink{classClient_acd8f3c975e9a9e646ba818a4cb114d14}{handle\+Response}} (int client\+Fd)
+\item 
+void \mbox{\hyperlink{classClient_a103e79a300305b2a6e27782388865295}{send\+Response}} (std\+::string response\+Body, int client\+Fd)
+\item 
+std\+::string \mbox{\hyperlink{classClient_a89b75d7cc0b557760d400117ae75aedc}{prepare\+Response}} (int client\+Fd)
+\item 
+std\+::string \mbox{\hyperlink{classClient_a878683d2206a7520e49c3b4fb71a9884}{get\+Cgi\+Response}} (\mbox{\hyperlink{classRequest}{Request}} \&request)
+\end{DoxyCompactItemize}
+\doxysubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static std\+::string \mbox{\hyperlink{classClient_ac88507ef7c272db2812dc15c258ded12}{get\+Any\+Header}} (std\+::unordered\+\_\+map$<$ std\+::string, std\+::string $>$ headers, std\+::string header\+Name)
+\end{DoxyCompactItemize}
+\doxysubsection*{Private Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+bool \mbox{\hyperlink{classClient_a070c5fe5e51522d4580e6c530bbb8753}{headers\+Complete}} (const std\+::string \&request)
+\item 
+bool \mbox{\hyperlink{classClient_a0278ec5d2fdb36c4e7c10a55af47824f}{body\+Complete}} (const std\+::string \&body) const
+\end{DoxyCompactItemize}
+\doxysubsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classRequest}{Request}} \mbox{\hyperlink{classClient_ae425fc6bfdbd41c26db9b660cd093f90}{\+\_\+request}}
+\item 
+std\+::string \mbox{\hyperlink{classClient_a00f9108a84be4fc47cd0cc6ca2490ba6}{\+\_\+start\+Line\+And\+Headers\+Buffer}}
+\item 
+std\+::string \mbox{\hyperlink{classClient_a7c7f2ef8809b4d36e1b62af2c90655ac}{\+\_\+body\+Buffer}}
+\item 
+bool \mbox{\hyperlink{classClient_aabcc883237d786c74af832a8db8b4116}{\+\_\+headers\+Parsed}}
+\item 
+size\+\_\+t \mbox{\hyperlink{classClient_a18e2c134ae08a9834f52506c8c64d927}{\+\_\+body\+Start}}
+\item 
+size\+\_\+t \mbox{\hyperlink{classClient_a6db1cb936b643171b25dc5acabb0ff73}{\+\_\+client\+Bytes\+Sent}}
+\item 
+std\+::string \mbox{\hyperlink{classClient_a0d9987c7230a36ad72690631e710238c}{\+\_\+client\+Response}}
+\item 
+int \mbox{\hyperlink{classClient_a27dcf19dfdd320548c2c87fa850d3dc7}{\+\_\+server\+Fd}}
+\item 
+\mbox{\hyperlink{classServerManager}{Server\+Manager}} $\ast$ \mbox{\hyperlink{classClient_aeec06a8c2c2dc45dfa90074d5003486e}{\+\_\+server\+Manager}}
+\item 
+std\+::unique\+\_\+ptr$<$ \mbox{\hyperlink{classResponse}{Response}} $>$ \mbox{\hyperlink{classClient_a52e6aad4439b42da6c9f8605d391d91a}{\+\_\+response}}
+\item 
+std\+::time\+\_\+t \mbox{\hyperlink{classClient_aee543a41bcd7312f5941cf51339844ae}{\+\_\+last\+Active\+Time}}
+\item 
+bool \mbox{\hyperlink{classClient_adcefbd5b932ac4d4582cd1abe0ef67f6}{\+\_\+close\+After\+Response}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{classClient_a275ea4a44773f248ed20f0e495b8b957}\label{classClient_a275ea4a44773f248ed20f0e495b8b957}} 
+\index{Client@{Client}!Client@{Client}}
+\index{Client@{Client}!Client@{Client}}
+\doxysubsubsection{\texorpdfstring{Client()}{Client()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily Client\+::\+Client (\begin{DoxyParamCaption}\item[{int}]{server\+Fd,  }\item[{\mbox{\hyperlink{classServerManager}{Server\+Manager}} $\ast$}]{serv\+Manager }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{classClient_a840e519ca781888cbd54181572ebe3a7}\label{classClient_a840e519ca781888cbd54181572ebe3a7}} 
+\index{Client@{Client}!````~Client@{$\sim$Client}}
+\index{````~Client@{$\sim$Client}!Client@{Client}}
+\doxysubsubsection{\texorpdfstring{$\sim$Client()}{~Client()}}
+{\footnotesize\ttfamily Client\+::$\sim$\+Client (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{classClient_a9500b28b17943a6e99ba2e4e98fb1732}\label{classClient_a9500b28b17943a6e99ba2e4e98fb1732}} 
+\index{Client@{Client}!Client@{Client}}
+\index{Client@{Client}!Client@{Client}}
+\doxysubsubsection{\texorpdfstring{Client()}{Client()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily Client\+::\+Client (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classClient}{Client}} \&}]{other }\end{DoxyParamCaption})}
+
+
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{classClient_a0278ec5d2fdb36c4e7c10a55af47824f}\label{classClient_a0278ec5d2fdb36c4e7c10a55af47824f}} 
+\index{Client@{Client}!bodyComplete@{bodyComplete}}
+\index{bodyComplete@{bodyComplete}!Client@{Client}}
+\doxysubsubsection{\texorpdfstring{bodyComplete()}{bodyComplete()}}
+{\footnotesize\ttfamily bool Client\+::body\+Complete (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{body }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [private]}}
+
+\mbox{\Hypertarget{classClient_ac88507ef7c272db2812dc15c258ded12}\label{classClient_ac88507ef7c272db2812dc15c258ded12}} 
+\index{Client@{Client}!getAnyHeader@{getAnyHeader}}
+\index{getAnyHeader@{getAnyHeader}!Client@{Client}}
+\doxysubsubsection{\texorpdfstring{getAnyHeader()}{getAnyHeader()}}
+{\footnotesize\ttfamily std\+::string Client\+::get\+Any\+Header (\begin{DoxyParamCaption}\item[{std\+::unordered\+\_\+map$<$ std\+::string, std\+::string $>$}]{headers,  }\item[{std\+::string}]{header\+Name }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\mbox{\Hypertarget{classClient_a878683d2206a7520e49c3b4fb71a9884}\label{classClient_a878683d2206a7520e49c3b4fb71a9884}} 
+\index{Client@{Client}!getCgiResponse@{getCgiResponse}}
+\index{getCgiResponse@{getCgiResponse}!Client@{Client}}
+\doxysubsubsection{\texorpdfstring{getCgiResponse()}{getCgiResponse()}}
+{\footnotesize\ttfamily std\+::string Client\+::get\+Cgi\+Response (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classRequest}{Request}} \&}]{request }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{classClient_ae56abe385f55b7f9f0fbd80356a361dc}\label{classClient_ae56abe385f55b7f9f0fbd80356a361dc}} 
+\index{Client@{Client}!getClientsBytesSent@{getClientsBytesSent}}
+\index{getClientsBytesSent@{getClientsBytesSent}!Client@{Client}}
+\doxysubsubsection{\texorpdfstring{getClientsBytesSent()}{getClientsBytesSent()}}
+{\footnotesize\ttfamily size\+\_\+t \& Client\+::get\+Clients\+Bytes\+Sent (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{classClient_a029c27ee009949ce36ca366cbb80daee}\label{classClient_a029c27ee009949ce36ca366cbb80daee}} 
+\index{Client@{Client}!getLastActiveTime@{getLastActiveTime}}
+\index{getLastActiveTime@{getLastActiveTime}!Client@{Client}}
+\doxysubsubsection{\texorpdfstring{getLastActiveTime()}{getLastActiveTime()}}
+{\footnotesize\ttfamily std\+::time\+\_\+t Client\+::get\+Last\+Active\+Time (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{classClient_ae221d4d56415ebe1a002bf69c243ed44}\label{classClient_ae221d4d56415ebe1a002bf69c243ed44}} 
+\index{Client@{Client}!getRequest@{getRequest}}
+\index{getRequest@{getRequest}!Client@{Client}}
+\doxysubsubsection{\texorpdfstring{getRequest()}{getRequest()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{classRequest}{Request}}\& Client\+::get\+Request (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\mbox{\Hypertarget{classClient_a4b48fdf1de07521dfbde1865466e4b37}\label{classClient_a4b48fdf1de07521dfbde1865466e4b37}} 
+\index{Client@{Client}!getResponse@{getResponse}}
+\index{getResponse@{getResponse}!Client@{Client}}
+\doxysubsubsection{\texorpdfstring{getResponse()}{getResponse()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{classResponse}{Response}}\& Client\+::get\+Response (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\mbox{\Hypertarget{classClient_adf01db9c210bbfe458f750cd50ee26ef}\label{classClient_adf01db9c210bbfe458f750cd50ee26ef}} 
+\index{Client@{Client}!getServerFd@{getServerFd}}
+\index{getServerFd@{getServerFd}!Client@{Client}}
+\doxysubsubsection{\texorpdfstring{getServerFd()}{getServerFd()}}
+{\footnotesize\ttfamily int Client\+::get\+Server\+Fd (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{classClient_abb4f5c5c200b2a7ec667d35c817f3f18}\label{classClient_abb4f5c5c200b2a7ec667d35c817f3f18}} 
+\index{Client@{Client}!handleRequest@{handleRequest}}
+\index{handleRequest@{handleRequest}!Client@{Client}}
+\doxysubsubsection{\texorpdfstring{handleRequest()}{handleRequest()}}
+{\footnotesize\ttfamily void Client\+::handle\+Request (\begin{DoxyParamCaption}\item[{int}]{client\+Fd }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{classClient_acd8f3c975e9a9e646ba818a4cb114d14}\label{classClient_acd8f3c975e9a9e646ba818a4cb114d14}} 
+\index{Client@{Client}!handleResponse@{handleResponse}}
+\index{handleResponse@{handleResponse}!Client@{Client}}
+\doxysubsubsection{\texorpdfstring{handleResponse()}{handleResponse()}}
+{\footnotesize\ttfamily void Client\+::handle\+Response (\begin{DoxyParamCaption}\item[{int}]{client\+Fd }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{classClient_a070c5fe5e51522d4580e6c530bbb8753}\label{classClient_a070c5fe5e51522d4580e6c530bbb8753}} 
+\index{Client@{Client}!headersComplete@{headersComplete}}
+\index{headersComplete@{headersComplete}!Client@{Client}}
+\doxysubsubsection{\texorpdfstring{headersComplete()}{headersComplete()}}
+{\footnotesize\ttfamily bool Client\+::headers\+Complete (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{request }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\mbox{\Hypertarget{classClient_a255f4905a3a0176a194e4a675d0a172b}\label{classClient_a255f4905a3a0176a194e4a675d0a172b}} 
+\index{Client@{Client}!operator=@{operator=}}
+\index{operator=@{operator=}!Client@{Client}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{classClient}{Client}}\& Client\+::operator= (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classClient}{Client}} \&}]{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+\mbox{\Hypertarget{classClient_a89b75d7cc0b557760d400117ae75aedc}\label{classClient_a89b75d7cc0b557760d400117ae75aedc}} 
+\index{Client@{Client}!prepareResponse@{prepareResponse}}
+\index{prepareResponse@{prepareResponse}!Client@{Client}}
+\doxysubsubsection{\texorpdfstring{prepareResponse()}{prepareResponse()}}
+{\footnotesize\ttfamily std\+::string Client\+::prepare\+Response (\begin{DoxyParamCaption}\item[{int}]{client\+Fd }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{classClient_a103e79a300305b2a6e27782388865295}\label{classClient_a103e79a300305b2a6e27782388865295}} 
+\index{Client@{Client}!sendResponse@{sendResponse}}
+\index{sendResponse@{sendResponse}!Client@{Client}}
+\doxysubsubsection{\texorpdfstring{sendResponse()}{sendResponse()}}
+{\footnotesize\ttfamily void Client\+::send\+Response (\begin{DoxyParamCaption}\item[{std\+::string}]{response\+Body,  }\item[{int}]{client\+Fd }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{classClient_ae735528cc84f67290f96c97afd73cd11}\label{classClient_ae735528cc84f67290f96c97afd73cd11}} 
+\index{Client@{Client}!setIsClosed@{setIsClosed}}
+\index{setIsClosed@{setIsClosed}!Client@{Client}}
+\doxysubsubsection{\texorpdfstring{setIsClosed()}{setIsClosed()}}
+{\footnotesize\ttfamily void Client\+::set\+Is\+Closed (\begin{DoxyParamCaption}\item[{bool}]{flag }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{classClient_a6442580a81db0df10b098622d5c85e0d}\label{classClient_a6442580a81db0df10b098622d5c85e0d}} 
+\index{Client@{Client}!setLastActiveTime@{setLastActiveTime}}
+\index{setLastActiveTime@{setLastActiveTime}!Client@{Client}}
+\doxysubsubsection{\texorpdfstring{setLastActiveTime()}{setLastActiveTime()}}
+{\footnotesize\ttfamily void Client\+::set\+Last\+Active\+Time (\begin{DoxyParamCaption}\item[{std\+::time\+\_\+t}]{time\+Stamp }\end{DoxyParamCaption})}
+
+
+
+\doxysubsection{Member Data Documentation}
+\mbox{\Hypertarget{classClient_a7c7f2ef8809b4d36e1b62af2c90655ac}\label{classClient_a7c7f2ef8809b4d36e1b62af2c90655ac}} 
+\index{Client@{Client}!\_bodyBuffer@{\_bodyBuffer}}
+\index{\_bodyBuffer@{\_bodyBuffer}!Client@{Client}}
+\doxysubsubsection{\texorpdfstring{\_bodyBuffer}{\_bodyBuffer}}
+{\footnotesize\ttfamily std\+::string Client\+::\+\_\+body\+Buffer\hspace{0.3cm}{\ttfamily [private]}}
+
+\mbox{\Hypertarget{classClient_a18e2c134ae08a9834f52506c8c64d927}\label{classClient_a18e2c134ae08a9834f52506c8c64d927}} 
+\index{Client@{Client}!\_bodyStart@{\_bodyStart}}
+\index{\_bodyStart@{\_bodyStart}!Client@{Client}}
+\doxysubsubsection{\texorpdfstring{\_bodyStart}{\_bodyStart}}
+{\footnotesize\ttfamily size\+\_\+t Client\+::\+\_\+body\+Start\hspace{0.3cm}{\ttfamily [private]}}
+
+\mbox{\Hypertarget{classClient_a6db1cb936b643171b25dc5acabb0ff73}\label{classClient_a6db1cb936b643171b25dc5acabb0ff73}} 
+\index{Client@{Client}!\_clientBytesSent@{\_clientBytesSent}}
+\index{\_clientBytesSent@{\_clientBytesSent}!Client@{Client}}
+\doxysubsubsection{\texorpdfstring{\_clientBytesSent}{\_clientBytesSent}}
+{\footnotesize\ttfamily size\+\_\+t Client\+::\+\_\+client\+Bytes\+Sent\hspace{0.3cm}{\ttfamily [private]}}
+
+\mbox{\Hypertarget{classClient_a0d9987c7230a36ad72690631e710238c}\label{classClient_a0d9987c7230a36ad72690631e710238c}} 
+\index{Client@{Client}!\_clientResponse@{\_clientResponse}}
+\index{\_clientResponse@{\_clientResponse}!Client@{Client}}
+\doxysubsubsection{\texorpdfstring{\_clientResponse}{\_clientResponse}}
+{\footnotesize\ttfamily std\+::string Client\+::\+\_\+client\+Response\hspace{0.3cm}{\ttfamily [private]}}
+
+\mbox{\Hypertarget{classClient_adcefbd5b932ac4d4582cd1abe0ef67f6}\label{classClient_adcefbd5b932ac4d4582cd1abe0ef67f6}} 
+\index{Client@{Client}!\_closeAfterResponse@{\_closeAfterResponse}}
+\index{\_closeAfterResponse@{\_closeAfterResponse}!Client@{Client}}
+\doxysubsubsection{\texorpdfstring{\_closeAfterResponse}{\_closeAfterResponse}}
+{\footnotesize\ttfamily bool Client\+::\+\_\+close\+After\+Response\hspace{0.3cm}{\ttfamily [private]}}
+
+\mbox{\Hypertarget{classClient_aabcc883237d786c74af832a8db8b4116}\label{classClient_aabcc883237d786c74af832a8db8b4116}} 
+\index{Client@{Client}!\_headersParsed@{\_headersParsed}}
+\index{\_headersParsed@{\_headersParsed}!Client@{Client}}
+\doxysubsubsection{\texorpdfstring{\_headersParsed}{\_headersParsed}}
+{\footnotesize\ttfamily bool Client\+::\+\_\+headers\+Parsed\hspace{0.3cm}{\ttfamily [private]}}
+
+\mbox{\Hypertarget{classClient_aee543a41bcd7312f5941cf51339844ae}\label{classClient_aee543a41bcd7312f5941cf51339844ae}} 
+\index{Client@{Client}!\_lastActiveTime@{\_lastActiveTime}}
+\index{\_lastActiveTime@{\_lastActiveTime}!Client@{Client}}
+\doxysubsubsection{\texorpdfstring{\_lastActiveTime}{\_lastActiveTime}}
+{\footnotesize\ttfamily std\+::time\+\_\+t Client\+::\+\_\+last\+Active\+Time\hspace{0.3cm}{\ttfamily [private]}}
+
+\mbox{\Hypertarget{classClient_ae425fc6bfdbd41c26db9b660cd093f90}\label{classClient_ae425fc6bfdbd41c26db9b660cd093f90}} 
+\index{Client@{Client}!\_request@{\_request}}
+\index{\_request@{\_request}!Client@{Client}}
+\doxysubsubsection{\texorpdfstring{\_request}{\_request}}
+{\footnotesize\ttfamily \mbox{\hyperlink{classRequest}{Request}} Client\+::\+\_\+request\hspace{0.3cm}{\ttfamily [private]}}
+
+\mbox{\Hypertarget{classClient_a52e6aad4439b42da6c9f8605d391d91a}\label{classClient_a52e6aad4439b42da6c9f8605d391d91a}} 
+\index{Client@{Client}!\_response@{\_response}}
+\index{\_response@{\_response}!Client@{Client}}
+\doxysubsubsection{\texorpdfstring{\_response}{\_response}}
+{\footnotesize\ttfamily std\+::unique\+\_\+ptr$<$\mbox{\hyperlink{classResponse}{Response}}$>$ Client\+::\+\_\+response\hspace{0.3cm}{\ttfamily [private]}}
+
+\mbox{\Hypertarget{classClient_a27dcf19dfdd320548c2c87fa850d3dc7}\label{classClient_a27dcf19dfdd320548c2c87fa850d3dc7}} 
+\index{Client@{Client}!\_serverFd@{\_serverFd}}
+\index{\_serverFd@{\_serverFd}!Client@{Client}}
+\doxysubsubsection{\texorpdfstring{\_serverFd}{\_serverFd}}
+{\footnotesize\ttfamily int Client\+::\+\_\+server\+Fd\hspace{0.3cm}{\ttfamily [private]}}
+
+\mbox{\Hypertarget{classClient_aeec06a8c2c2dc45dfa90074d5003486e}\label{classClient_aeec06a8c2c2dc45dfa90074d5003486e}} 
+\index{Client@{Client}!\_serverManager@{\_serverManager}}
+\index{\_serverManager@{\_serverManager}!Client@{Client}}
+\doxysubsubsection{\texorpdfstring{\_serverManager}{\_serverManager}}
+{\footnotesize\ttfamily \mbox{\hyperlink{classServerManager}{Server\+Manager}}$\ast$ Client\+::\+\_\+server\+Manager\hspace{0.3cm}{\ttfamily [private]}}
+
+\mbox{\Hypertarget{classClient_a00f9108a84be4fc47cd0cc6ca2490ba6}\label{classClient_a00f9108a84be4fc47cd0cc6ca2490ba6}} 
+\index{Client@{Client}!\_startLineAndHeadersBuffer@{\_startLineAndHeadersBuffer}}
+\index{\_startLineAndHeadersBuffer@{\_startLineAndHeadersBuffer}!Client@{Client}}
+\doxysubsubsection{\texorpdfstring{\_startLineAndHeadersBuffer}{\_startLineAndHeadersBuffer}}
+{\footnotesize\ttfamily std\+::string Client\+::\+\_\+start\+Line\+And\+Headers\+Buffer\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/core/\mbox{\hyperlink{Client_8hpp}{Client.\+hpp}}\item 
+src/core/\mbox{\hyperlink{Client_8cpp}{Client.\+cpp}}\end{DoxyCompactItemize}

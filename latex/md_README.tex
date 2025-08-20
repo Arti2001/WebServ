@@ -1,0 +1,172 @@
+Web\+Serv is a non\+\_\+blocking HTTP \mbox{\hyperlink{classServer}{Server}} inspired by NGNIX (\href{https://nginx.org/en/docs/}{\texttt{ https\+://nginx.\+org/en/docs/}}). This project mostly written in c++11, although using some c++17 features(such as smart pointers).\hypertarget{md_README_autotoc_md1}{}\doxysection{Prerequisites}\label{md_README_autotoc_md1}
+To build and run the webserver, you need\+:
+
+
+\begin{DoxyItemize}
+\item Linux system (tested on Ubuntu 22.\+04)
+\item g++ with C++17 support
+\item make
+\item git
+\item 
+\end{DoxyItemize}\hypertarget{md_README_autotoc_md2}{}\doxysection{How to install? \+:arrow\+\_\+down\+:}\label{md_README_autotoc_md2}
+Go to your terminal and run \+: 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{git clone https://github.com/Arti2001/WebServ.git webserv}
+
+\end{DoxyCode}
+\hypertarget{md_README_autotoc_md3}{}\doxysection{How to compile?}\label{md_README_autotoc_md3}
+⚠️ Note\+: This webserver is designed for Linux systems only. ~\newline
+ It will {\bfseries{not compile(run) on mac\+OS}} due to OS-\/level differences in networking and system calls.
+
+
+\begin{DoxyItemize}
+\item Go to the installed repo\+: 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{cd webserv}
+
+\end{DoxyCode}
+
+\item Then run\+: 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{make}
+
+\end{DoxyCode}
+ 
+\end{DoxyItemize}\hypertarget{md_README_autotoc_md4}{}\doxysubsection{Congrats the program is compiled now \+:wink\+:}\label{md_README_autotoc_md4}
+\hypertarget{md_README_autotoc_md5}{}\doxysection{How to Run?}\label{md_README_autotoc_md5}
+So, at this point my friend, you should know what a configuration file is \href{https://www.digitalocean.com/community/tutorials/understanding-the-nginx-configuration-file-structure-and-configuration-contexts}{\texttt{ https\+://www.\+digitalocean.\+com/community/tutorials/understanding-\/the-\/nginx-\/configuration-\/file-\/structure-\/and-\/configuration-\/contexts}}
+
+
+\begin{DoxyItemize}
+\item Our program takes a configuration file as an argument. 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{./webserv example.conf}
+
+\end{DoxyCode}
+
+\end{DoxyItemize}
+
+⚠️ Note\+: If no arguments were provided the program will use a {\bfseries{default configuration file}}, which has restricted abilities.\hypertarget{md_README_autotoc_md6}{}\doxysection{More about a configuration file.}\label{md_README_autotoc_md6}
+The webserver uses a custom configuration file inspired by NGINX. Syntax is similar to NGINX, but not fully the same.\hypertarget{md_README_autotoc_md7}{}\doxysubsection{Configuration file syntax}\label{md_README_autotoc_md7}
+
+\begin{DoxyItemize}
+\item Only server and location blocks are supported.
+\end{DoxyItemize}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{server \{}
+\DoxyCodeLine{}
+\DoxyCodeLine{  ...}
+\DoxyCodeLine{}
+\DoxyCodeLine{  location /\{}
+\DoxyCodeLine{    ...}
+\DoxyCodeLine{  \}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{server \{}
+\DoxyCodeLine{}
+\DoxyCodeLine{    ...}
+\DoxyCodeLine{}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{md_README_autotoc_md8}{}\doxysubsection{Directives}\label{md_README_autotoc_md8}
+{\bfseries{\mbox{\hyperlink{classServer}{Server}}}} Block Directives
+
+\tabulinesep=1mm
+\begin{longtabu}spread 0pt [c]{*{3}{|X[-1]}|}
+\hline
+\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Directive   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Description   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Example    }\\\cline{1-3}
+\endfirsthead
+\hline
+\endfoot
+\hline
+\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Directive   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Description   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Example    }\\\cline{1-3}
+\endhead
+{\ttfamily listen}   &IP address the server binds to {\ttfamily ip \+: port}   &{\ttfamily host 0.\+0.\+0.\+0\+:8080}    \\\cline{1-3}
+{\ttfamily server\+\_\+name}   &List of server names (used for virtual hosting)   &{\ttfamily server\+\_\+name localhost;}    \\\cline{1-3}
+{\ttfamily root}   &Root directory for this server   &{\ttfamily root website/;}    \\\cline{1-3}
+{\ttfamily index}   &Default index files to serve   &{\ttfamily index index.\+html;}    \\\cline{1-3}
+{\ttfamily autoindex}   &Enable/disable directory listing ({\ttfamily on} / {\ttfamily off})   &{\ttfamily autoindex off;}    \\\cline{1-3}
+{\ttfamily client\+\_\+max\+\_\+body\+\_\+size}   &Maximum allowed request body size (bytes)   &{\ttfamily client\+\_\+max\+\_\+body\+\_\+size 2G;}    \\\cline{1-3}
+{\ttfamily error\+\_\+page}   &Map of error codes to custom error pages   &{\ttfamily error\+\_\+page 404 /errors/404.html;}   \\\cline{1-3}
+\end{longtabu}
+
+
+{\bfseries{\mbox{\hyperlink{classLocation}{Location}}}} Block Directives
+
+\tabulinesep=1mm
+\begin{longtabu}spread 0pt [c]{*{3}{|X[-1]}|}
+\hline
+\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Directive   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Description   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Example    }\\\cline{1-3}
+\endfirsthead
+\hline
+\endfoot
+\hline
+\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Directive   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Description   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Example    }\\\cline{1-3}
+\endhead
+{\ttfamily path}   &Path prefix this location applies to   &{\ttfamily location /images \{ ... \}}    \\\cline{1-3}
+{\ttfamily upload\+\_\+path}   &Directory where uploaded files will be stored   &{\ttfamily upload\+\_\+path website/uploads/;}    \\\cline{1-3}
+{\ttfamily root}   &Root directory for this location (fallback to server root if not specified)   &{\ttfamily root /var/www/images;}    \\\cline{1-3}
+{\ttfamily index}   &Index files for this location (fallback to server index)   &{\ttfamily index index.\+html;}    \\\cline{1-3}
+{\ttfamily autoindex}   &Enable/disable directory listing (off, on)   &{\ttfamily autoindex on;}    \\\cline{1-3}
+{\ttfamily client\+\_\+max\+\_\+body\+\_\+size}   &Maximum allowed request body size (overrides server value)   &{\ttfamily client\+\_\+max\+\_\+body\+\_\+size 2097152;}    \\\cline{1-3}
+{\ttfamily allowed\+\_\+methods}   &Set of allowed HTTP methods ({\ttfamily GET}, {\ttfamily POST}, {\ttfamily DELETE})(fallback to server methods)   &{\ttfamily allowed\+\_\+methods GET POST;}    \\\cline{1-3}
+{\ttfamily allowed\+\_\+cgi}   &Map of file extensions to CGI scripts   &{\ttfamily allowed\+\_\+cgi .py=/usr/bin/python3;}    \\\cline{1-3}
+{\ttfamily return}   &Return directive for redirects or short responses   &{\ttfamily return 301 /new-\/location;}    \\\cline{1-3}
+{\ttfamily error\+\_\+page}   &Custom error pages for this location (fallback to server error pages)   &{\ttfamily error\+\_\+page 403 /errors/403.html;}   \\\cline{1-3}
+\end{longtabu}
+
+
+⚠️ {\bfseries{Notes}}\+:
+\begin{DoxyItemize}
+\item We do not support nested location blocks.
+\item \mbox{\hyperlink{classLocation}{Location}} blocks inherit defaults from the server block unless overridden.
+\item All directives must end with {\ttfamily ;}.
+\item You can specify the size in bytes, or append M/m for megabytes and G/g for gigabytes.
+\item All bracket must be closed!
+\end{DoxyItemize}\hypertarget{md_README_autotoc_md9}{}\doxysubsection{Example}\label{md_README_autotoc_md9}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{  server \{}
+\DoxyCodeLine{}
+\DoxyCodeLine{    listen localhost:8080               \# IP address to bind : TCP port}
+\DoxyCodeLine{    server\_name myserver.com;           \# Virtual host names}
+\DoxyCodeLine{    root website/;                      \# Root directory}
+\DoxyCodeLine{    index index.html;                   \# Default index files}
+\DoxyCodeLine{    autoindex off;                      \# Directory listing off}
+\DoxyCodeLine{    client\_max\_body\_size 1G;            \# Max body size (1G = 1 gigabyte)}
+\DoxyCodeLine{    error\_page 404 /errors/404.html;    \# Custom error pages}
+\DoxyCodeLine{    error\_page 500 /errors/500.html;}
+\DoxyCodeLine{}
+\DoxyCodeLine{    location / \{}
+\DoxyCodeLine{        path /;                         \# Path prefix for this location}
+\DoxyCodeLine{        root website/;                  \# Root directory (fallback to server root)}
+\DoxyCodeLine{        index index.html;               \# Index files (fallback to server index)}
+\DoxyCodeLine{        autoindex 0;                     \# Directory listing (0=off, 1=on)}
+\DoxyCodeLine{        client\_max\_body\_size 1G;        \# Max body size (overrides server block)}
+\DoxyCodeLine{        allowed\_methods GET;            \# Allowed HTTP methods}
+\DoxyCodeLine{        allowed\_cgi .py=/usr/bin/python3; \# Map extensions to CGI scripts}
+\DoxyCodeLine{        upload\_path website/uploads/;   \# Directory for uploads}
+\DoxyCodeLine{        return 0 "{}"{};                     \# No redirect (use 301/302 for redirects)}
+\DoxyCodeLine{        error\_page 403 /errors/403.html;}
+\DoxyCodeLine{    \}}
+\DoxyCodeLine{}
+\DoxyCodeLine{    location /images \{}
+\DoxyCodeLine{        path /images;}
+\DoxyCodeLine{        root website/images/;}
+\DoxyCodeLine{        index index.html;}
+\DoxyCodeLine{        autoindex 1;                     \# Directory listing on}
+\DoxyCodeLine{        client\_max\_body\_size 500M;       \# 500 megabytes}
+\DoxyCodeLine{        allowed\_methods GET POST;}
+\DoxyCodeLine{        allowed\_cgi .php=/usr/bin/php-\/cgi;}
+\DoxyCodeLine{        upload\_path website/uploads/images/;}
+\DoxyCodeLine{        return 301 /new-\/location;        \# Redirect example}
+\DoxyCodeLine{        error\_page 404 /errors/404.html;}
+\DoxyCodeLine{    \}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+ 

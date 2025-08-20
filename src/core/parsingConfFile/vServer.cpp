@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/19 10:34:01 by amysiv            #+#    #+#             */
-/*   Updated: 2025/08/19 11:06:19 by amysiv           ###   ########.fr       */
+/*   Updated: 2025/08/19 11:15:12 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -215,7 +215,6 @@ void vServer::validateServerListen(const std::vector<std::string>& addressVector
 
 
 void	vServer::validateServerNames(std::vector<std::string>& namesVector) {
-
 	if (namesVector.size() > MAX_SERVER_NAME_NUMB) {
 		throw ParseConfig::ConfException("Invalid server-name directive: max 2 names");
 	}
@@ -227,8 +226,9 @@ void	vServer::validateServerNames(std::vector<std::string>& namesVector) {
 }
 
 
-const std::string&	vServer::onlyOneArgumentCheck(const std::vector<std::string>& pathVector, std::string directiveName) {
 
+
+const std::string&	vServer::onlyOneArgumentCheck(const std::vector<std::string>& pathVector, std::string directiveName) {
 	if (pathVector.size() != MAX_ARG) {
 
 		throw ParseConfig::ConfException("Invalid " + directiveName + " directive: only one argument expected for this field");
@@ -237,9 +237,9 @@ const std::string&	vServer::onlyOneArgumentCheck(const std::vector<std::string>&
 }
 
 
+
+
 bool	vServer::validateAutoIndexDirective(const std::vector<std::string>& flagVector) {
-
-
 	if (flagVector.size() != MAX_ARG) {
 
 		throw ParseConfig::ConfException("Invalid auto-index directive: expected single value 'on' <= or => 'off' ");
@@ -260,14 +260,15 @@ bool	vServer::validateAutoIndexDirective(const std::vector<std::string>& flagVec
 }
 
 
+
+
 uint64_t	vServer::validateClientMaxSizeDirective(const std::vector<std::string>& sizeVector) {
 
-	
 	if (sizeVector.size() != MAX_ARG) {
 		throw ParseConfig::ConfException("Invalid client_max_body_size directive: expected one argument.");
 	}
 	std::string suffix = "";
-	
+
 	for (size_t i = 0; i < sizeVector[0].size(); ++i) {
 		if (!isdigit(sizeVector[0][i])) 
 		{
@@ -310,7 +311,6 @@ uint64_t	vServer::validateClientMaxSizeDirective(const std::vector<std::string>&
 	if (final_size > limit) {
 		throw ParseConfig::ConfException("client_max_body_size directive: Exceeded the limit of " + std::to_string(MAX_CLIENT_BODY_SIZE) + "G");
 	}
-
 	if (final_size == 0) {
 		return ULLONG_MAX; // Special case: unlimited
 	}
@@ -338,7 +338,7 @@ std::unordered_map<int, std::string>	vServer::validateErrorPagesDirective(const 
 	}
 	if (errorCode < 400 || errorCode > 599)
 		throw ParseConfig::ConfException("Invalid error code: " + std::to_string(errorCode));
-		
+
 	const	std::string& errorPagePath = errorPagesVector.at(1);
 	if (errorPagePath.empty()) {
 
@@ -348,6 +348,8 @@ std::unordered_map<int, std::string>	vServer::validateErrorPagesDirective(const 
 	errorPagesMap[errorCode] = errorPagePath;
 	return	errorPagesMap;
 }
+
+
 
 
 bool	isNumber(std::string number) {
