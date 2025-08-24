@@ -5,11 +5,10 @@ WebServ is a non_blocking HTTP Server inspired by NGNIX (https://nginx.org/en/do
 ## Prerequisites
 To build and run the webserver, you need:
 
-- Linux system (tested on Ubuntu 22.04)
 - g++ with C++17 support
 - make
 - git
-- 
+- Docker (Optional)
 ## How to install? :arrow_down:
 
  Go to your terminal and run :
@@ -18,35 +17,37 @@ git clone https://github.com/Arti2001/WebServ.git webserv
 ```
 
 ## How to compile?
-⚠️ Note: This webserver is designed for Linux systems only.  
-It will **not compile(run) on macOS** due to OS-level differences in networking and system calls.
+⚠️ Note: This webserver was designed with an idea to be used on Linux. 
+It will **not compile on macOS** due to OS-level differences in networking and system calls. 
+Thus to run on other system (e.g. MacOS) you can use Docker (See example Dockerfile)
 
+```
+cd webserv && make
+```
 
-
-* Go to the installed repo:
+* If you are using Docker 🐋:
 ```
-cd webserv
-```
-* Then run:
-```
-make
+cd webserv && docker build -t webserv .
 ```
 ### Congrats the program is compiled now :wink:
 
 ## How to Run?
-So, at this point my friend, you should know what a configuration file is https://www.digitalocean.com/community/tutorials/understanding-the-nginx-configuration-file-structure-and-configuration-contexts
-
-* Our program takes a configuration file as an argument.
+* Our program takes a configuration file (https://www.digitalocean.com/community/tutorials/understanding-the-nginx-configuration-file-structure-and-configuration-contexts) as an argument.
 ```
 ./webserv example.conf
 ```
 
 ⚠️ Note: If no arguments  were provided the program will use a **default configuration file**, which has restricted abilities.
 
+* If you are using Docker 🐋
+The program will run after the using the command in the previous step. 
+You'll be able to access your server as per configurations mentioned in the dockerfile CMD (e.g. "config-files/working/webserv.conf")
+Feel free to change the configuration file or remove completely.
+
 ## More about a configuration file.
 
 The webserver uses a custom configuration file inspired by NGINX.
-Syntax is similar to NGINX, but not fully the same.
+Syntax is similar, but not fully the same.
 
 
 ### Configuration file syntax
@@ -94,13 +95,12 @@ Syntax is similar to NGINX, but not fully the same.
   | `upload_path`          | Directory where uploaded files will be stored                                     | `upload_path website/uploads/;`     |
   | `root`                 | Root directory for this location (fallback to server root if not specified)       | `root /var/www/images;`             |
   | `index`                | Index files for this location (fallback to server index)                          | `index index.html;`                 |
-  | `autoindex`            | Enable/disable directory listing (off, on)                                        |`autoindex on;`                      |
+  | `autoindex`            | Enable/disable directory listing (off, on).                                       |`autoindex on;`                      |
   | `client_max_body_size` | Maximum allowed request body size (overrides server value)                        | `client_max_body_size 2097152;`     |
   | `allowed_methods`      | Set of allowed HTTP methods (`GET`, `POST`, `DELETE`)(fallback to server methods) | `allowed_methods GET POST;`         |
   | `allowed_cgi`          | Map of file extensions to CGI scripts                                             | `allowed_cgi .py=/usr/bin/python3;` |
   | `return`               | Return directive for redirects or short responses                                 | `return 301 /new-location;`         |
   | `error_page`           | Custom error pages for this location (fallback to server error pages)             | `error_page 403 /errors/403.html;`  |
-
 
 ⚠️ **Notes**:
 * We do not support nested location blocks.
@@ -108,6 +108,7 @@ Syntax is similar to NGINX, but not fully the same.
 * All directives must end with ` ; `.
 * You can specify the size in bytes, or append M/m for megabytes and G/g for gigabytes.
 * All bracket must be closed!
+* Autoindex will only display the directory listing if specified index files won't be found/read in the specified directory
 
 
 ### Example
