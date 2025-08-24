@@ -6,7 +6,7 @@
 /*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/06/30 12:13:08 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/08/24 20:55:35 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/08/24 21:21:08 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,74 +30,83 @@
 #include "../Request/Request.hpp"
 #include "../Response/Response.hpp"
 
-#define MAX_OUTPUT_SIZE  10 * 1024 * 1024 // 10 MB
-#define CHUNK_SIZE 8192 // 8 KB
+#define MAX_OUTPUT_SIZE 10 * 1024 * 1024 // 10 MB maximum output size
+#define CHUNK_SIZE 8192 // 8 KB chunk size for reading/writing
 
+/**
+ * @brief CGI script execution handler for the webserv application
+ * @details This class manages the execution of Common Gateway Interface (CGI) scripts, handling 
+ *          process creation, inter-process communication through pipes, environment variable setup, 
+ *          and output parsing. It supports various scripting languages (Python, Perl, Ruby, Bash, 
+ *          Node.js, PHP) and automatically determines the appropriate interpreter based on file extensions.
+ * @note The class uses non-blocking I/O for stdout and stderr pipes, supports timeout handling,
+ *       and provides comprehensive error handling through custom exceptions.
+ */
 class CGIHandler {
     public:
-        CGIHandler(const Request &Request, const Location &Location, std::string cgiIndexFile); // last argument needed if the request is made to the directory, so we are storing the index file that should be called with this request
+        // Constructors and Destructor
+        CGIHandler(const Request &request, const Location &location, std::string cgiIndexFile);
         ~CGIHandler();
 
-        // Execution methods
-        std::string process(void);
-		void start();
+        // Core execution methods
+        void start();
         void handleEvent(int fd);
-		bool isDone() const;
-		std::string finalize();
+        bool isDone() const;
+        std::string finalize();
 
-		// Getters for file descriptors
-		int getStdoutFd() const { return _stdout_fd; }
-		int getStderrFd() const { return _stderr_fd; }
-		int getStdinFd() const { return _stdin_fd; }
+        // File descriptor getters
+        int getStdoutFd() const { return _stdout_fd; }
+        int getStderrFd() const { return _stderr_fd; }
+        int getStdinFd() const { return _stdin_fd; }
 
-        // Exception class
+        // Exception class for CGI errors
         class CGIException : public std::runtime_error {
             public:
-                CGIException(const std::string& message, int statusCode) : std::runtime_error(message), _statusCode(statusCode) {}
-				
-				int statusCode() const { return _statusCode; }
-			private:
-				int _statusCode; // Status code for the CGI error
+                CGIException(const std::string& message, int statusCode) 
+                    : std::runtime_error(message), _statusCode(statusCode) {}
+                
+                int statusCode() const { return _statusCode; }
+            
+            private:
+                int _statusCode; // HTTP status code for the error
         };
-		
-    
+
     private:
-        //Helper methods
+        // Environment and configuration methods
         std::unordered_map<std::string, std::string> initEnvironmentVars(const Request& request);
         char** buildEnvironmentArray(const std::unordered_map<std::string, std::string>& envVariables);
-        std::string getInterpreter(const std::string& scriptPath);
         void freeEnvironmentArray();
 
-        //execution methods
-        std::vector<char> executeScript(const Request& req);
+        // Script execution methods
+        std::string getInterpreter(const std::string& scriptPath);
         std::string parseOutput(const std::vector<char>& output);
-        std::vector<char> readFromPipes(int stdout_fd, int stderr_fd, pid_t pid);
 
-        //path handling
+        // Path and file handling methods
         std::string resolveScriptPath(const std::string& rootPath, const std::string& uri, const std::string& cgiIndexFile);
-        std::pair<std::string, std::string> extractScriptNameAndPathInfo(const std::string& uri);
-        std::string joinPaths(const std::string& path1, const std::string& path2);
-		ssize_t writeAllInChunks(int fd, const std::string& data);
 
-        //attributes
-        const Request& _request;
-		char ** _envp;
+        // Request and script attributes
+        const Request& _request; // Reference to the HTTP request object
         std::string _interpreter; // Interpreter for the CGI script (e.g., Python, Perl)
-        std::string _cgiPath; // Path to the CGI script
-        std::string _scriptPath; // Name of the CGI script
+        std::string _cgiPath; // Path to the CGI script interpreter
+        std::string _scriptPath; // Full path to the CGI script file
         std::string _queryString; // Query string for the CGI script
         std::string _bodyInput; // Body input for the CGI script, if applicable
-        std::string _cgiUploadPath; // Output from the CGI script execution
-		time_t _timeout; // Timeout for the CGI script execution
+        std::string _cgiUploadPath; // Upload directory path for CGI scripts
+        time_t _timeout; // Timeout for the CGI script execution
 
-		int _stdin_fd; // File descriptor for the CGI script's stdin
-		int _stdout_fd; // File descriptor for the CGI script's stdout
-		int _stderr_fd; // File descriptor for the CGI script's stderr
-		bool _stdout_done; // Flag to indicate if stdout is done reading
-		bool _stderr_done; // Flag to indicate if stderr is done reading
-		bool _process_done; // Flag to indicate if the CGI process has finished
-		pid_t _pid; // Process ID of the CGI script
-		std::vector<char> _output; // Output from the CGI script	
-		std::vector<char> _errorOutput; // Error output from the CGI script
-		
+        // Process and pipe attributes
+        int _stdin_fd; // File descriptor for the CGI script's stdin
+        int _stdout_fd; // File descriptor for the CGI script's stdout
+        int _stderr_fd; // File descriptor for the CGI script's stderr
+        pid_t _pid; // Process ID of the CGI script
+
+        // Execution state attributes
+        bool _stdout_done; // Flag to indicate if stdout is done reading
+        bool _stderr_done; // Flag to indicate if stderr is done reading
+        bool _process_done; // Flag to indicate if the CGI process has finished
+
+        // Output storage attributes
+        char** _envp; // Environment variables array for execve
+        std::vector<char> _output; // Output from the CGI script
+        std::vector<char> _errorOutput; // Error output from the CGI script
 };

@@ -6,38 +6,61 @@
 /*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/07/06 13:08:42 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/07/10 18:43:00 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/08/24 21:03:27 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Request.hpp"
 
+/**
+ * @brief Initializes a new Request object with default values
+ * @return None
+ * @note Creates a default Request with empty fields and default timeout/status values
+ */
 Request::Request() : _currentPosition(0), _timeout(REQUEST_DEFAULT_TIMEOUT), _statusCode(REQUEST_DEFAULT_STATUS_CODE), _bodySize(REQUEST_DEFAULT_MAX_BODY_SIZE), _isChunked(false) {
-    // Default constructor
 }
 
+/**
+ * @brief Initializes a new Request object and parses the raw HTTP request string
+ * @param rawRequest The raw HTTP request string to parse
+ * @note Automatically registers supported methods and validates the request
+ */
 Request::Request(const std::string &rawRequest) : _rawRequest(rawRequest), _currentPosition(0), _method(""), _path(""), _httpVersion(""), _headers() ,_body(""), _query(""), _timeout(REQUEST_DEFAULT_TIMEOUT), _statusCode(REQUEST_DEFAULT_STATUS_CODE), _bodySize(REQUEST_DEFAULT_MAX_BODY_SIZE), _isChunked(false), _isCgi(false), _bodyExpected(false), _supportedMethods(), _seenHeaders() {
-    // Constructor with raw request string
     registerSupportedMethods();
     if (_rawRequest.empty()) {
         std::cerr << "Empty request received." << std::endl;
-        this->setStatusCode(400); // Bad Request
+        this->setStatusCode(400);
         return;
     }
 }
 
+/**
+ * @brief Registers the supported HTTP methods (GET, POST, DELETE)
+ * @return None
+ * @note Called during construction to populate the supported methods set
+ */
 void Request::registerSupportedMethods(void){
 	_supportedMethods.insert("GET");
 	_supportedMethods.insert("POST");
 	_supportedMethods.insert("DELETE");
 }
 
+/**
+ * @brief Creates a copy of an existing Request object
+ * @param src The Request object to copy from
+ * @return None
+ * @note Performs deep copy of all member variables
+ */
 Request::Request(const Request &src) : _rawRequest(src._rawRequest), _currentPosition(src._currentPosition), _method(src._method), _path(src._path), _httpVersion(src._httpVersion), _headers(src._headers), _body(src._body), _query(src._query), _timeout(src._timeout), _statusCode(src._statusCode), _bodySize(src._bodySize), _isChunked(src._isChunked), _supportedMethods(src._supportedMethods) {
-    // Copy constructor
 }
 
+/**
+ * @brief Assigns the values from another Request object
+ * @param src The Request object to assign from
+ * @return Reference to this Request object
+ * @note Performs self-assignment check to avoid unnecessary operations
+ */
 Request &Request::operator=(const Request &src) {
-    // Assignment operator
     if (this != &src) {
         _rawRequest = src._rawRequest;
         _currentPosition = src._currentPosition;
@@ -55,10 +78,20 @@ Request &Request::operator=(const Request &src) {
     }
     return *this;
 }
+
+/**
+ * @brief Destroys the Request object
+ * @return None
+ * @note Automatically cleans up allocated resources
+ */
 Request::~Request() {
-    // Destructor
 }
 
+/**
+ * @brief Resets all Request object fields to their default values
+ * @return None
+ * @note Don't clear _supportedMethods as it's constant
+ */
 void Request::reset() {
     _rawRequest.clear();
     _currentPosition = 0;
@@ -72,18 +105,18 @@ void Request::reset() {
     _statusCode = REQUEST_DEFAULT_STATUS_CODE;
     _bodySize = REQUEST_DEFAULT_MAX_BODY_SIZE;
     _isChunked = false;
-    // Note: don't clear _supportedMethods as it's constant
 }
 
-
+/**
+ * @brief Parses the complete HTTP request including start line, headers, and body
+ * @return None
+ * @note Stops parsing if errors are encountered during any step
+ */
 void Request::parseRequest() {
-    // Parse start line
     parseStartLine();
     if (checkError()) return;
-    // Parse headers
     parseHeaders();
     if (checkError()) return;
-    // Check if body is expected
     _bodyExpected = checkBodyRelatedHeaders();
     if (_bodyExpected && _headers.find("Content-Length") != _headers.end()) {
         _bodySize = std::stoul(_headers["Content-Length"]);
@@ -92,6 +125,11 @@ void Request::parseRequest() {
 		_bodySize = 0;
 }
 
+/**
+ * @brief Checks if the request should have a body based on Content-Length and Transfer-Encoding headers
+ * @return true if body is expected, false otherwise
+ * @note Validates Content-Length against limits and checks Transfer-Encoding validity
+ */
 bool Request::checkBodyRelatedHeaders() {
     auto it = _headers.find("Content-Length");
     auto it2 = _headers.find("Transfer-Encoding");
@@ -99,21 +137,25 @@ bool Request::checkBodyRelatedHeaders() {
         return false;
     if (it != _headers.end() && !it->second.empty() && std::stoul(it->second) > _bodySize) {
         std::cerr << "Request body size exceeds the limit." << std::endl;
-        this->setStatusCode(413); // Payload Too Large
+        this->setStatusCode(413);
         return false;
     }
     if (it != _headers.end() && it2 != _headers.end() && it2->second != "chunked") {
         std::cerr << "Invalid Transfer-Encoding header: " << it2->second << std::endl;
-        this->setStatusCode(400); // Bad Request
-        return false; // Invalid request
+        this->setStatusCode(400);
+        return false;
     }
     if (_headers["Transfer-Encoding"] == "chunked")
-        _isChunked = true; // If Transfer-Encoding is chunked, set the flag
-    return true; // Body size headers are valid
+        _isChunked = true;
+    return true;
 }
 
+/**
+ * @brief Parses the first line of the HTTP request containing method, URI, and HTTP version
+ * @return None
+ * @note Advances _currentPosition to skip the newline character after parsing
+ */
 void Request::parseStartLine() {
-    // Parse the start line of the request (method, path(request target), HTTP version)
     std::string startLine;
     while (_currentPosition < _rawRequest.size() && _rawRequest[_currentPosition] != '\n') {
         startLine += _rawRequest[_currentPosition++];
@@ -124,41 +166,56 @@ void Request::parseStartLine() {
     parseMethod(method);
     parseUri(uri);
     parseHttpVersion(httpVersion);
-    _currentPosition++; // Skip the newline character after the start line
+    _currentPosition++;
 }
 
+/**
+ * @brief Parses and validates the HTTP method from the request
+ * @param method The HTTP method string to parse
+ * @return None
+ * @note Sets status code to 400 for empty methods or 405 for unsupported methods
+ */
 void Request::parseMethod(const std::string &method) {
-    // Parse the HTTP method from the request
     if (method.empty()) {
         std::cerr << "Empty method in request." << std::endl;
-        setStatusCode(400); // Bad Request
+        setStatusCode(400);
 		return ;
     }
     if (_supportedMethods.find(method) == _supportedMethods.end()) {
         std::cerr << "Unsupported method: " << method << std::endl;
-        this->setStatusCode(405); // Method Not Allowed
+        this->setStatusCode(405);
     }
     _method = method;
 }
 
+/**
+ * @brief Parses and validates the HTTP version from the request
+ * @param httpVersion The HTTP version string to parse
+ * @return None
+ * @note Sets status code to 400 for empty versions or 505 for unsupported versions
+ */
 void Request::parseHttpVersion(const std::string &httpVersion) {
-    // Parse the HTTP version from the request
     if (httpVersion.empty()) {
         std::cerr << "Empty HTTP version in request." << std::endl;
-        return this->setStatusCode(400); // Bad Request
+        return this->setStatusCode(400);
     }
     if (httpVersion != "HTTP/1.1" && httpVersion != "HTTP/2.0") {
         std::cerr << "Unsupported HTTP version: " << httpVersion << std::endl;
-        return this->setStatusCode(505); // HTTP Version Not Supported
+        return this->setStatusCode(505);
     }
     _httpVersion = httpVersion;
 }
 
+/**
+ * @brief Parses the request URI, separating the path from query parameters
+ * @param uri The URI string to parse
+ * @return None
+ * @note Sets status code to 400 if URI is empty
+ */
 void Request::parseUri(const std::string &uri) {
-    // Parse the request path
     if (uri.empty()) {
         std::cerr << "Empty URI in request." << std::endl;
-        return this->setStatusCode(400); // Bad Request
+        return this->setStatusCode(400);
     }
     std::string query;
     std::string path;
@@ -173,17 +230,21 @@ void Request::parseUri(const std::string &uri) {
     _query = query;
 }
 
+/**
+ * @brief Parses all HTTP headers from the request
+ * @return None
+ * @note Sets status code to 400 for invalid headers or missing headers
+ */
 void Request::parseHeaders() {
-    // Parse the headers from the request
     if (_currentPosition >= _rawRequest.size()) {
         std::cerr << "No headers found in request." << std::endl;
-        return this->setStatusCode(400); // Bad Request
+        return this->setStatusCode(400);
     }
     std::istringstream ss(&_rawRequest[_currentPosition]);
     std::string line;
     while (std::getline(ss, line)) {
         if (line.empty() || line == "\r") {
-            break; // End of headers
+            break;
         }
        
         size_t pos = line.find(':');
@@ -193,128 +254,187 @@ void Request::parseHeaders() {
             Utils::trim(headerValue);
             if (headerName.empty() || headerValue.empty()) {
                 std::cerr << "Invalid header: " << line << std::endl;
-                return this->setStatusCode(400); // Bad Request, invalid header
+                return this->setStatusCode(400);
             }
             _headers[headerName] = headerValue;
         } else {
             std::cerr << "Invalid header format: " << line << std::endl;
-            return this->setStatusCode(400); // Bad Request, invalid header format
+            return this->setStatusCode(400);
         }
-        _currentPosition += line.size() + 1; // Move past the header line and newline character
+        _currentPosition += line.size() + 1;
     }
 }
 
+/**
+ * @brief Parses the request body, handling both regular and chunked transfer encoding
+ * @return None
+ * @note Sets status code to 413 if body size exceeds limits
+ */
 void Request::parseBody() {
-    // Parse the body of the request
     if (!_bodyExpected) {
         std::cerr << "No body for this request." << std::endl;
-        _body = ""; // Set body to empty if no body is present
-        return; // No body to parse
+        _body = "";
+        return;
     }
     if (_body.size() > static_cast<unsigned long>(_bodySize)) {
         std::cerr << "Request body size exceeds the limit imposed by header." << std::endl;
-        this->setStatusCode(413); // Payload Too Large
-        return; // Exit if body size exceeds the limit
+        this->setStatusCode(413);
+        return;
     }
     if (_isChunked)
         parseChunkedBody();
 }
 
+/**
+ * @brief Parses a chunked transfer-encoded request body
+ * @return None
+ * @note Sets status code to 400 for invalid chunk sizes
+ */
 void Request::parseChunkedBody() {
-    // Parse the chunked body of the request
     std::istringstream ss(_body);
     std::string chunk;
     int chunkSize = 0;
-    _body.clear(); // Clear the body before parsing chunks
+    _body.clear();
     while (std::getline(ss, chunk)) {
         if (chunk.empty()) {
-            continue; // Skip empty lines
+            continue;
         }
         size_t pos = chunk.find("\r\n");
         if (pos != std::string::npos) {
-            chunk = chunk.substr(0, pos); // Remove the trailing CRLF
+            chunk = chunk.substr(0, pos);
         }        
         try {
-            chunkSize = std::stoi(chunk, nullptr, 16); // Convert hex size to integer
+            chunkSize = std::stoi(chunk, nullptr, 16);
         }
         catch (const std::invalid_argument &e) {
             std::cerr << "Invalid chunk size: " << chunk << std::endl;
-            this->setStatusCode(400); // Bad Request
-            return; // Exit if chunk size is invalid
+            this->setStatusCode(400);
+            return;
         }
         if (chunkSize <= 0) {
-            break; // End of chunks
+            break;
         }
-        _body += ss.str().substr(ss.tellg(), chunkSize); // Append the chunk to the body
-        ss.seekg(chunkSize + 2, std::ios::cur); // Move past the chunk and CRLF
+        _body += ss.str().substr(ss.tellg(), chunkSize);
+        ss.seekg(chunkSize + 2, std::ios::cur);
     }
 }
 
+/**
+ * @brief Sets the timeout value for the request
+ * @param timeout The timeout value in seconds
+ * @return None
+ */
 void Request::setTimeout(time_t timeout) {
-    // Set the timeout for the request
     _timeout = timeout;
 }
 
+/**
+ * @brief Returns the HTTP method of the request
+ * @return const reference to the HTTP method string
+ */
 const std::string &Request::getMethod() const {
-    // Get the HTTP method
     return _method;
 }
+
+/**
+ * @brief Returns the request path
+ * @return const reference to the request path string
+ */
 const std::string &Request::getPath() const {
-    // Get the request path
     return _path;
 }
+
+/**
+ * @brief Returns the HTTP version of the request
+ * @return const reference to the HTTP version string
+ */
 const std::string &Request::getHttpVersion() const {
-    // Get the HTTP version
     return _httpVersion;
 }
+
+/**
+ * @brief Returns the request headers as an unordered map
+ * @return const reference to the headers map
+ */
 const std::unordered_map<std::string, std::string> &Request::getHeaders() const {
-    // Get the request headers
     return _headers;
 }
+
+/**
+ * @brief Returns the request body
+ * @return const reference to the request body string
+ */
 const std::string &Request::getBody() const {
-    // Get the request body
     return _body;
 }
+
+/**
+ * @brief Returns the query string from the URI
+ * @return const reference to the query string
+ */
 const std::string &Request::getQuery() const {
-    // Get the query string
     return _query;
 }
 
+/**
+ * @brief Returns the timeout value for the request
+ * @return The timeout value in seconds
+ */
 time_t Request::getTimeout() const {
-    // Get the timeout for the request
     return _timeout;
 }
 
+/**
+ * @brief Returns the current status code of the request
+ * @return The HTTP status code
+ */
 int Request::getStatusCode() const {
-    // Get the status code for the request
     return _statusCode;
 }
 
+/**
+ * @brief Returns whether the request is a CGI request
+ * @return true if CGI request, false otherwise
+ */
 bool Request::getCgiStatus() const {
-    // Check if the request is a CGI request
     return _isCgi;
 }
 
+/**
+ * @brief Sets the CGI flag for the request
+ * @param isCgi Boolean value indicating if this is a CGI request
+ * @return None
+ */
 void Request::setCgi(bool isCgi) {
-    // Set the CGI flag for the request
     _isCgi = isCgi;
 }
 
+/**
+ * @brief Checks if the request has an error status code
+ * @return true if status code indicates an error (4xx or 5xx), false otherwise
+ */
 bool Request::checkError() const {
-    // Check if there is an error in the request
     if (_statusCode >= 400 && _statusCode < 600) {
-        return true; // Error status code
+        return true;
     }
-    return false; // No error
+    return false;
 }
 
+/**
+ * @brief Sets the status code for the request
+ * @param statusCode The HTTP status code to set
+ * @return None
+ */
 void Request::setStatusCode(int statusCode) {
-    // Set the status code for the request
     _statusCode = statusCode;
 }
 
+/**
+ * @brief Prints the request details for debugging purposes
+ * @return None
+ * @note Outputs method, path, HTTP version, headers, body, and query to stdout
+ */
 void Request::printRequest() const {
-    // Print the request for debugging purposes
     std::cout << "Method: " << _method << std::endl;
     std::cout << "Path: " << _path << std::endl;
     std::cout << "HTTP Version: " << _httpVersion << std::endl;
@@ -326,14 +446,19 @@ void Request::printRequest() const {
     std::cout << "Query: " << _query << std::endl;
 }
 
+/**
+ * @brief Converts a hexadecimal string to an integer
+ * @param hex The hexadecimal string to convert
+ * @return The integer value, or -1 if conversion fails
+ * @note Uses std::stoi with base 16 for conversion
+ */
 int Request::hexToInt(const std::string &hex) const {
-    // Convert a hexadecimal string to an integer
     int value = 0;
     try {
         value = std::stoi(hex, nullptr, 16);
     } catch (const std::invalid_argument &e) {
         std::cerr << "Invalid hexadecimal string: " << hex << std::endl;
-        return -1; // Return -1 for invalid hex
+        return -1;
     }
     return value;
 }

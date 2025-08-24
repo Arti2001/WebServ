@@ -6,7 +6,7 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:04:57 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/07/06 18:48:51 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/08/24 21:20:48 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,96 +30,108 @@
 class ServerManager;
 class CGIHandler;
 
+/**
+ * @brief HTTP response generator and handler class for the webserv application
+ * @details This class is responsible for generating HTTP responses based on requests, handling 
+ *          different HTTP methods (GET, POST, DELETE), managing CGI requests, serving static files, 
+ *          and generating error responses. It supports both regular and chunked transfer encoding,
+ *          directory listings, and custom error pages.
+ * @note The class automatically matches server and location configurations, handles file uploads,
+ *       and manages CGI script execution through the CGIHandler class.
+ */
 class Response {
-    private:
-        const Request *_request;
-        ServerManager *_serverManager; // Server manager to access server configurations
-        const vServer *_serverConfig; // virtual server configuration for the response
-        const Location *_locationConfig; // Location configuration for the response
-		int _serverFd; // Server file descriptor for the response
-		int _clientFd;
-		bool _isCgi;		
-		std::unique_ptr<CGIHandler> _cgiHandler; // CGI handler for processing CGI requests
-        int _statusCode; // HTTP status code (e.g., 200, 404, 500)
-        bool _validPath; // Flag to indicate if the path is valid
-        std::string _rawResponse;
-		std::string _rawCGIResponse; // Raw CGI response string
-        std::string _statusMessage; // HTTP status message (e.g., "OK", "Not Found", "Internal Server Error")
-        std::unordered_map<std::string, std::string> _headers; // HTTP headers for the response
-        std::string _body; // Body of the response
-        std::unordered_map<int, std::string> _statusMessages = {
-            {200, "OK"},
-            {301, "Moved Permanently"},
-            {400, "Bad Request"},
-            {401, "Unauthorized"},
-            {403, "Forbidden"},
-            {404, "Not Found"},
-            {405, "Method Not Allowed"},
-            {408, "Request Timeout"},
-            {413, "Payload Too Large"},
-            {418, "I'm a teapot"},
-            {429, "Too Many Requests"},
-            {500, "Internal Server Error"},
-            {505, "HTTP Version Not Supported"}
-        };
-		std::string _cgiIndexFile; // CGI index file for the location, if applicable
-
-        void createStartLine(); // Create the start line of the HTTP response
-        void createHeaders(); // Create the headers for the HTTP response
-        void defaultHeaders(); // Set default headers for the response
-        void createBody(); // Create the body of the HTTP response
-
-        void handleGetRequest();
-        void handlePostRequest();
-        void handleDeleteRequest();
-        void handleCGIRequest(); // private
-        void handleRedirectRequest(); // private
-        
-        void makeRegularResponse(const std::string &path);
-        void makeChunkedResponse(const std:: string &path);
-        void generateErrorResponse(); // Generate an error response
-        void matchServer(); // Match the server configuration based on the request
-        void matchLocation(); // Match the location configuration based on the request
-        bool isMethodAllowed(const std::string &method) const; // Check if the method is allowed in the location
-        bool fileExists(const std::string &path); // Check if the file exists
-        bool isLargeFile(const std::string &path); // Check if the file is larger than a certain threshold
-        std::string generateDirectoryListing(const std::string& fsPath, const std::string& urlPath);
-        bool isCgiRequest(); // Check if the request is a CGI request
-        std::string resolveRelativePath(const std::string &path, const std::string &locationPath) const; // Resolve relative path based on location path
-        std::string createUploadFile();
-        std::string generateUUID();
-		
-        
     public:
+        // Constructors and Destructor
         Response();
         Response(Request *request, ServerManager *serverManager, int serverFd, int clientfFd);
         Response(const Response &src);
         Response &operator=(const Response &src);
         ~Response();
 
-        //Status line
+        // Core response generation
+        void generateResponse();
+        void generateErrorResponse();
+        void generateCGIResponse();
+
+        // HTTP method handlers
+        void handleGetRequest();
+        void handlePostRequest();
+        void handleDeleteRequest();
+        void handleCGIRequest();
+        void handleRedirectRequest();
+
+        // Response building methods
+        void createStartLine();
+        void createHeaders();
+        void createBody();
+        void makeRegularResponse(const std::string &path);
+        void makeChunkedResponse(const std::string &path);
+
+        // Status line methods
         int getStatusCode() const;
         void setStatusCode(int statusCode);
         const std::string& getStatusMessage() const;
         void setStatusMessage(const std::string& reasonPhrase);
-		CGIHandler* getCgiHandler() const { return _cgiHandler.get(); }
-		bool getIsCGI() const { return _isCgi; }
-		int getClientFd() const { return _clientFd;}
 
-        //Headers
+        // Header methods
         void addHeader(const std::string& key, const std::string& value);
         const std::unordered_map<std::string, std::string>& getHeaders() const;
 
-        //Body
+        // Body methods
         void setBody(const std::string &body);
         const std::string &getBody() const;
         const std::string& getRawResponse() const;
-        std::string urlEncode(const std::string& value);
-		std::string intToHex(int value);
 
-        void generateResponse(); // Generate the full HTTP response string
-        static    std::string getMimeType(const std::string &path); // Get the MIME type based on the file extension
-		void generateCGIResponse();
+        // Utility methods
+        std::string urlEncode(const std::string& value);
+        std::string intToHex(int value);
+        static std::string getMimeType(const std::string &path);
+
+        // Getters
+        CGIHandler* getCgiHandler() const { return _cgiHandler.get(); }
+        bool getIsCGI() const { return _isCgi; }
+        int getClientFd() const { return _clientFd; }
+
+    private:
+        // Configuration and matching methods
+        void matchServer();
+        void matchLocation();
+        bool isMethodAllowed(const std::string &method) const;
+        bool isCgiRequest();
+
+        // File handling methods
+        bool fileExists(const std::string &path);
+        bool isLargeFile(const std::string &path);
+        std::string resolveRelativePath(const std::string &path, const std::string &locationPath) const;
+        std::string generateDirectoryListing(const std::string& fsPath, const std::string& urlPath);
+
+        // Upload and file creation methods
+        std::string createUploadFile();
+        std::string generateUUID();
+
+        // Request and server attributes
+        const Request *_request; // Pointer to the HTTP request object
+        ServerManager *_serverManager; // Server manager to access server configurations
+        const vServer *_serverConfig; // Virtual server configuration for the response
+        const Location *_locationConfig; // Location configuration for the response
+        int _serverFd; // Server file descriptor for the response
+        int _clientFd; // Client file descriptor for the response
+
+        // CGI handling attributes
+        bool _isCgi; // Flag to indicate if this is a CGI response
+        std::unique_ptr<CGIHandler> _cgiHandler; // CGI handler for processing CGI requests
+        std::string _cgiIndexFile; // CGI index file for the location, if applicable
+
+        // Response attributes
+        int _statusCode; // HTTP status code (e.g., 200, 404, 500)
+        std::string _statusMessage; // HTTP status message (e.g., "OK", "Not Found")
+        std::string _rawResponse; // Complete HTTP response string
+        std::string _body; // Body of the response
+        std::unordered_map<std::string, std::string> _headers; // HTTP headers for the response
+
+        // Path and file attributes
+        bool _validPath; // Flag to indicate if the path is valid
+        std::unordered_map<int, std::string> _statusMessages; // Map of status codes to messages
 };
 
 #endif
