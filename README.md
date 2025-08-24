@@ -1,6 +1,6 @@
-## Non-blocking HTTP Server (inpired by NGNIX)
+## Non-blocking HTTP Server (inpired by NGINX)
 
-WebServ is a non_blocking HTTP Server inspired by [NGNIX](https://nginx.org/en/docs/). This project mostly written in c++11, although using some c++17 features(such as smart pointers).
+WebServ is a non_blocking HTTP Server inspired by [NGINX](https://nginx.org/en/docs/). This project mostly written in c++11, although using some c++17 features(such as smart pointers).
 
 ## Prerequisites
 To build and run the webserver, you need:
