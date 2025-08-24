@@ -6,14 +6,14 @@
 /*   By: amysiv <amysiv@student.42.fr>                +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/06/30 12:13:01 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/08/24 21:44:08 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/08/24 22:46:55 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "CGIHandler.hpp"
 
 CGIHandler::CGIHandler(const Request &request, const Location &location, std::string cgiIndexFile) 
-    : _request(request), _envp(nullptr), _interpreter("") , _cgiPath(""), _queryString(""), _bodyInput(""), _cgiUploadPath("") {
+    : _request(request), _interpreter(""), _cgiPath(""), _scriptPath(""), _queryString(""), _bodyInput(""), _cgiUploadPath(""), _timeout(0), _stdin_fd(0), _stdout_fd(0), _stderr_fd(0), _pid(0), _stdout_done(false), _stderr_done(false), _process_done(false), _envp(nullptr), _output(), _errorOutput() {
     _scriptPath = resolveScriptPath(location.getLocationRoot(), request.getUri(), cgiIndexFile);
     _cgiPath = getInterpreter(_scriptPath);
     if (_cgiPath.empty()) {

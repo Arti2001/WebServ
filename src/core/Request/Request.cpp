@@ -6,16 +6,16 @@
 /*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/07/06 13:08:42 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/08/24 21:40:59 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/08/24 22:49:32 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Request.hpp"
 
-Request::Request() : _currentPosition(0), _timeout(REQUEST_DEFAULT_TIMEOUT), _statusCode(REQUEST_DEFAULT_STATUS_CODE), _bodySize(REQUEST_DEFAULT_MAX_BODY_SIZE), _isChunked(false) {
+Request::Request() : _currentPosition(0), _bodySize(REQUEST_DEFAULT_MAX_BODY_SIZE), _timeout(REQUEST_DEFAULT_TIMEOUT), _statusCode(REQUEST_DEFAULT_STATUS_CODE), _isChunked(false) {
 }
 
-Request::Request(const std::string &rawRequest) : _rawRequest(rawRequest), _currentPosition(0), _method(""), _path(""), _httpVersion(""), _headers() ,_body(""), _query(""), _timeout(REQUEST_DEFAULT_TIMEOUT), _statusCode(REQUEST_DEFAULT_STATUS_CODE), _bodySize(REQUEST_DEFAULT_MAX_BODY_SIZE), _isChunked(false), _isCgi(false), _bodyExpected(false), _supportedMethods(), _seenHeaders() {
+Request::Request(const std::string &rawRequest) : _rawRequest(rawRequest), _currentPosition(0), _method(""), _path(""), _httpVersion(""), _query(""), _body(""), _bodySize(REQUEST_DEFAULT_MAX_BODY_SIZE), _timeout(REQUEST_DEFAULT_TIMEOUT), _statusCode(REQUEST_DEFAULT_STATUS_CODE), _isChunked(false), _isCgi(false), _bodyExpected(false), _headers(), _supportedMethods(), _seenHeaders() {
     registerSupportedMethods();
     if (_rawRequest.empty()) {
         std::cerr << "Empty request received." << std::endl;
@@ -30,7 +30,7 @@ void Request::registerSupportedMethods(void){
 	_supportedMethods.insert("DELETE");
 }
 
-Request::Request(const Request &src) : _rawRequest(src._rawRequest), _currentPosition(src._currentPosition), _method(src._method), _path(src._path), _httpVersion(src._httpVersion), _headers(src._headers), _body(src._body), _query(src._query), _timeout(src._timeout), _statusCode(src._statusCode), _bodySize(src._bodySize), _isChunked(src._isChunked), _supportedMethods(src._supportedMethods) {
+Request::Request(const Request &src) : _rawRequest(src._rawRequest), _currentPosition(src._currentPosition), _method(src._method), _path(src._path), _httpVersion(src._httpVersion), _query(src._query), _body(src._body), _bodySize(src._bodySize), _timeout(src._timeout), _statusCode(src._statusCode), _isChunked(src._isChunked), _isCgi(src._isCgi), _bodyExpected(src._bodyExpected), _headers(src._headers), _supportedMethods(src._supportedMethods), _seenHeaders(src._seenHeaders) {
 }
 
 Request &Request::operator=(const Request &src) {

@@ -6,13 +6,33 @@
 /*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/08/24 21:42:27 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/08/24 22:46:06 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Response.hpp"
 
 Response::Response() {}
+
+Response::Response(const Response &src) : 
+    _request(src._request),
+    _serverManager(src._serverManager),
+    _serverConfig(src._serverConfig),
+    _locationConfig(src._locationConfig),
+    _serverFd(src._serverFd),
+    _clientFd(src._clientFd),
+    _isCgi(src._isCgi),
+    _cgiHandler(src._cgiHandler ? std::make_unique<CGIHandler>(*src._cgiHandler) : nullptr),
+    _cgiIndexFile(src._cgiIndexFile),
+    _statusCode(src._statusCode),
+    _statusMessage(src._statusMessage),
+    _rawResponse(src._rawResponse),
+    _body(src._body),
+    _headers(src._headers),
+    _validPath(src._validPath),
+    _statusMessages(src._statusMessages)
+{
+}
 
 Response::Response(Request *request, ServerManager *ServerManager, int serverFd, int clientFd) : 
     _request(request),
@@ -23,12 +43,13 @@ Response::Response(Request *request, ServerManager *ServerManager, int serverFd,
 	_clientFd(clientFd),
 	_isCgi(false),
 	_cgiHandler(nullptr),
+	_cgiIndexFile(""),
 	_statusCode(200),
-	_validPath(false),
-    _rawResponse(""),
 	_statusMessage("OK"),
-	_headers(),
+	_rawResponse(""),
 	_body(""),
+	_headers(),
+	_validPath(false),
 	_statusMessages({
 		{200, "OK"},
 		{301, "Moved Permanently"},
@@ -42,8 +63,7 @@ Response::Response(Request *request, ServerManager *ServerManager, int serverFd,
 		{418, "I'm a teapot"},
 		{429, "Too Many Requests"},
 		{500, "Internal Server Error"}
-	}),
-	_cgiIndexFile("")
+	})
 {
     _statusCode = request->getStatusCode();
     _statusMessage = _statusMessages[_statusCode];
