@@ -3,30 +3,17 @@
 /*                                                        ::::::::            */
 /*   Response.cpp                                       :+:    :+:            */
 /*                                                     +:+                    */
-/*   By: amysiv <amysiv@student.42.fr>                +#+                     */
+/*   By: pminialg <pminialg@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/04/18 16:05:00 by pminialg      #+#    #+#                 */
-/*   Updated: 2025/08/24 21:09:11 by vovashko      ########   odam.nl         */
+/*   Updated: 2025/08/24 21:42:27 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Response.hpp"
 
-/**
- * @brief Default constructor for Response object
- * @return None
- * @note Creates an empty Response with default values
- */
 Response::Response() {}
 
-/**
- * @brief Constructor for Response object with request and server information
- * @param request Pointer to the HTTP request object
- * @param ServerManager Pointer to the server manager
- * @param serverFd Server file descriptor
- * @param clientFd Client file descriptor
- * @note Automatically matches server and location configurations
- */
 Response::Response(Request *request, ServerManager *ServerManager, int serverFd, int clientFd) : 
     _request(request),
     _serverManager(ServerManager),
@@ -65,87 +52,40 @@ Response::Response(Request *request, ServerManager *ServerManager, int serverFd,
     matchLocation();
 }
 
-/**
- * @brief Destructor for Response object
- * @return None
- * @note Automatically cleans up allocated resources
- */
 Response::~Response() {}
 
-/**
- * @brief Gets the current status code of the response
- * @return The HTTP status code
- */
 int Response::getStatusCode() const {
     return _statusCode;
 }
 
-/**
- * @brief Sets the status code for the response
- * @param statusCode The HTTP status code to set
- * @return None
- */
 void Response::setStatusCode(int statusCode) {
     _statusCode = statusCode;
 }
 
-/**
- * @brief Gets the status message for the current status code
- * @return const reference to the status message string
- */
 const std::string& Response::getStatusMessage() const {
     return _statusMessage;
 }
 
-/**
- * @brief Sets the status message for the response
- * @param statusMessage The status message to set
- * @return None
- */
 void Response::setStatusMessage(const std::string& statusMessage) {
     _statusMessage = statusMessage;
 }
 
-/**
- * @brief Adds a header to the response
- * @param key The header name
- * @param value The header value
- * @return None
- */
 void Response::addHeader(const std::string& key, const std::string& value) {
     _headers[key] = value;
 }
 
-/**
- * @brief Gets all response headers
- * @return const reference to the headers map
- */
 const std::unordered_map<std::string, std::string>& Response::getHeaders() const {
     return _headers;
 }
 
-/**
- * @brief Sets the response body
- * @param body The body content to set
- * @return None
- */
 void Response::setBody(const std::string &body) {
     _body = body;
 }
 
-/**
- * @brief Gets the response body
- * @return const reference to the body string
- */
 const std::string& Response::getBody() const {
     return _body;
 }
 
-/**
- * @brief Matches the server configuration based on the request
- * @return None
- * @note Sets status code to 500 if no server config found, 400 if no Host header, 404 if server not found
- */
 void Response::matchServer() {
     const std::vector<const vServer*>&	subServConfigs = _serverManager->findServerConfigsByFd(_serverFd);
 	if (subServConfigs.empty()) {
@@ -166,11 +106,6 @@ void Response::matchServer() {
     }
 }
 
-/**
- * @brief Matches the location configuration based on the request URI
- * @return None
- * @note Sets status code to 400 if no server config, 404 if no location found, 413 if body too large
- */
 void Response::matchLocation() {
     if (!_serverConfig)
     {
@@ -191,19 +126,10 @@ void Response::matchLocation() {
         setStatusCode(413);
 }
 
-/**
- * @brief Gets the raw HTTP response string
- * @return const reference to the raw response string
- */
 const std::string& Response::getRawResponse() const {
     return _rawResponse;
 }
 
-/**
- * @brief Generates the complete HTTP response based on the request method and status
- * @return None
- * @note Routes to appropriate handler based on status code and HTTP method
- */
 void Response::generateResponse() {
     if (_statusCode >= 400 && _statusCode < 600)
     {
@@ -238,11 +164,6 @@ void Response::generateResponse() {
     createBody();
 }
 
-/**
- * @brief Generates an error response with appropriate status code and message
- * @return None
- * @note Checks for custom error pages and falls back to default HTML error page
- */
 void Response::generateErrorResponse() {
     std::cout << "Generating error response for status code: " << _statusCode << std::endl;
     setStatusMessage(_statusMessages[_statusCode]);
@@ -276,11 +197,6 @@ void Response::generateErrorResponse() {
     createBody();
 }
 
-/**
- * @brief Handles redirect requests based on location configuration
- * @return None
- * @note Sets Location header and generates appropriate redirect response
- */
 void Response::handleRedirectRequest() {
     if (_locationConfig) {
         std::pair<int, std::string> redirect = _locationConfig->getLocationReturnPages();
@@ -301,11 +217,6 @@ void Response::handleRedirectRequest() {
     }
 }
 
-/**
- * @brief Checks if the request is a CGI request based on file extension or index files
- * @return true if CGI request, false otherwise
- * @note Checks both direct CGI files and CGI index files in directories
- */
 bool Response::isCgiRequest() {
     std::string path = _request->getUri();
     size_t extDot = path.find_last_of('.');
@@ -343,11 +254,6 @@ bool Response::isCgiRequest() {
    return false;
 }
 
-/**
- * @brief Handles CGI requests by creating a CGI handler and setting up file descriptors
- * @return None
- * @note Sets status code to 405 if method not allowed, 500 if CGI handler creation fails
- */
 void Response::handleCGIRequest() {
     if (!isMethodAllowed(_request->getMethod())) {
         setStatusCode(405);
@@ -367,11 +273,6 @@ void Response::handleCGIRequest() {
     }
 }
 
-/**
- * @brief Generates the final CGI response from the CGI handler
- * @return None
- * @note Sets status code to 500 if CGI response is empty
- */
 void Response::generateCGIResponse(){
 	_rawResponse.clear();
 	_rawResponse = _cgiHandler->finalize();
@@ -381,11 +282,6 @@ void Response::generateCGIResponse(){
 	}
 }
 
-/**
- * @brief Handles GET requests by serving files or generating directory listings
- * @return None
- * @note Sets status code to 405 if method not allowed, 404 if file not found
- */
 void Response::handleGetRequest() {
     if (!isMethodAllowed("GET")) {
         setStatusCode(405);
@@ -432,12 +328,6 @@ void Response::handleGetRequest() {
     }
 }
 
-/**
- * @brief Creates a regular response by reading the entire file into memory
- * @param path The file path to read
- * @return None
- * @note Sets status code to 404 if file cannot be opened
- */
 void Response::makeRegularResponse(const std::string &path) {
     std::ifstream file(path);
     if (!file.is_open()) {
@@ -453,12 +343,6 @@ void Response::makeRegularResponse(const std::string &path) {
     addHeader("Content-Type", getMimeType(path));
 };
 
-/**
- * @brief Creates a chunked response for large files
- * @param path The file path to read
- * @return None
- * @note Sets status code to 404 if file cannot be read
- */
 void Response::makeChunkedResponse(const std:: string &path) {
     char buffer[RESPONSE_READ_BUFFER_SIZE];
     int file = open(path.c_str(), O_RDONLY);
@@ -485,22 +369,12 @@ void Response::makeChunkedResponse(const std:: string &path) {
     setStatusCode(200);
 };
 
-/**
- * @brief Converts an integer to a hexadecimal string
- * @param value The integer value to convert
- * @return The hexadecimal string representation
- */
 std::string Response::intToHex(int value) {
 	std::ostringstream oss;
 	oss << std::hex << value;
 	return oss.str();
 }
 
-/**
- * @brief Creates an upload file from the request body
- * @return The filename of the created file, or empty string on failure
- * @note Sets status code to 400 if body is empty, 403 if no upload directory, 500 if file creation fails
- */
 std::string Response::createUploadFile() {
     const std::string &body = _request->getBody();
     if (body.empty()) {
@@ -528,11 +402,6 @@ std::string Response::createUploadFile() {
     return fileName;
 }
 
-/**
- * @brief Generates a unique UUID for file naming
- * @return A UUID string
- * @note Uses libuuid to generate system-level unique identifiers
- */
 std::string Response::generateUUID() {
     uuid_t uuid;
     char uuidStr[37];
@@ -541,11 +410,6 @@ std::string Response::generateUUID() {
     return std::string(uuidStr);
 }
 
-/**
- * @brief Handles POST requests by creating upload files
- * @return None
- * @note Sets status code to 405 if method not allowed, calls createUploadFile for file creation
- */
 void Response::handlePostRequest() {
     if (!isMethodAllowed("POST")) {
         setStatusCode(405);
@@ -564,11 +428,6 @@ void Response::handlePostRequest() {
     addHeader("Content-Type", "text/plain");
 }
 
-/**
- * @brief Handles DELETE requests by removing files
- * @return None
- * @note Sets status code to 405 if method not allowed, 400 for directory traversal attempts, 404 if file not found, 500 if deletion fails
- */
 void Response::handleDeleteRequest() {
     if (!isMethodAllowed("DELETE")) {
         setStatusCode(405);
@@ -602,11 +461,6 @@ void Response::handleDeleteRequest() {
     addHeader("Content-Length", std::to_string(_body.size()));
 }
 
-/**
- * @brief Creates the HTTP start line with version, status code, and message
- * @return None
- * @note Sets status code to 418 if status code is not recognized
- */
 void Response::createStartLine() {
     if (_statusMessages.find(_statusCode) == _statusMessages.end()) 
         setStatusCode(418);
@@ -615,11 +469,6 @@ void Response::createStartLine() {
     _rawResponse += startLine;
 }
 
-/**
- * @brief Creates the HTTP headers section of the response
- * @return None
- * @note Adds all stored headers and ends with double CRLF
- */
 void Response::createHeaders(){
     for (const auto &header : _headers) {
         _rawResponse += header.first + ": " + header.second + "\r\n";
@@ -627,13 +476,6 @@ void Response::createHeaders(){
     _rawResponse += "\r\n";
 }
 
-/**
- * @brief Generates an HTML directory listing for the given file system path
- * @param fsPath The file system path to list
- * @param urlPath The URL path for the listing
- * @return HTML string containing the directory listing
- * @note Sets status code to 500 if directory cannot be opened
- */
 std::string Response::generateDirectoryListing(const std::string& fsPath, const std::string& urlPath) {
     std::ostringstream html;
     html << "<html><head><title>Index of " << urlPath << "</title></head><body>";
@@ -662,12 +504,6 @@ std::string Response::generateDirectoryListing(const std::string& fsPath, const 
     return html.str();
 }
 
-/**
- * @brief URL-encodes a string for use in HTML links
- * @param value The string to encode
- * @return The URL-encoded string
- * @note Keeps alphanumeric characters and some special characters, encodes others as percent-encoded hex
- */
 std::string Response::urlEncode(const std::string& value) {
     std::ostringstream encoded;
     for (char c : value) {
@@ -680,11 +516,6 @@ std::string Response::urlEncode(const std::string& value) {
     return encoded.str();
 }
 
-/**
- * @brief Creates the response body section
- * @return None
- * @note Adds body content if present, or just CRLF if no body
- */
 void Response::createBody() {
     if (_body.empty()) {
         _rawResponse += "\r\n";
@@ -693,13 +524,6 @@ void Response::createBody() {
     }
 }
 
-/**
- * @brief Resolves relative paths based on location path
- * @param path The path to resolve
- * @param locationPath The location path to resolve against
- * @return The resolved absolute path
- * @note Handles both absolute and relative paths appropriately
- */
 std::string Response::resolveRelativePath(const std::string &path, const std::string &locationPath) const {
 	std::string new_path = path;
     if (new_path.empty()) {
@@ -711,22 +535,11 @@ std::string Response::resolveRelativePath(const std::string &path, const std::st
     return locationPath + "/" + path;
 }
 
-/**
- * @brief Checks if the given HTTP method is allowed for the current location
- * @param method The HTTP method to check
- * @return true if method is allowed, false otherwise
- */
 bool Response::isMethodAllowed(const std::string &method) const {
     const std::unordered_set<std::string>& allowedMethods = _locationConfig->getLocationAllowedMethods();
     return (allowedMethods.count(method));
 }
 
-/**
- * @brief Checks if a file exists at the given path
- * @param path The file path to check
- * @return true if file exists and is a regular file, false otherwise
- * @note Sets _validPath to true if file exists
- */
 bool Response::fileExists(const std::string &path) {
     struct stat fileStat;
     if (stat(path.c_str(), &fileStat) == -1) {
@@ -736,12 +549,6 @@ bool Response::fileExists(const std::string &path) {
     return S_ISREG(fileStat.st_mode);
 };
 
-/**
- * @brief Checks if a file is considered large based on size threshold
- * @param path The file path to check
- * @return true if file size exceeds threshold, false otherwise
- * @note Sets status code to 404 if file cannot be accessed
- */
 bool Response::isLargeFile(const std::string &path) {
     struct stat fileStat;
     if (stat(path.c_str(), &fileStat) == -1) {
@@ -751,12 +558,6 @@ bool Response::isLargeFile(const std::string &path) {
     return fileStat.st_size > LARGE_FILE_SIZE_THRESHOLD;
 }
 
-/**
- * @brief Determines the MIME type based on file extension
- * @param path The file path to analyze
- * @return The MIME type string
- * @note Defaults to application/octet-stream for unknown extensions
- */
 std::string Response::getMimeType(const std::string &path)  {
     std::string extension = path.substr(path.find_last_of('.'));
     if (extension == ".html" || extension == ".htm") {
