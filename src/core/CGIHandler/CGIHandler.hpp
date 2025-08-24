@@ -6,7 +6,7 @@
 /*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/06/30 12:13:08 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/07/04 17:31:49 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/08/24 20:55:35 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,15 +33,24 @@
 #define MAX_OUTPUT_SIZE  10 * 1024 * 1024 // 10 MB
 #define CHUNK_SIZE 8192 // 8 KB
 
-
-
-
 class CGIHandler {
     public:
         CGIHandler(const Request &Request, const Location &Location, std::string cgiIndexFile); // last argument needed if the request is made to the directory, so we are storing the index file that should be called with this request
         ~CGIHandler();
 
+        // Execution methods
         std::string process(void);
+		void start();
+        void handleEvent(int fd);
+		bool isDone() const;
+		std::string finalize();
+
+		// Getters for file descriptors
+		int getStdoutFd() const { return _stdout_fd; }
+		int getStderrFd() const { return _stderr_fd; }
+		int getStdinFd() const { return _stdin_fd; }
+
+        // Exception class
         class CGIException : public std::runtime_error {
             public:
                 CGIException(const std::string& message, int statusCode) : std::runtime_error(message), _statusCode(statusCode) {}
@@ -50,19 +59,7 @@ class CGIHandler {
 			private:
 				int _statusCode; // Status code for the CGI error
         };
-		void start(); // Start the CGI script execution
-
-		// Getters for file descriptors
-		int getStdoutFd() const { return _stdout_fd; }
-		int getStderrFd() const { return _stderr_fd; }
-		int getStdinFd() const { return _stdin_fd; }
-		void handleEvent(int fd);
-
-		// Check if the CGI execution is done
-		bool isDone() const;
-
-		// Finalize the CGI execution and return the output
-		std::string finalize();
+		
     
     private:
         //Helper methods
@@ -103,6 +100,4 @@ class CGIHandler {
 		std::vector<char> _output; // Output from the CGI script	
 		std::vector<char> _errorOutput; // Error output from the CGI script
 		
-
-
 };

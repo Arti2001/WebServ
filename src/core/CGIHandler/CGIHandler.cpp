@@ -6,17 +6,20 @@
 /*   By: amysiv <amysiv@student.42.fr>                +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/06/30 12:13:01 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/07/10 18:50:35 by vshkonda      ########   odam.nl         */
+/*   Updated: 2025/08/24 20:52:25 by vovashko      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "CGIHandler.hpp"
 
-
+/*CGIHandler constructor
+/*brief Initializes a new CGI handler instance with request, location, and CGI index file
+/*@param request The HTTP request object containing method, URI, headers, and body
+/*@param location The location configuration containing root path, allowed CGI types, and upload path
+/*@param cgiIndexFile Optional CGI index file to append to the script path
+*/
 CGIHandler::CGIHandler(const Request &request, const Location &location, std::string cgiIndexFile) 
     : _request(request), _envp(nullptr), _interpreter("") , _cgiPath(""), _queryString(""), _bodyInput(""), _cgiUploadPath("") {
-    // Initialize the CGI handler with the response
-    // This constructor can be used to set up any initial state if needed
     _scriptPath = resolveScriptPath(location.getLocationRoot(), request.getUri(), cgiIndexFile);
     _cgiPath = getInterpreter(_scriptPath);
     if (_cgiPath.empty()) {
@@ -37,11 +40,21 @@ CGIHandler::CGIHandler(const Request &request, const Location &location, std::st
 	_process_done = false;
     }
 
+/*CGIHandler destructor
+/*brief Cleans up allocated memory for environment variables
+/*@param None
+*/
 CGIHandler::~CGIHandler()
 {
 	freeEnvironmentArray();
 }
-	
+
+/*resolveScriptPath
+/*brief Resolves the full path to the CGI script by combining root path, URI, and index file
+/*@param rootPath The root directory path for the location
+/*@param uri The request URI path
+/*@param cgiIndexFile Optional CGI index file name to append
+*/
 std::string CGIHandler::resolveScriptPath(const std::string& rootPath, const std::string& uri, const std::string& cgiIndexFile)
 {
     std::string scriptPath;
@@ -54,13 +67,17 @@ std::string CGIHandler::resolveScriptPath(const std::string& rootPath, const std
         throw CGIException("Script file not found: " + scriptPath, 404);
     }
 
-    // check if the file is executable
     if ((fileStat.st_mode & S_IXUSR) == 0) {
         throw CGIException("Script file is not executable: " + scriptPath, 403);
     }
     return scriptPath;
 }
 
+/*start
+/*brief Starts the CGI process by forking, setting up pipes, and executing the script
+/*@param None
+/*note: we use 3 pipes to handle stdin, stdout, and stderr
+*/
 void CGIHandler::start() {
     int stdin_pipe[2], stdout_pipe[2], stderr_pipe[2];
     if (pipe(stdin_pipe) < 0 || pipe(stdout_pipe) < 0 || pipe(stderr_pipe) < 0)
@@ -116,9 +133,12 @@ void CGIHandler::start() {
         write(_stdin_fd, _bodyInput.c_str(), _bodyInput.size());
     }
     close(_stdin_fd);
-    // Register _stdout_fd and _stderr_fd with your event loop for EPOLLIN
 }
 
+/*handleEvent
+/*brief Handles I/O events for stdout and stderr pipes, reading output and checking process status
+/*@param fd The file descriptor that triggered the event (stdout or stderr pipe)
+*/
 void CGIHandler::handleEvent(int fd) {
     char buffer[CHUNK_SIZE];
     ssize_t bytesRead;
@@ -126,7 +146,7 @@ void CGIHandler::handleEvent(int fd) {
         while ((bytesRead = read(_stdout_fd, buffer, sizeof(buffer))) > 0) {
             _output.insert(_output.end(), buffer, buffer + bytesRead);
         }
-        if (bytesRead == 0) { // EOF
+        if (bytesRead == 0) {
             close(_stdout_fd);
             _stdout_done = true;
         }
@@ -135,7 +155,7 @@ void CGIHandler::handleEvent(int fd) {
         while ((bytesRead = read(_stderr_fd, buffer, sizeof(buffer))) > 0) {
             _errorOutput.insert(_errorOutput.end(), buffer, buffer + bytesRead);
         }
-        if (bytesRead == 0) { // EOF
+        if (bytesRead == 0) {
             close(_stderr_fd);
             _stderr_done = true;
         }
@@ -146,18 +166,29 @@ void CGIHandler::handleEvent(int fd) {
     }
 }
 
+/*isDone
+/*brief Checks if the CGI process has completed all I/O operations
+/*@param None
+*/
 bool CGIHandler::isDone() const {
     return _stdout_done && _stderr_done && _process_done;
 }
 
+/*finalize
+/*brief Finalizes the CGI execution by parsing the output and returning the formatted response
+/*@param None
+*/
 std::string CGIHandler::finalize() {
     return parseOutput(_output);
 }
 
+/*initEnvironmentVars
+/*brief Initializes environment variables required for CGI script execution
+/*@param request The HTTP request object containing headers, method, and other request data
+*/
 std::unordered_map<std::string, std::string> CGIHandler::initEnvironmentVars(const Request& request) {
     
     std::unordered_map<std::string, std::string> envVariables;
-    // Initialize environment variables for CGI execution
     envVariables["REQUEST_METHOD"] = request.getMethod();
     envVariables["SCRIPT_NAME"] = _scriptPath;
     envVariables["QUERY_STRING"] = _queryString;
@@ -169,10 +200,13 @@ std::unordered_map<std::string, std::string> CGIHandler::initEnvironmentVars(con
     envVariables["GATEWAY_INTERFACE"] = "CGI/1.1";
 	envVariables["UPLOAD_DIR"] = _cgiUploadPath;
 	envVariables["TIMEOUT"] = std::to_string(_timeout);
-    // Add more environment variables as needed
     return envVariables;
 }
 
+/*buildEnvironmentArray
+/*brief Converts environment variables map to a C-style string array for execve
+/*@param envVariables Map containing environment variable names and values
+*/
 char** CGIHandler::buildEnvironmentArray(const std::unordered_map<std::string, std::string>& envVariables) {
     char** envp = new char*[envVariables.size() + 1];
     
@@ -180,15 +214,12 @@ char** CGIHandler::buildEnvironmentArray(const std::unordered_map<std::string, s
     try {
         for (const auto &pair : envVariables) {
             std::string envVar = pair.first + "=" + pair.second;
-            // Allocate each string with new[]
             envp[i] = new char[envVar.length() + 1];
-            // Copy string data
             std::strcpy(envp[i], envVar.c_str());
             ++i;
         }
-        envp[i] = nullptr; // Null-terminate array
+        envp[i] = nullptr;
     } catch (...) {
-        // Cleanup if any allocation fails
         for (size_t j = 0; j < i; ++j) {
             delete[] envp[j];
         }
@@ -198,6 +229,10 @@ char** CGIHandler::buildEnvironmentArray(const std::unordered_map<std::string, s
     return envp;
 }
 
+/*freeEnvironmentArray
+/*brief Frees allocated memory for environment variables array
+/*@param None
+*/
 void CGIHandler::freeEnvironmentArray() {
     if (!_envp) return;
 
@@ -209,14 +244,17 @@ void CGIHandler::freeEnvironmentArray() {
     _envp = nullptr; 
 }
 
-
+/*getInterpreter
+/*brief Determines the appropriate interpreter path based on script file extension
+/*@param scriptPath The full path to the script file
+/*note check OS specific path for exec (e.g. python3 - macOS: /opt/homebrew/bin/python3; linux: /usr/bin/python3
+*/
 std::string CGIHandler::getInterpreter(const std::string& scriptPath) {
     size_t dot = scriptPath.find_last_of('.');
     if (dot == std::string::npos) return "";
-    // check if i actually need all of these TODO
     std::string extension = scriptPath.substr(dot);
     _interpreter = extension;
-    if (extension == ".py") return "/usr/bin/python3"; // for macOS is /opt/homebrew/bin/python3 for linux is /usr/bin/python3
+    if (extension == ".py") return "/usr/bin/python3";
     if (extension == ".pl") return "/usr/bin/perl";
     if (extension == ".rb") return "/usr/bin/ruby";
     if (extension == ".sh") return "/bin/bash";
@@ -225,28 +263,27 @@ std::string CGIHandler::getInterpreter(const std::string& scriptPath) {
     return "";
 }
 
+/*parseOutput
+/*brief Parses CGI script output and formats it into a proper HTTP response
+/*@param output Vector containing the raw output from the CGI script
+*/
 std::string CGIHandler::parseOutput(const std::vector<char>& output) {
     std::string rawResponse;
     std::string startLine = "HTTP/1.1 200 OK\r\n";
     rawResponse += startLine;
 
     std::string outputStr(output.begin(), output.end());
-    // separate any headers that might be in the output
     std::string headers;
-    //find separator between headers and body
     size_t headerEnd = outputStr.find("\r\n\r\n");
     if (headerEnd == std::string::npos) {
-       //no headers, treat output as body
        headers += "Content-Type: text/html\r\n";
        headers += "Content-Length: " + std::to_string(output.size()) + "\r\n";
        rawResponse += headers + "\r\n";
        rawResponse += outputStr;
        return rawResponse;
     }
-    //extract headers
     headers = outputStr.substr(0, headerEnd);
-    //extract body
-    std::string body = outputStr.substr(headerEnd + 4); // +4 to skip the \r\n\r\n
+    std::string body = outputStr.substr(headerEnd + 4);
     if (body.empty()) {
         rawResponse += headers + "\r\n";
         rawResponse += "Content-Length: 0\r\n\r\n";
