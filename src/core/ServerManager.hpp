@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/24 21:46:15 by amysiv            #+#    #+#             */
-/*   Updated: 2025/08/24 22:29:16 by amysiv           ###   ########.fr       */
+/*   Updated: 2025/09/01 20:51:04 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,133 +101,127 @@ class ServerManager {
 	void setEpollCtl(int targetFd, int eventFlag, int operation);
 	
     /**
-	 * @brief Set fd to non-blocking mode.
-	 * @param fd File descriptor.
-     */
-	static void setNonBlocking(int fd);
-	
-    /**
-	 * @brief Bind socket to address list.
+     * @brief Bind socket to address list.
      * @param addrList Address list.
-	 * @return Bound socket fd.
+     * @return Bound socket fd.
      */
-	int bindSocket(addrinfo* addrList);
+    int bindSocket(addrinfo* addrList);
 	
     /**
-	 * @brief Handle event on listening socket.
-	 * @param epollEvents Epoll event struct.
+     * @brief Handle event on listening socket.
+     * @param epollEvents Epoll event struct.
      */
-	void manageListenSocketEvent(const struct epoll_event& epollEvents);
+    void manageListenSocketEvent(const struct epoll_event& epollEvents);
 	
     /**
-	 * @brief Handle generic epoll event.
-	 * @param epollEvents Epoll event struct.
+     * @brief Handle generic epoll event.
+     * @param epollEvents Epoll event struct.
      */
-	void manageEpollEvent(const struct epoll_event& epollEvents);
+    void manageEpollEvent(const struct epoll_event& epollEvents);
 	
     /**
-	 * @brief Add client to map.
-	 * @param clientFd Client fd.
-	 * @param serverFd Server fd.
+     * @brief Add client to map.
+     * @param clientFd Client fd.
+     * @param serverFd Server fd.
      */
-	void addClientToMap(int clientFd, int serverFd);
+    void addClientToMap(int clientFd, int serverFd);
 	
     /**
-	 * @brief Check if fd is listening socket.
-	 * @param fd File descriptor.
-	 * @return True if listening socket.
+     * @brief Check if fd is listening socket.
+     * @param fd File descriptor.
+     * @return True if listening socket.
      */
-	bool isListeningSocket(int fd);
+    bool isListeningSocket(int fd);
 	
     /**
-	 * @brief Check if fd is client socket.
-	 * @param fd File descriptor.
-	 * @return True if client socket.
+     * @brief Check if fd is client socket.
+     * @param fd File descriptor.
+     * @return True if client socket.
      */
-	bool isClientSocket(int fd);
+    bool isClientSocket(int fd);
 	
     /**
-	 * @brief Close client connection.
+     * @brief Close client connection.
      * @param clientFd Client fd.
      */
-	void closeClientFd(int clientFd);
+    void closeClientFd(int clientFd);
 	
 	public:
     /**
-	 * @brief Construct manager from config file.
-	 * @param ConfigFileName Path to config file.
-	 * @param epollSize Initial epoll size.
+     * @brief Construct manager from config file.
+     * @param ConfigFileName Path to config file.
+     * @param epollSize Initial epoll size.
      */
 	ServerManager(char* ConfigFileName, int epollSize);
 	
     /** @brief Destructor. */
     ~ServerManager();
-
-
-
+    
+    
+    
 	/**
-	 * @brief Initialize servers from configuration.
+     * @brief Initialize servers from configuration.
 	 */
-	void setServers();
-
-
-
-
+    void setServers();
+    
+    
+    
+    
 	
     /**
-	 * @brief Start main server loop.
+     * @brief Start main server loop.
      */
-	void runServers(void);
+    void runServers(void);
 	
     /**
      * @brief Get client map.
      * @return Map of fd to Client.
      */
     std::map<int, Client>& getFdClientMap(void);
-
+    
     /**
      * @brief Get all servers.
      * @return Vector of servers.
      */
     std::vector<Server>& getServers(void);
-
+    
     /**
      * @brief Get virtual servers (parsed config).
      * @return Reference to vector of virtual servers.
      */
     std::vector<vServer>& getVirtualServers(void);
-
+    
     /**
      * @brief Parse configuration file.
      * @param _vServers Vector to store parsed servers.
      */
     void parsConfigFile(std::vector<vServer>& _vServers);
-
+    
     /**
      * @brief Group servers by host.
      * @param _vServers Vector of virtual servers.
      */
     void groupServers(const std::vector<vServer>& _vServers);
-
+    
     /**
      * @brief Close all sockets.
      */
     void closeAllSockets();
-
+    
     /**
      * @brief Map CGI fd to client.
      * @param cgiFd CGI process fd.
      * @param clientFd Client fd.
      */
     void addCgiFdToMap(int cgiFd, int clientFd);
-
+    
     /**
      * @brief Find server configs by fd.
      * @param serverFd Server fd.
      * @return Vector of vServers for that fd.
      */
     const std::vector<const vServer*> findServerConfigsByFd(int serverFd) const;
-
+    
     /**
      * @brief Find server config by name.
      * @param subConfigs Sub server configs.
@@ -235,7 +229,7 @@ class ServerManager {
      * @return Matching vServer or nullptr.
      */
     const vServer* findServerConfigByName(const std::vector<const vServer*>& subConfigs, std::string serverName) const;
-
+    
     /**
      * @brief Find location block by URI.
      * @param serverConfig Server configuration.
@@ -243,34 +237,40 @@ class ServerManager {
      * @return Matching Location or nullptr.
      */
     const Location* findLocationBlockByUri(const vServer& serverConfig, const std::string& url) const;
-
+    
     /**
      * @brief Find default location block.
      * @param locations Map of locations.
      * @return Default Location or nullptr.
      */
     const Location* findDefaultLocationBlock(const std::map<std::string, Location>& locations) const;
-
+    
+    /**
+     * @brief Set fd to non-blocking mode.
+     * @param fd File descriptor.
+     */
+    static void setNonBlocking(int fd);
+    
     /**
      * @brief Exception for server manager errors.
      */
     class ServerManagerException : public std::exception {
-      private:
+        private:
         std::string _message;
-      public:
+        public:
         /**
          * @brief Construct exception with message.
          * @param message Error description.
          */
         ServerManagerException(const std::string& message);
-
+        
         /**
          * @brief Get error message.
          * @return C-string error message.
          */
         const char* what() const noexcept override;
     };
-
+    
     // Allow Client internals to access private control ops without making them public.
     friend class Client;
 };
