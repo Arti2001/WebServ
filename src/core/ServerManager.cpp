@@ -5,21 +5,25 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/07/06 13:08:11 by vshkonda          #+#    #+#             */
-/*   Updated: 2025/08/18 19:26:45 by amysiv           ###   ########.fr       */
+/*   Created: 2025/08/24 21:46:41 by amysiv            #+#    #+#             */
+/*   Updated: 2025/08/24 21:57:38 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "ServerManager.hpp"
 
-#include <filesystem>	
+
+
+#include "ServerManager.hpp"
+#include <filesystem>
 #include <utility>
 
-//constructors
-ServerManager::ServerManager(char* fileName, int epollSize) {
-	std::string fileNameStr;
 
-	
+
+
+ServerManager::ServerManager(char* fileName, int epollSize) {
+	std::string	fileNameStr;
+
+
 	if (fileName) {
 		fileNameStr = fileName;
 		struct stat s;
@@ -45,6 +49,9 @@ ServerManager::ServerManager(char* fileName, int epollSize) {
 	}
 }
 
+
+
+
 ServerManager::ServerManagerException::ServerManagerException(const std::string& msg) : _message(msg) {
 
 }
@@ -52,9 +59,8 @@ ServerManager::ServerManagerException::ServerManagerException(const std::string&
 
 
 
-//Destructor
-ServerManager::~ServerManager() {
 
+ServerManager::~ServerManager() {
 	if (_configFileFd.is_open()) {
 		_configFileFd.close();
 	}
@@ -64,22 +70,21 @@ ServerManager::~ServerManager() {
 
 
 
-//getters
+
 std::ifstream&	ServerManager::getConfigFileFd( void ) {
-	
 	return (_configFileFd);
 }
 
+
 int	ServerManager::getEpollFd( void ) const {
-	
 	return (_epollFd);
 }
 
-std::vector<vServer>&		ServerManager::getVirtualServers( void )
-{
-	
+
+std::vector<vServer>&		ServerManager::getVirtualServers( void ) {
 	return (_vServers);
 }
+
 
 std::vector<Server>&	ServerManager::getServers(void) {
 	return (_servers);
@@ -88,11 +93,7 @@ std::vector<Server>&	ServerManager::getServers(void) {
 
 
 
-
-//methods
-
 void	ServerManager::parsConfigFile(std::vector<vServer>& _vServers) {
-
 	ParseConfig									parser;
 	std::map<size_t, std::vector<std::string>>	roughData;
 
@@ -110,12 +111,13 @@ void	ServerManager::parsConfigFile(std::vector<vServer>& _vServers) {
 
 
 const char*	ServerManager::ServerManagerException::what() const noexcept {
-	
 	return (_message.c_str());
 }
 
-void	ServerManager::groupServers(const std::vector<vServer>& _vServers) {
 
+
+
+void	ServerManager::groupServers(const std::vector<vServer>& _vServers) {
 	for (const vServer& vServer : _vServers) {
 		const std::string& hostPort = vServer.getServerIpPort();
 		_hostVserverMap[hostPort].push_back(&vServer);
@@ -127,7 +129,6 @@ void	ServerManager::groupServers(const std::vector<vServer>& _vServers) {
 
 
 void	ServerManager::setServers() {
-	
 	std::map<std::string, std::vector<const vServer*>>::iterator	it = _hostVserverMap.begin();
 
 	for (;it != _hostVserverMap.end(); it++) {
@@ -136,7 +137,6 @@ void	ServerManager::setServers() {
 		const std::string& port = it->second.at(0)->getServerPort();
 		int	socketFd = getSocketFd(host, port);
 		_servers.emplace_back(socketFd, it->second);
-
 	}
 }
 
@@ -144,10 +144,9 @@ void	ServerManager::setServers() {
 
 
 int	ServerManager::getSocketFd(const std::string& host, const std::string& port) {
-	
 	addrinfo*	addrList = getAddrList(host, port);
 	int			socketFd = bindSocket(addrList);
-	
+
 	setNonBlocking(socketFd);
 	if (listen(socketFd, QUEUE_LENGTH) == -1)
 	{
@@ -162,7 +161,6 @@ int	ServerManager::getSocketFd(const std::string& host, const std::string& port)
 
 
 addrinfo* ServerManager::getAddrList(const std::string& currHost, const std::string& currPort) {
-
 	struct addrinfo	hints, *addrList;
 	int				infoRet;
 
@@ -171,7 +169,7 @@ addrinfo* ServerManager::getAddrList(const std::string& currHost, const std::str
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = 0;
 	hints.ai_flags = AI_PASSIVE;
-	
+
 	infoRet = getaddrinfo(currHost.c_str(), currPort.c_str(), &hints, &addrList);
 	if (infoRet != 0 ) {
 		throw ServerManagerException(std::string("getaddrinfo(): ") + gai_strerror(infoRet));
@@ -180,10 +178,13 @@ addrinfo* ServerManager::getAddrList(const std::string& currHost, const std::str
 }
 
 
-std::map<int, Client>&	ServerManager::getFdClientMap(void) {
 
+
+std::map<int, Client>&	ServerManager::getFdClientMap(void) {
 	return (_fdClientMap);
 }
+
+
 
 
 int	ServerManager::bindSocket(addrinfo* addrList) {
@@ -239,13 +240,11 @@ void	ServerManager::setNonBlocking(int fd) {
 
 
 void	ServerManager::setEpollCtl( int targetFd, int eventFlag, int operation){
-
 	struct epoll_event	targetEvent;
 
 	targetEvent.data.fd = targetFd;
 	targetEvent.events = eventFlag;
 	if (epoll_ctl(_epollFd, operation, targetFd, &targetEvent) == -1) {
-
 		close(targetFd);
 	}
 }
@@ -254,7 +253,6 @@ void	ServerManager::setEpollCtl( int targetFd, int eventFlag, int operation){
 
 
 void	ServerManager::setSocketsToEpollIn(void) {
-
 	for (size_t i = 0; i < _servers.size(); i++)
 	{
 		setEpollCtl(_servers[i].getSocketFd(), EPOLLIN, EPOLL_CTL_ADD);
@@ -264,34 +262,19 @@ void	ServerManager::setSocketsToEpollIn(void) {
 
 
 
+
 void	ServerManager::closeClientFd(int clientFd){
 
 	epoll_ctl(_epollFd, EPOLL_CTL_DEL, clientFd, nullptr);
-	//_fdClientMap.at(clientFd).setIsClosed(true);
 	close(clientFd);
 	_fdClientMap.erase(clientFd);
 }
 
-//void	ServerManager::closeIdleConnections() {
-
-//	time_t	currTime = std::time(nullptr);
-
-//	for(std::map<int, Client>::iterator it = _fdClientMap.begin(); it != _fdClientMap.end(); it++) {
-//		if ((currTime - it->second.getLastActiveTime()) > SERVER_TIMEOUT_MS) {
-//			std::cout<< "Found an idle connection"<< "\n";
-//			const std::vector<const vServer*>& fromThisServer = findServerConfigsByFd(it->second.getServerFd());
-//			std::cerr<< "Time out: Closing the client hosted at the host: " + fromThisServer.at(0)->getServerIpPort()<< "\n";
-//			closeClientFd(it->first);
-//		}
-//	}
-//}
 
 
-//helper functions
 
 bool	ServerManager::isListeningSocket(int fd) {
 	for(const Server& server : _servers) {
-		
 		if (server.getSocketFd() == fd) {
 			return (true);
 		}
@@ -300,8 +283,9 @@ bool	ServerManager::isListeningSocket(int fd) {
 }
 
 
-bool	ServerManager::isClientSocket(int fd) {
 
+
+bool	ServerManager::isClientSocket(int fd) {
 	std::map<int, Client>::iterator it = _fdClientMap.begin();
 
 	for (;it != _fdClientMap.end(); it++) {
@@ -316,10 +300,10 @@ bool	ServerManager::isClientSocket(int fd) {
 
 
 void	ServerManager::runServers(void) {
-
 	struct epoll_event	epollEvents[EPOLL_CAPACITY];
+
 	std::cout << "Running servers..." << "\n";
-	setSocketsToEpollIn();//all listening fds are set to IN event now
+	setSocketsToEpollIn();
 	while (running) {
 		int timeout = 1000;
 		int readyFds = epoll_wait(_epollFd, epollEvents, EPOLL_CAPACITY, timeout);
@@ -339,10 +323,10 @@ void	ServerManager::runServers(void) {
 void	ServerManager::manageListenSocketEvent(const struct epoll_event& currEvent) {
 	struct sockaddr_storage	clientAddr;
 	socklen_t				clientAddrLen = sizeof(clientAddr);
-	
+
 	int acceptedSocket = accept(currEvent.data.fd, (struct sockaddr *)&clientAddr, &clientAddrLen);
 	if (acceptedSocket == -1) {
-		
+
 		if (errno == EAGAIN || errno == EWOULDBLOCK) {
 			std::cerr << "No client connections available at the moment." << std::endl;
 			return;
@@ -350,7 +334,6 @@ void	ServerManager::manageListenSocketEvent(const struct epoll_event& currEvent)
 		throw ServerManagerException("Failed to accept the client socket");
 	}
 	addClientToMap(acceptedSocket, currEvent.data.fd);
-	
 }
 
 
@@ -363,23 +346,27 @@ void ServerManager::addClientToMap(int clientFd, int serverFd) {
 }
 
 
-void ServerManager::addCgiFdToMap(int cgiFd, int clientFd) {
 
+
+void ServerManager::addCgiFdToMap(int cgiFd, int clientFd) {
 	auto it = _fdClientMap.find(clientFd);
+
 	if (it == _fdClientMap.end()) {
 		std::cerr << "Error: Client fd not found in map." << std::endl;
 		return;
 	}
-	Client* clientPtr = &it->second; // get pointer to Client object
-
+	Client* clientPtr = &it->second; 
 	setNonBlocking(cgiFd);
 	setEpollCtl(cgiFd, EPOLLIN, EPOLL_CTL_ADD);
-	_cgiFdClientPtrMap.emplace(cgiFd, clientPtr); // store pointer to Client object
+	_cgiFdClientPtrMap.emplace(cgiFd, clientPtr);
 }
 
-void	ServerManager::manageEpollEvent(const struct epoll_event& currEvent) {
 
+
+
+void	ServerManager::manageEpollEvent(const struct epoll_event& currEvent) {
 	int	fd = currEvent.data.fd;
+
 	if (isListeningSocket(fd)) {
 		manageListenSocketEvent(currEvent);
 	}
@@ -396,7 +383,7 @@ void	ServerManager::manageEpollEvent(const struct epoll_event& currEvent) {
 		int stdout_fd = cgiHandler->getStdoutFd();
 		if (fd == stdout_fd || fd == stderr_fd) {
 			cgiHandler->handleEvent(fd);
-			
+
 			// If both stdout and stderr are done, and the process is done, clean up
 			if (cgiHandler->isDone()) {
 				clientPtr->getResponse().generateCGIResponse();
@@ -443,6 +430,7 @@ const std::vector<const vServer*> ServerManager::findServerConfigsByFd(int fd) c
 
 
 
+
 const vServer* ServerManager::findServerConfigByName(const std::vector<const vServer*>& subConfigs, std::string serverName) const
 {
 	if (subConfigs.empty()) {
@@ -459,21 +447,25 @@ const vServer* ServerManager::findServerConfigByName(const std::vector<const vSe
 			}
 		}
 	}
-	return(defaultServConfig); // fallback
+	return(defaultServConfig); 
 }
 
-const Location*	ServerManager::findDefaultLocationBlock(const std::map<std::string,Location>& locations) const {
 
+
+
+const Location*	ServerManager::findDefaultLocationBlock(const std::map<std::string,Location>& locations) const {
 	if(locations.find("/") != locations.end())
 		return(&locations.at("/"));
 	return(nullptr);
 }
 
+
+
+
 const Location*	ServerManager::findLocationBlockByUri(const vServer& serverConfig, const std::string& uri) const {
 	const std::map<std::string, Location>& locations = serverConfig.getServerLocations();
-
-	size_t longestMatchLen = 0;
-	const Location* bestMatchLocation = nullptr;
+	size_t									longestMatchLen = 0;
+	const Location* 						bestMatchLocation 	= nullptr;
 
 	for (std::map<std::string, Location>::const_iterator it = locations.begin(); it != locations.end(); ++it) {
 		const std::string& locationPath = it->first;
@@ -489,11 +481,12 @@ const Location*	ServerManager::findLocationBlockByUri(const vServer& serverConfi
 	const Location* defaultLocation = findDefaultLocationBlock(locations);
 	if (!defaultLocation) {
 		std::cout<< "No location block found, no  default location block found " << "\n";
-		return (nullptr); // better to return nullptr if no default location is found as it inicates that something went wrogn with creation of default location
-		
+		return (nullptr);
 	}
 	return (defaultLocation);
 }
+
+
 
 
 void ServerManager::closeAllSockets() {
