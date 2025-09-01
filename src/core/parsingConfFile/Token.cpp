@@ -6,11 +6,17 @@
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/06 13:09:14 by vshkonda          #+#    #+#             */
-/*   Updated: 2025/08/19 10:33:28 by amysiv           ###   ########.fr       */
+/*   Updated: 2025/09/01 21:27:31 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+
+
+
 #include "ParseConfig.hpp"
+
+
+
 
 bool	isComment(const std::string& line) {
 	for (char c : line) {
@@ -21,6 +27,7 @@ bool	isComment(const std::string& line) {
 	}
 	return (false);
 }
+
 
 
 
@@ -41,6 +48,7 @@ std::string	addSpace(const std::string& str) {
 	}
 	return (new_string);
 }
+
 
 
 
@@ -65,6 +73,7 @@ std::map<size_t, std::vector<std::string>>	ParseConfig::prepToTokenizeConfigData
 
 
 
+
 std::vector<std::string>	split(const std::string& str) {
 	std::vector<std::string>	lexemes;
 	std::stringstream			iss(str);
@@ -76,6 +85,7 @@ std::vector<std::string>	split(const std::string& str) {
 	}
 	return (lexemes);
 }
+
 
 
 

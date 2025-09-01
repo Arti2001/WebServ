@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   Utils.hpp                                          :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/07/06 13:08:19 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/08/24 21:40:16 by vovashko      ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   Utils.hpp                                          :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/07/06 13:08:19 by vshkonda          #+#    #+#             */
+/*   Updated: 2025/09/01 21:06:08 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ class Utils {
          * @note Used in HTTP headers like Server and User-Agent
          */
         static std::string serverNameString();
-        
+
         // String manipulation utilities
         /**
          * @brief Removes leading and trailing whitespace from a string

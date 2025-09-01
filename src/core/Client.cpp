@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   Client.cpp                                         :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/07/06 13:07:50 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/07/10 18:58:52 by vshkonda      ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   Client.cpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/07/06 13:07:50 by vshkonda          #+#    #+#             */
+/*   Updated: 2025/09/01 21:05:53 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,8 +19,12 @@ Client::Client(int serverFd, ServerManager* serverManager) : _headersParsed(fals
 
 
 
+
 Client::~Client() {
 }
+
+
+
 
 Client::Client(const Client& other) : _request(other._request), _startLineAndHeadersBuffer(other._startLineAndHeadersBuffer),
 	_bodyBuffer(other._bodyBuffer), _headersParsed(other._headersParsed), _bodyStart(other._bodyStart),
@@ -28,25 +32,37 @@ Client::Client(const Client& other) : _request(other._request), _startLineAndHea
 	_serverManager(other._serverManager), _lastActiveTime(other._lastActiveTime), _closeAfterResponse(other._closeAfterResponse) {
 }
 
-//Setters
+
+
+
+
 void	Client::setLastActiveTime( std::time_t timeStamp) {
 	this->_lastActiveTime = timeStamp;
 }
 
-//Getters
+
+
 
 std::time_t	Client::getLastActiveTime( void ) const {
-
 	return(_lastActiveTime);
 }
+
+
+
 
 int	Client::getServerFd(void) const {
 	return(_serverFd);
 }
 
+
+
+
 size_t& Client::getClientsBytesSent(void) {
 	return(_clientBytesSent);
 }
+
+
+
 
 std::string	Client::prepareResponse(int clientFd) {
 	int		socketClientConnectedTo = this->getServerFd();
@@ -93,7 +109,7 @@ bool Client::bodyComplete(const std::string& body) const {
 void    Client::handleRequest (int clientFd) {
     char        requestBuffer[REQUEST_READ_BUFFER];//8KB
     ssize_t     bytesRead;
-    
+
     bytesRead = recv(clientFd, requestBuffer, REQUEST_READ_BUFFER, 0);
     if (bytesRead > 0)
     {
@@ -126,7 +142,6 @@ void    Client::handleRequest (int clientFd) {
 				_request.setBody(_bodyBuffer);
 				_request.parseBody();
 				_bodyBuffer.clear(); // Clear the body buffer after parsing
-				
 			} else {
 				// std::cout << "Body not complete yet, waiting for more data..." << std::endl;
 				return;
@@ -137,7 +152,6 @@ void    Client::handleRequest (int clientFd) {
 		// std::cout << "Request start line: " << _request.getPath() << std::endl;
 		_serverManager->setEpollCtl(clientFd, EPOLLOUT, EPOLL_CTL_MOD);
         return ;
-		
     }
     else if (bytesRead == 0) {
         std::cout << "Client disconnected: Clean up!" << std::endl;
@@ -185,12 +199,11 @@ void Client::sendResponse(std::string responseBody, int clientFd)
 	_clientBytesSent += bytesSent;
 	if (_clientBytesSent == responseSize) {
 		_clientBytesSent = 0;
-		_serverManager->closeClientFd(clientFd);	
+		_serverManager->closeClientFd(clientFd);
 	}
 }
 
 std::string Client::getAnyHeader(std::unordered_map<std::string, std::string> headers, std::string headerName) {
-
 	std::unordered_map<std::string, std::string>::iterator it = headers.find(headerName);
 
 	if (it != headers.end()) {
