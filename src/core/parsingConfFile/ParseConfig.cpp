@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/18 19:16:45 by amysiv            #+#    #+#             */
-/*   Updated: 2025/08/18 19:16:54 by amysiv           ###   ########.fr       */
+/*   Updated: 2025/09/03 15:07:33 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@
 
 ParseConfig::ParseConfig() : depth(0), currToken(0) {
 	_keywords[";"] = SEMICOLON;
+	_keywords["#"] = COMMENT;
 	_keywords["{"] = OPENED_BRACE;
 	_keywords["}"] = CLOSED_BRACE;
 	_keywords["root"] = ROOT_DIR;
@@ -119,9 +120,9 @@ void	ParseConfig::parseConfigFileTokens(std::vector<vServer>& _vServers) {
 	for (; currToken < _tokens.size();currToken++) {
 
 		if (_tokens[currToken].type == SERVER_BLOCK) { //we encountered a keyword server
-			if (_tokens[currToken + 1].type != OPENED_BRACE) { // if server block is not folowed by a {  we throw an exception
+
+			if (_tokens[currToken + 1].type != OPENED_BRACE)// if server block is not folowed by a {  we throw an exception
 				throw ConfException("Expected ' { ' after ' server '");
-			}
 
 			vServer	vserv; // creates an instance of a virtual server
 			depth = LEVEL; // I neeed it to understand in what type of block I am currently at. If depth != 0  means I am in location block. Helps to track the depth of nested structure basically
@@ -132,9 +133,10 @@ void	ParseConfig::parseConfigFileTokens(std::vector<vServer>& _vServers) {
 			_vServers.push_back(vserv); // here I add  a virtual server into the vector of  vServers
 			seenDirectives.clear();//clearing a set of seen directives
 		}
-		else {
+		else if (_tokens[currToken].type == COMMENT)
+			continue;
+		else
 			throw ConfException("Alien object is detected at the line: " + std::to_string(_tokens[currToken].line_number)); // check for alien object before the server keyword
-		}
 	}
 	if (_vServers.empty()) // we create a default instance of a vServer with default values, that are in the object constructor.
 		_vServers.push_back(createDefaultConfig());
@@ -218,7 +220,7 @@ std::ostream& operator<<(std::ostream& os, const vServer& server) {
 
 
 void	ParseConfig::parsevServerBlock(vServer& serv) {
-	while (depth > 0) { //here depth is 1, we are in the server block
+	while (depth > 0) {
 
 		if (_tokens[currToken].type == CLOSED_BRACE) {
 			depth--;
@@ -233,8 +235,7 @@ void	ParseConfig::parsevServerBlock(vServer& serv) {
 			depth -= LEVEL;
 		}
 		else{
-			std::cout<< "Trash: " +_tokens[currToken].lexem<< "\n";
-			if (_tokens[currToken].type != COMMENT) 
+			if (_tokens[currToken].type != COMMENT)
 				throw ConfException("Alien object is detected at the line: " + std::to_string(_tokens[currToken].line_number));
 		}
 		currToken++;
@@ -285,9 +286,9 @@ loc.setLocationPath(locationPath);
 for (; _tokens[currToken].type != CLOSED_BRACE; currToken++) {
 
 	if (_tokens[currToken].type == COMMENT) {
-		std::cout << "FOUND COMENT : " + _tokens[currToken].lexem<<"\n";
 		continue;
 	}
+
 	std::pair<Token, std::vector<std::string>> pair = makeKeyValuePair();
 	switch (pair.first.type) {
 		case ROOT_DIR:
@@ -385,29 +386,28 @@ std::pair< Token, std::vector<std::string>>	ParseConfig::makeKeyValuePair(void) 
 	Token										key = _tokens[currToken];
 	ssize_t										tokenLevel = _tokens[currToken].line_number;
 	std::vector<std::string>					values;
-	std::pair< Token, std::vector<std::string>>	pair;
+	std::pair<Token, std::vector<std::string>>	pair;
 
-	if (key.type == SEMICOLON) {
+	if (key.type == SEMICOLON)
 		throw ConfException(std::to_string(_tokens[currToken].line_number) + " :: This filed has no directive name.");
-	}
+
 	currToken ++; //sitch to the next token, potential value
-	if (_tokens[currToken].type == SEMICOLON) {
+	if (_tokens[currToken].type == SEMICOLON)
 		throw ConfException(std::to_string(_tokens[currToken].line_number) + " :: This filed has no arguments.");
-	}
+
 
 	while (_tokens[currToken].type != SEMICOLON) {
-		std::cout << key.lexem << " " <<_tokens[currToken].lexem  << " " << _tokens[currToken].line_number << "\n";
+
 		if (_tokens[currToken].line_number == tokenLevel)
 			values.push_back(_tokens[currToken].lexem);
 		else
 			throw ConfException(std::to_string(_tokens[currToken].line_number - 1) + " :: No semicolon at the end of the line.");
-
 		currToken++;
 	}
 
-	if (_tokens[currToken].type == SEMICOLON && _tokens[currToken].line_number != tokenLevel) {
+	if (_tokens[currToken].type == SEMICOLON && _tokens[currToken].line_number != tokenLevel)
 			throw ConfException(std::to_string(_tokens[currToken].line_number - 1 ) + " :: No semicolon at the end of the line.");
-	}
+
 	pair = {key, values};
 	return (pair);
 }

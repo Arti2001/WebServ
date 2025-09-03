@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/18 19:17:08 by amysiv            #+#    #+#             */
-/*   Updated: 2025/08/19 10:32:09 by amysiv           ###   ########.fr       */
+/*   Updated: 2025/09/01 21:49:02 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,7 @@ enum TokenType {
 	RETURN_DIR,
 	SERVER_BLOCK,
 	LOCATION_BLOCK,
+	HASH,
 	COMMENT,
 	UNKNOWN
 };

@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/06 13:09:14 by vshkonda          #+#    #+#             */
-/*   Updated: 2025/09/01 21:27:31 by amysiv           ###   ########.fr       */
+/*   Updated: 2025/09/03 15:00:42 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,7 @@ std::map<size_t, std::vector<std::string>>	ParseConfig::prepToTokenizeConfigData
 	int											lineCounter = 1;
 
 	while (std::getline(configFile, line)) {
-		if (line.empty() || isComment(line)) {
+		if (line.empty()) {
 			lineCounter++;
 			continue;
 		}

@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/06 13:08:25 by vshkonda          #+#    #+#             */
-/*   Updated: 2025/08/18 19:21:04 by amysiv           ###   ########.fr       */
+/*   Updated: 2025/09/01 21:54:33 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,10 +37,10 @@ int main(int argc, char *argv[]) {
 		ServerManager serverManager(argv[1], EPOLL_CAPACITY);
 		signal(SIGINT, signalHandler);
 		signal(SIGPIPE, SIG_IGN);
-
-		serverManager.parsConfigFile(serverManager.getVirtualServers());
+		std::vector<vServer>& virtualServers = serverManager.getVirtualServers();
+		serverManager.parsConfigFile(virtualServers);
 		std::cout << "Configuration file parsed successfully." << "\n";
-		serverManager.groupServers(serverManager.getVirtualServers());
+		serverManager.groupServers(virtualServers);
 
 		serverManager.setServers();
 
