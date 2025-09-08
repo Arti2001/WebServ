@@ -41,7 +41,10 @@ cd webserv && docker build -t webserv .
 ⚠️ Note: If no arguments  were provided the program will use a **default configuration file**, which has restricted abilities.
 
 * If you are using Docker 🐋
-The program will run after the using the command in the previous step. 
+```
+docker run -p 8071:8071 webserv
+```
+NOTE: 8071 is default port we used, feel free to update to the one you desire
 You'll be able to access your server as per configurations mentioned in the dockerfile CMD (e.g. "config-files/working/webserv.conf")
 Feel free to change the configuration file or remove completely.
 

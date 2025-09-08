@@ -5,9 +5,6 @@ FROM ubuntu:22.04
 RUN apt-get update && \
     apt-get install -y g++ make curl uuid-dev python3
 
-# Create app directory
-WORKDIR /app
-
 # Copy everything into the container
 COPY . .
 
