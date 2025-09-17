@@ -6,15 +6,12 @@
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/06 13:08:25 by vshkonda          #+#    #+#             */
-/*   Updated: 2025/09/01 21:54:33 by amysiv           ###   ########.fr       */
+/*   Updated: 2025/09/17 10:58:03 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "core/ServerManager.hpp"
-#include "core/Server.hpp"
-#include "core/Request/Request.hpp"
-#include "core/Response/Response.hpp"
-#include "core/Utils.hpp"
+
 
 volatile sig_atomic_t	running = 1;
 
@@ -39,20 +36,15 @@ int main(int argc, char *argv[]) {
 		signal(SIGPIPE, SIG_IGN);
 		std::vector<vServer>& virtualServers = serverManager.getVirtualServers();
 		serverManager.parsConfigFile(virtualServers);
-		std::cout << "Configuration file parsed successfully." << "\n";
 		serverManager.groupServers(virtualServers);
-
 		serverManager.setServers();
-
 		serverManager.runServers();
 		serverManager.closeAllSockets();
 	}
 	catch(ServerManager::ServerManagerException& ex) {
-
-		std::cerr << "ServerManager::Error: " << ex.what()<< "\n";
+		std::cerr << "ServerManager::Error: " << ex.what() << "\n";
 		return (-1);
 	}
-
 	return 0;
 }
 

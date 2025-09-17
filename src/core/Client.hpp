@@ -6,13 +6,17 @@
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/01 21:02:06 by amysiv            #+#    #+#             */
-/*   Updated: 2025/09/01 21:03:11 by amysiv           ###   ########.fr       */
+/*   Updated: 2025/09/17 10:48:57 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
 #define REQUEST_READ_BUFFER 15000  ///< Maximum buffer size for reading client requests
+
+
+
+
 
 #include "Request/Request.hpp"
 #include "ServerManager.hpp"
@@ -22,8 +26,16 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+
+
+
+
 class ServerManager;
 class Response;
+
+
+
+
 
 /**
  * @class Client

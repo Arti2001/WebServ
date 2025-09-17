@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   CGIHandler.cpp                                     :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: amysiv <amysiv@student.42.fr>                +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/06/30 12:13:01 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/08/24 22:46:55 by vovashko      ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   CGIHandler.cpp                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/06/30 12:13:01 by vshkonda          #+#    #+#             */
+/*   Updated: 2025/09/16 21:19:52 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,9 +42,9 @@ CGIHandler::~CGIHandler()
 std::string CGIHandler::resolveScriptPath(const std::string& rootPath, const std::string& uri, const std::string& cgiIndexFile)
 {
     std::string scriptPath;
-    scriptPath = Utils::joinPaths(rootPath, uri);
+    scriptPath = parsingUtils::joinPaths(rootPath, uri);
     if (!cgiIndexFile.empty())
-        scriptPath = Utils::joinPaths(scriptPath, cgiIndexFile);
+        scriptPath = parsingUtils::joinPaths(scriptPath, cgiIndexFile);
 
     struct stat fileStat;
     if (stat(scriptPath.c_str(), &fileStat) < 0) {

@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Utils.hpp                                          :+:      :+:    :+:   */
+/*   parsingUtils                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -10,13 +10,19 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef UTILS_HPP
-#define UTILS_HPP
+#ifndef parsingUtils_HPP
+#define parsingUtils_HPP
+
+
+
 
 #include <string>
 #include <ctime>
 #include <sstream>
 #include <vector>
+
+
+
 
 /**
  * @brief Utility class providing common helper functions for the webserv application
@@ -25,7 +31,7 @@
  *          and can be called without instantiating the class.
  * @note Designed as a utility class with no state, providing pure functions for common tasks.
  */
-class Utils {
+class parsingUtils {
     public:
         // Date and time utilities
         /**

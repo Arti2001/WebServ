@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/18 19:17:08 by amysiv            #+#    #+#             */
-/*   Updated: 2025/09/01 21:49:02 by amysiv           ###   ########.fr       */
+/*   Updated: 2025/09/17 10:55:11 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 
 class vServer;
 class Location;
+
 
 
 
@@ -237,7 +238,7 @@ class ParseConfig {
 		 * @return std::map<size_t, std::vector<std::string>>
 		 *         Map where the key is the line number and the value is a vector of lexemes.
 		 */
-		std::map<size_t, std::vector<std::string>>		prepToTokenizeConfigData(std::ifstream& configFile);
+		std::map<size_t, std::vector<std::string>>		collectLexemesByLine(std::ifstream& configFile);
 
 
 
@@ -253,7 +254,7 @@ class ParseConfig {
 		 * @param lineNumbLexemes Map of line numbers to vectors of lexemes for that line.
 		 * @return void
 		 */
-		void											tokenizeConfigData(std::map<size_t, std::vector<std::string>> lineNumbLexemes);
+		void											lexemesToTokens(std::map<size_t, std::vector<std::string>> lineNumbLexemes);
 
 
 
@@ -272,7 +273,7 @@ class ParseConfig {
 		 * @throw ConfException If braces are unbalanced, a server block is malformed,
 		 *        or unexpected tokens are found.
 		 */
-		void											parseConfigFileTokens(std::vector<vServer>& _vServers);
+		void											parseServerBlocks(std::vector<vServer>& _vServers);
 
 
 

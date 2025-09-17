@@ -6,12 +6,18 @@
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/06 13:09:20 by vshkonda          #+#    #+#             */
-/*   Updated: 2025/08/20 22:00:54 by amysiv           ###   ########.fr       */
+/*   Updated: 2025/09/17 10:50:33 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+
+
 #ifndef vServer_HPP
 #define vServer_HPP
+
+
+
+
 #define MAX_PORT_NUMB 65535
 #define MIN_PORT_NUMB 1
 #define MAX_SERVER_NAME_NUMB 2

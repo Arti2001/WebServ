@@ -1,26 +1,26 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   Request.hpp                                        :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/07/06 13:08:38 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/08/24 21:38:25 by vovashko      ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   Request.hpp                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/07/06 13:08:38 by vshkonda          #+#    #+#             */
+/*   Updated: 2025/09/17 10:35:41 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef REQUEST_HPP
 #define REQUEST_HPP
 
-#include <string>
+
+
+#include "../parsingUtils.hpp"
 #include <unordered_map>
 #include <unordered_set>
 #include <iostream>
-#include <ctime>
-#include <sstream>
-#include <vector>
-#include "../Utils.hpp"
+
+
 
 #define REQUEST_DEFAULT_TIMEOUT 10 // Default timeout for the request in seconds
 #define REQUEST_DEFAULT_STATUS_CODE 200 // Default status code for the request

@@ -92,9 +92,9 @@ Syntax is similar, but not fully the same.
 
 
   **Location** Block Directives
-    
-  | Directive              | Description                                                                 | Example                             |
-  | ---------------------- | --------------------------------------------------------------------------- | ----------------------------------- |
+  
+  | Directive              | Description                                                                       | Example                             |
+  | ---------------------- | ---------------------------------------------------------------------------       | ----------------------------------- |
   | `path`                 | Path prefix this location applies to                                              | `location /images { ... }`          |
   | `upload_path`          | Directory where uploaded files will be stored                                     | `upload_path website/uploads/;`     |
   | `root`                 | Root directory for this location (fallback to server root if not specified)       | `root /var/www/images;`             |
@@ -123,14 +123,13 @@ Syntax is similar, but not fully the same.
     listen localhost:8080               # IP address to bind : TCP port
     server_name myserver.com;           # Virtual host names
     root website/;                      # Root directory
-    index index.html;                   # Default index files
+    index index.html;                   # Default Index files
     autoindex off;                      # Directory listing off
     client_max_body_size 1G;            # Max body size (1G = 1 gigabyte)
     error_page 404 /errors/404.html;    # Custom error pages
     error_page 500 /errors/500.html;
 
     location / {
-        path /;                         # Path prefix for this location
         root website/;                  # Root directory (fallback to server root)
         index index.html;               # Index files (fallback to server index)
         autoindex 0;                     # Directory listing (0=off, 1=on)

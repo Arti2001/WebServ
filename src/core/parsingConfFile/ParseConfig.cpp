@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/18 19:16:45 by amysiv            #+#    #+#             */
-/*   Updated: 2025/09/03 15:07:33 by amysiv           ###   ########.fr       */
+/*   Updated: 2025/09/16 22:08:11 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,35 +113,46 @@ const vServer	ParseConfig::createDefaultConfig(void) {
 
 
 
-void	ParseConfig::parseConfigFileTokens(std::vector<vServer>& _vServers) {
-	if (!validBrace()) //check for  enclosed braces
-		throw ConfException("Floating closing brace in the configuration file");
+void ParseConfig::parseServerBlocks(std::vector<vServer>& outServers) {
+    if (!validBrace())
+        throw ConfException("Unbalanced braces in configuration file");
 
-	for (; currToken < _tokens.size();currToken++) {
+    for (; currToken < _tokens.size(); currToken++) {
+        const Token& tk = _tokens[currToken];
 
-		if (_tokens[currToken].type == SERVER_BLOCK) { //we encountered a keyword server
+        if (tk.type == SERVER_BLOCK) {
+            if (currToken + 1 >= _tokens.size() ||
+                _tokens[currToken + 1].type != OPENED_BRACE) {
+                throw ConfException("Expected '{' after 'server' at line " +
+                                    std::to_string(tk.line_number));
+            }
 
-			if (_tokens[currToken + 1].type != OPENED_BRACE)// if server block is not folowed by a {  we throw an exception
-				throw ConfException("Expected ' { ' after ' server '");
+            vServer vserv;
+            depth = LEVEL;
+            currToken += 2;
+            parsevServerBlock(vserv);
 
-			vServer	vserv; // creates an instance of a virtual server
-			depth = LEVEL; // I neeed it to understand in what type of block I am currently at. If depth != 0  means I am in location block. Helps to track the depth of nested structure basically
-			currToken += 2; // this variable I will increase when I pass a keyword, here by 2 because `server`, `{` are two keywords
-			parsevServerBlock(vserv);//here the whole parsing magic happends
-			if (vserv.getServerLocations().find("/") == vserv.getServerLocations().end()) //this is a map  path = Location instance, if config does not have a default location block we basically create one, and  add it to the vector of locations for current server
-				vserv.getServerLocations().emplace("/", Location(vserv));
-			_vServers.push_back(vserv); // here I add  a virtual server into the vector of  vServers
-			seenDirectives.clear();//clearing a set of seen directives
-		}
-		else if (_tokens[currToken].type == COMMENT)
-			continue;
-		else
-			throw ConfException("Alien object is detected at the line: " + std::to_string(_tokens[currToken].line_number)); // check for alien object before the server keyword
-	}
-	if (_vServers.empty()) // we create a default instance of a vServer with default values, that are in the object constructor.
-		_vServers.push_back(createDefaultConfig());
+            if (vserv.getServerLocations().find("/") ==
+                vserv.getServerLocations().end()) {
+                vserv.getServerLocations().emplace("/", Location(vserv));
+            }
 
-	std::cout << _vServers; // an overload, shows directives and their values.
+            outServers.push_back(vserv);
+            seenDirectives.clear();
+        }
+        else if (tk.type == COMMENT) {
+            continue;
+        }
+        else {
+            throw ConfException("Unexpected token at line " +
+                std::to_string(tk.line_number) + ": '" + tk.lexem + "'");
+        }
+    }
+
+    if (outServers.empty())
+        outServers.push_back(createDefaultConfig());
+
+    std::cout << outServers;
 }
 
 
@@ -220,25 +231,26 @@ std::ostream& operator<<(std::ostream& os, const vServer& server) {
 
 
 void	ParseConfig::parsevServerBlock(vServer& serv) {
-	while (depth > 0) {
-
-		if (_tokens[currToken].type == CLOSED_BRACE) {
+	for (;depth > 0; currToken++) {
+		TokenType currTokenType =  _tokens[currToken].type ;
+		if (currTokenType == CLOSED_BRACE) {
 			depth--;
 			continue;
 		}
-		else if (isTokenDirective(_tokens[currToken].type)) {
+		else if (isTokenDirective(currTokenType)) {
 			validateServerBlockDirectives(serv);
 		}
-		else if (_tokens[currToken].type == LOCATION_BLOCK) {
+		else if (currTokenType == LOCATION_BLOCK) {
 			depth += LEVEL;
 			validateLocationBlockDirectives(serv);
 			depth -= LEVEL;
 		}
-		else{
-			if (_tokens[currToken].type != COMMENT)
-				throw ConfException("Alien object is detected at the line: " + std::to_string(_tokens[currToken].line_number));
+		else if (currToken == COMMENT) {
+			continue;
 		}
-		currToken++;
+		else{
+			throw ConfException("Invalid directive name: " + _tokens[currToken].lexem + " not found!");
+		}
 	}
 }
 

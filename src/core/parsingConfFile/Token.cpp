@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/06 13:09:14 by vshkonda          #+#    #+#             */
-/*   Updated: 2025/09/03 15:00:42 by amysiv           ###   ########.fr       */
+/*   Updated: 2025/09/08 18:06:02 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ std::string	addSpace(const std::string& str) {
 
 
 
-std::map<size_t, std::vector<std::string>>	ParseConfig::prepToTokenizeConfigData(std::ifstream& configFile) {
+std::map<size_t, std::vector<std::string>>	ParseConfig::collectLexemesByLine(std::ifstream& configFile) {
 	std::vector<std::string>					lexemes;
 	std::map<size_t, std::vector<std::string>>	lineNumbLexemes;
 	std::string									line, spacedLine;
@@ -80,16 +80,14 @@ std::vector<std::string>	split(const std::string& str) {
 	std::string					lexeme;
 
 	while(iss >> lexeme)
-	{
 		lexemes.push_back(lexeme);
-	}
 	return (lexemes);
 }
 
 
 
 
-void	ParseConfig::tokenizeConfigData(std::map<size_t, std::vector<std::string>> lineNumbLexemes) {
+void	ParseConfig::lexemesToTokens(std::map<size_t, std::vector<std::string>> lineNumbLexemes) {
 	TokenType		tokenType;
 
 	for(std::map<size_t, std::vector<std::string>>::iterator	itMap = lineNumbLexemes.begin(); itMap != lineNumbLexemes.end(); itMap++) {

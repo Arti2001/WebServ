@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   Request.cpp                                        :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/07/06 13:08:42 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/08/24 22:49:32 by vovashko      ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   Request.cpp                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/07/06 13:08:42 by vshkonda          #+#    #+#             */
+/*   Updated: 2025/09/16 21:19:52 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -176,7 +176,7 @@ void Request::parseHeaders() {
         if (pos != std::string::npos) {
             std::string headerName = line.substr(0, pos);
             std::string headerValue = line.substr(pos + 1);
-            Utils::trim(headerValue);
+            parsingUtils::trim(headerValue);
             if (headerName.empty() || headerValue.empty()) {
                 std::cerr << "Invalid header: " << line << std::endl;
                 return this->setStatusCode(400);

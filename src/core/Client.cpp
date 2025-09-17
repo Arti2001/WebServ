@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/06 13:07:50 by vshkonda          #+#    #+#             */
-/*   Updated: 2025/09/01 21:05:53 by amysiv           ###   ########.fr       */
+/*   Updated: 2025/09/05 17:16:27 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -167,7 +167,7 @@ void    Client::handleRequest (int clientFd) {
 
 void	Client::handleResponse(int clientFd) {
 	if (_clientResponse.empty()) {
-		_response =std::make_unique<Response>(&_request, _serverManager, _serverFd, clientFd);
+		_response = std::make_unique<Response>(&_request, _serverManager, _serverFd, clientFd);
 		_response->generateResponse();
 		if (getAnyHeader(_response->getHeaders(), "Connection") == "close")
 			_closeAfterResponse = true;

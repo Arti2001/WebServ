@@ -1,37 +1,39 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   CGIHandler.hpp                                     :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: vshkonda <vshkonda@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/06/30 12:13:08 by vshkonda      #+#    #+#                 */
-/*   Updated: 2025/08/24 21:40:00 by vovashko      ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   CGIHandler.hpp                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/06/30 12:13:08 by vshkonda          #+#    #+#             */
+/*   Updated: 2025/09/17 10:48:47 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#include <string>
-#include <vector>
-#include <map>
-#include <iostream>
-#include <exception>
+
+
+
 #include <algorithm>
 #include <string_view>
-#include <sys/stat.h>
-#include <unistd.h>
 #include <fcntl.h>
 #include <sys/wait.h>
 #include <sys/select.h>
 #include <signal.h>
 #include <cstring>
 #include <cstdio>
-#include "../Request/Request.hpp"
 #include "../Response/Response.hpp"
+
+
+
 
 #define MAX_OUTPUT_SIZE 10 * 1024 * 1024 // 10 MB maximum output size
 #define CHUNK_SIZE 8192 // 8 KB chunk size for reading/writing
+
+
+
+
 
 /**
  * @brief CGI script execution handler for the webserv application

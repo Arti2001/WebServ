@@ -5,34 +5,41 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/07/06 13:08:03 by vshkonda          #+#    #+#             */
-/*   Updated: 2025/09/01 20:58:52 by amysiv           ###   ########.fr       */
+/*   Created: 2025/09/17 10:55:44 by amysiv            #+#    #+#             */
+/*   Updated: 2025/09/17 10:55:47 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+
+
+
 #ifndef SERVER_HPP
 #define SERVER_HPP
+
+
+
 
 #define QUEUE_LENGTH	10   ///< Maximum length of the pending connections queue
 #define IN				1    ///< Direction flag: incoming
 #define OUT				2    ///< Direction flag: outgoing
 
-#include <sstream>
-#include <string.h>
+
+
+
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netdb.h>
 #include <netinet/in.h>
-#include <unistd.h>
-#include <stdio.h>
 #include <fcntl.h>
 #include <csignal>
 #include <sys/epoll.h>
 #include <arpa/inet.h>
 #include <cerrno>
-#include <sstream>
 #include <bits/stdc++.h>
 #include "parsingConfFile/ParseConfig.hpp"
+
+
+
 
 /**
  * @class Server

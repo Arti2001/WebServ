@@ -6,7 +6,7 @@
 /*   By: amysiv <amysiv@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/24 21:46:41 by amysiv            #+#    #+#             */
-/*   Updated: 2025/08/24 21:57:38 by amysiv           ###   ########.fr       */
+/*   Updated: 2025/09/17 10:57:12 by amysiv           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,7 @@
 
 
 #include "ServerManager.hpp"
-#include <filesystem>
-#include <utility>
+
 
 
 
@@ -98,9 +97,9 @@ void	ServerManager::parsConfigFile(std::vector<vServer>& _vServers) {
 	std::map<size_t, std::vector<std::string>>	roughData;
 
 	try{
-		roughData = parser.prepToTokenizeConfigData(getConfigFileFd());
-		parser.tokenizeConfigData(roughData);
-		parser.parseConfigFileTokens(_vServers);
+		roughData = parser.collectLexemesByLine(getConfigFileFd());
+		parser.lexemesToTokens(roughData);
+		parser.parseServerBlocks(_vServers);
 
 	}catch(ParseConfig::ConfException& ex){
 		std::cerr << "ConfigParser::Error: " << ex.what()<< "\n";
